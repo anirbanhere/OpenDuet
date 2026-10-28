@@ -1,5 +1,7 @@
 # Saathi — OpenDuet customization
 
+[Shareable text demo](https://35.208.235.27.sslip.io/) · [hosting, limits and recovery](docs/saathi/public-deployment.md). Meta/free-model chat and reviewed memory are available; real-world action tools and speech remain unconnected.
+
 Current inference setup: [Meta keys and free/cheap model selection](docs/saathi/model-selection.md). Keys remain on the server; threads/memories stay in SQLite. Paid OpenRouter and Meta are independent opt-ins.
 
 Fork of [CopilotKit/OpenDuet](https://github.com/CopilotKit/OpenDuet), retaining the MIT licence and upstream platform. Start with [Saathi setup, architecture and next steps](docs/saathi/README.md), [HANDOFF.md](HANDOFF.md) and [AGENTS.md](AGENTS.md).

@@ -1,5 +1,7 @@
 # Sharing the self-hosted demo
 
+Live release, verified 29 October 2026: **[open the public demo](https://35.208.235.27.sslip.io/)**. Executable source `8d2d507`, reviewed in [PR7](https://github.com/anirbanhere/OpenDuet/pull/7). HTTPS, one synthetic live Meta reply, visitor isolation, duplicate safety and conversation/memory persistence through an actual VM restart passed. Exact source hashes, CI and resources are in HANDOFF. Public inference allowance is 20 total/five per browser workspace per UTC day.
+
 29 October 2026. Deployment target authorized by the human: `sathi-home-agent`, `us-central1`. The older `home-agents` Cloud Run deployment is separate and must remain unchanged. Exact live URL/source/resource status belongs in HANDOFF; a successful build alone is not deployment evidence.
 
 ## Runtime
