@@ -14,6 +14,8 @@
 
 Next operator action: add Meta key and enable Meta in the private profile, then restart and select its model. Meta credits and billing are not verified; no live Meta or paid inference smoke is claimed. Optional cheap OpenRouter requires its separate opt-in and key-permitted models. Continue full upstream UI/runner, controlled mock tools and Indic speech as separate slices. PR order remains 1 -> 2 -> 3 -> 4 -> 5 -> picker; no automatic integration or paid resource creation.
 
+Final picker review: [PR6](https://github.com/anirbanhere/OpenDuet/pull/6), base `codex/model-selection`, executable source `1e5c053`. [Self-hosted CI 40746094165](https://github.com/anirbanhere/OpenDuet/actions/runs/40746094165) passed all focused tests, server types and frozen Linux test-type gate; [tenant/build CI 40746093687](https://github.com/anirbanhere/OpenDuet/actions/runs/40746093687) passed. The following handoff-only commit records these results, with no executable changes. PR5/6 remain draft and unmerged. Meta key configuration and an explicitly authorized live check remain the next operator step; no broader-platform green claim.
+
 ## Active continuation — fully self-hosted storage
 
 28 October 2026. Human chose fully self-hosted threads/memory; that preference is resolved. Current branch `codex/self-hosted-demo` adds the runnable console/default startup on the owned API/store stack. Read `docs/saathi/self-hosted.md` for commands, contracts, budgets and limits; `self-hosted-plan.md` records the initial bounded design.
