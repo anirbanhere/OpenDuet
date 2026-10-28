@@ -1,5 +1,15 @@
 # Saathi on OpenDuet handoff
 
+## Latest live check — Meta connected
+
+29 October 2026, Asia/Kolkata. Human configured the private Meta key/enable flag and explicitly requested a test, then selected a public city/date-dependent forecast question. Restarted the existing loopback service at 8790 to load the private profile. Meta catalogue discovery succeeded with `muse-spark-1.3`, no catalogue issues. Keys were never printed or committed; paid OpenRouter remains disabled. Credit entitlement/billing amounts remain unverified.
+
+Ran one actual Muse Spark 1.3 inference through the owned Hono API, tenant prompt, reviewed synthetic preference and durable run path in a **new synthetic-only SQLite database** under ignored `.saathi/meta-weather-smoke-<uuid>/`. Provider HTTP 200, application HTTP 200, completed in about 5.9 seconds, one inference attempt. The model correctly stated that no live weather tool was connected; it did not fabricate a forecast. This proves the inference connection and this observed limitation, not autonomous weather lookup or broader language/action quality.
+
+Reposting the identical request returned HTTP 200 with the same run ID; inference attempts stayed at one. Saved thread contained two messages and completed `meta:muse-spark-1.3` metadata. Existing app workspace records were not used as model context or modified by the smoke. Ignored `artifacts/meta-weather-smoke.ts` is a manual test helper, not a background job or CI test. No code changes or external actions were needed. Public Python/GCP deployment remains unchanged.
+
+Next product slice for this example is a verified weather/research tool with dated source evidence; the text model alone cannot provide live forecasts. Do not describe the chat assistant's separate web lookup as an implemented app capability. Earlier "Meta key missing / no live Meta test" statements below are historical checkpoints now superseded by this check.
+
 ## Latest continuation — Meta key and model picker
 
 28–29 October 2026, Asia/Kolkata. Human supplied the Meta Model API documentation URL and requested inexpensive/selectable inference. Current branch `codex/model-picker` stacks on `codex/model-selection` and PR4's local starter. Read `docs/saathi/model-selection.md` for exact private settings, provider/cost boundaries, API/migration behavior and sources. This remains a local text/storage product, not the complete upstream worker/action/speech platform.

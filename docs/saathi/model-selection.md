@@ -1,5 +1,7 @@
 # Provider keys and reply model selection
 
+Latest check, 29 October 2026: the configured Meta key successfully served one actual Muse Spark 1.3 request through the owned API in a fresh synthetic-only database. It completed in about 5.9 seconds; duplicate reconciliation reused the run without another inference. A date-dependent weather example correctly exposed the missing live-weather tool. This verifies model connectivity, not weather-tool integration or hackathon credit entitlement. See HANDOFF for evidence; initial no-live-test statements below describe the earlier implementation slice.
+
 28 October 2026. This is for the local OpenDuet fork starter, not the older public Python website. Models provide text answers/drafts; changing inference does not enable action tools, WhatsApp or speech. Threads and reviewed preferences remain in local SQLite. Context is sent to the selected provider for each answer.
 
 ## Add the Meta key
