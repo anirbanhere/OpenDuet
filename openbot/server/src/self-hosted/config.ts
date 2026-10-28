@@ -17,6 +17,7 @@ export function selfHostedConfig(
   };
   const allowPaid = flag("SAATHI_ALLOW_PAID_MODELS");
   const metaEnabled = flag("SAATHI_ENABLE_META");
+  const metaWebSearch = flag("SAATHI_META_WEB_SEARCH");
   const price = (name: string, fallback: number) => {
     const value = Number(env[name] ?? fallback);
     if (!Number.isFinite(value) || value < 0 || value > 100)
@@ -131,6 +132,7 @@ export function selfHostedConfig(
     maxInputPrice,
     maxOutputPrice,
     metaEnabled,
+    metaWebSearch,
     metaModels,
     metaApiKey,
     apiKey:

@@ -7,6 +7,59 @@ import { SelfHostedStore } from "../src/self-hosted/store";
 
 const stores: SelfHostedStore[] = [];
 const folders: string[] = [];
+test("v3 upgrade preserves owned replies, sources, usage and duplicate identity across reopen", () => {
+  const { store, a, b, path } = world();
+  const thread = store.createThread(a.owner, "saathi");
+  const old = store.beginRun(a.owner, thread.id, "old", "Synthetic old reply");
+  store.completeRun(a.owner, old.id, "Old answer");
+  store.close();
+  const db = new Database(path);
+  db.exec("DROP TABLE IF EXISTS run_evidence; UPDATE version SET value=3");
+  db.close();
+  const migrated = new SelfHostedStore(path);
+  stores.push(migrated);
+  expect(migrated.thread(a.owner, thread.id).messages).toHaveLength(2);
+  const run = migrated.beginRun(
+    a.owner,
+    thread.id,
+    "new",
+    "Synthetic forecast",
+  );
+  const evidence = {
+    sources: [
+      { title: "Synthetic IMD", url: "https://mausam.imd.gov.in/chennai/" },
+    ],
+    searchedAt: "2026-10-29T01:00:00Z",
+    searchCalls: 1,
+  };
+  migrated.completeRun(a.owner, run.id, "Synthetic cited reply", evidence);
+  expect(() => migrated.evidence(b.owner, run.id)).toThrow("not found");
+  migrated.close();
+  const reopened = new SelfHostedStore(path);
+  stores.push(reopened);
+  expect(reopened.thread(a.owner, thread.id).messages.at(-1)?.evidence).toEqual(
+    evidence,
+  );
+  expect(reopened.evidence(a.owner, run.id)).toEqual(evidence);
+  expect(
+    reopened.beginRun(a.owner, thread.id, "new", "Synthetic forecast").id,
+  ).toBe(run.id);
+  const verify = new Database(path);
+  expect(
+    verify
+      .query<{ n: number }, []>("SELECT count(*) n FROM inference_usage")
+      .get()?.n,
+  ).toBe(2);
+  verify.close();
+  reopened.deleteThread(a.owner, thread.id);
+  const deleted = new Database(path);
+  expect(
+    deleted
+      .query<{ n: number }, []>("SELECT count(*) n FROM run_evidence")
+      .get()?.n,
+  ).toBe(0);
+  deleted.close();
+});
 function world() {
   const folder = mkdtempSync(join(tmpdir(), "saathi-storage-"));
   folders.push(folder);

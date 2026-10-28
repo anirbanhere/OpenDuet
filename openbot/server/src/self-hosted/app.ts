@@ -4,6 +4,7 @@ import { getCookie, setCookie } from "hono/cookie";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { z } from "zod";
 import type { ModelCatalog, ModelChoice } from "./models";
+import type { GroundedAnswer } from "./search";
 import { LocalError, type SelfHostedStore, type StoredMessage } from "./store";
 
 export type AnswerInput = {
@@ -31,7 +32,7 @@ const equal = (a: string, b: string) => {
 
 export function createSelfHostedApp(options: {
   store: SelfHostedStore;
-  answer: (input: AnswerInput) => Promise<string>;
+  answer: (input: AnswerInput) => Promise<string | GroundedAnswer>;
   model: string;
   models?: () => Promise<ModelCatalog>;
   publicOrigin?: string | null;
@@ -252,6 +253,7 @@ export function createSelfHostedApp(options: {
           state: duplicate.state,
           reply: duplicate.reply,
           model: duplicate.model,
+          evidence: store.evidence(owner, duplicate.id),
         },
         duplicate.state === "running" ? 202 : 200,
       );
@@ -294,7 +296,7 @@ export function createSelfHostedApp(options: {
         memories.push(memory.content);
         memoryBudget -= memory.content.length;
       }
-      const reply = await answer({
+      const result = await answer({
         agent: thread.agent,
         messages: recent,
         memories,
@@ -302,12 +304,15 @@ export function createSelfHostedApp(options: {
         threadId,
         model: choice,
       });
-      store.completeRun(owner, run.id, reply);
+      const reply = typeof result === "string" ? result : result.text;
+      const evidence = typeof result === "string" ? undefined : result.evidence;
+      store.completeRun(owner, run.id, reply, evidence);
       return c.json({
         id: run.id,
         state: "completed",
         reply,
         model: run.model,
+        evidence: evidence ?? null,
       });
     } catch (error) {
       store.failRun(owner, run.id);

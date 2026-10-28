@@ -1,4 +1,3 @@
-"use strict";
 const $ = (selector) => document.querySelector(selector);
 const el = (tag, text) => {
   const element = document.createElement(tag);
@@ -118,6 +117,44 @@ async function show(id) {
     const speaker = el("span", message.role === "user" ? "You" : "Saathi");
     speaker.className = "speaker";
     card.append(speaker, el("span", message.content));
+    if (message.evidence?.sources?.length) {
+      const evidence = el("div");
+      evidence.className = "sources";
+      evidence.append(
+        el(
+          "p",
+          `Web sources · retrieved ${new Date(message.evidence.searchedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} IST. Check source publication and validity dates.`,
+        ),
+      );
+      for (const source of message.evidence.sources) {
+        try {
+          const url = new URL(source.url);
+          if (
+            url.protocol !== "https:" ||
+            url.username ||
+            url.password ||
+            url.port ||
+            !url.hostname.includes(".") ||
+            /[:[\]]/.test(url.hostname) ||
+            /^\d+\.\d+\.\d+\.\d+$/.test(url.hostname) ||
+            /\.(local|localhost|internal|test|invalid)$/.test(url.hostname)
+          )
+            continue;
+          const label =
+            source.kind === "opened_page"
+              ? "Page opened"
+              : source.kind === "search_result"
+                ? "Search result"
+                : "Cited source";
+          const link = el("a", `${label}: ${source.title} · ${url.pathname}`);
+          link.href = url.href;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          evidence.append(link, el("br"));
+        } catch {}
+      }
+      card.append(evidence);
+    }
     list.append(card);
   }
   if (!thread.messages.length)
@@ -166,7 +203,10 @@ async function models() {
       model.provider === "meta"
         ? "Meta · billing/credits unverified"
         : `$${model.inputPerMillion} input / $${model.outputPerMillion} output per 1M tokens`;
-    const option = el("option", `${model.name} · ${cost}`);
+    const option = el(
+      "option",
+      `${model.name} · ${model.webSearch ? "Web lookup" : "Text only"} · ${cost}`,
+    );
     option.value = model.id;
     picker.append(option);
   }
@@ -179,7 +219,7 @@ async function models() {
     picker.value = previous;
   picker.disabled = Boolean(pending);
   $("#model-policy").textContent =
-    `${data.allowPaid ? `OpenRouter rate ceilings: $${data.maxInputPrice} input / $${data.maxOutputPrice} output per 1M tokens.` : "OpenRouter is free-only."} ${data.metaEnabled ? "Meta is separately enabled; OpenRouter price ceilings do not apply to Meta." : "Meta is disabled until configured on the server."} ${data.models.length ? "Only models matching server keys and policy are listed." : "No eligible models. Configure a key or check its model permissions."} ${data.issues.join(" ")} Prices are token rates, not a total spending limit. Language quality and capacity are unverified.`;
+    `${data.allowPaid ? `OpenRouter rate ceilings: $${data.maxInputPrice} input / $${data.maxOutputPrice} output per 1M tokens.` : "OpenRouter is free-only."} ${data.metaEnabled ? "Meta is separately enabled; OpenRouter price ceilings do not apply to Meta." : "Meta is disabled until configured on the server."} ${data.models.length ? "Only models matching server keys and policy are listed." : "No eligible models. Configure a key or check its model permissions."} ${data.issues.join(" ")} Meta web lookups may add search charges. Prices are token rates, not a total spending limit. Language quality and capacity are unverified.`;
 }
 async function enter(session) {
   csrf = session.csrf;

@@ -1,5 +1,16 @@
 # Saathi on OpenDuet handoff
 
+## Active fix — read-only web lookup and India dates
+
+29 October 2026. `codex/live-web-lookup` stacks on public demo. Read `docs/saathi/live-web-plan.md`. Deployed root cause was text-only inference with no trusted date context. Current change adds explicit `SAATHI_META_WEB_SEARCH`, Meta stateless Responses search/page opens (one inference attempt, three built-in tool calls, 60-second/128 KB response bounds), safe saved source metadata and Asia/Kolkata today/tomorrow for all providers. Free OpenRouter stays text-only; no paid model switch or action grants.
+
+Local focused suite: 64 pass; server types and changed-file formatting/JS syntax pass. Windows frozen test-types reports only eight pre-existing gallery absolute-path/baseline text mismatches; baseline unchanged. Linux CI remains required before release. Bundle audit observes zero advisory matches in the four shipped packages, with 24 non-bundled upstream package advisories still separate.
+
+Actual synthetic-only Meta API checks exposed `tool_choice=required` rejection (HTTP400); implementation uses supported auto and checks returned evidence. One-call budget prevented opening the forecast, so the bounded budget is three. Successful IMD check opened the official Chennai homepage and linked forecast PDF, returned target 30 October with issue-date caveat in about eight seconds, and duplicate reused its run with one inference attempt. No independent forecast accuracy claim: native page-open evidence is provider-reported; annotations may be absent. UI labels page-open/search-result/cited links distinctly; empty evidence replaces model claims with an unverified-information notice. No raw errors/keys or private workspace were used.
+
+Schema v4 adds only cascading run/message evidence; migration/reopen/ownership/duplicate tests preserve v3 replies and quota ledger. Browser fixture shows safe source anchors and IST time with width390/scroll390. Public VM has NOT been updated at this checkpoint. `deploy.py --update` now validates the existing VM/retained disk, stops it for a consistent snapshot, updates metadata and restarts without touching IAM/secrets/network or erasing state. Final source CI, clean packaging and public acceptance are next. Keep the old release and pre-migration backup; old v3 code cannot open v4. Never falsify schema version or automatically restore an old disk over newer user data.
+
+
 ## Deployed — shareable public text demo
 
 29 October 2026, Asia/Kolkata. **Share URL: https://35.208.235.27.sslip.io/**. [PR7](https://github.com/anirbanhere/OpenDuet/pull/7) is draft/unmerged on `codex/public-demo`, base picker. Deployed executable source `8d2d5079d0a39bcea23b806651ebeae6992337c7`; the final documentation-only commit records verification without changing that bundle. Read `docs/saathi/public-deployment.md` for costs, operating and recovery boundaries.

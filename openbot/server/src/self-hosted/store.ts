@@ -2,6 +2,7 @@ import { Database } from "bun:sqlite";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { chmodSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
+import type { SearchEvidence } from "./search";
 
 export class LocalError extends Error {
   constructor(
@@ -15,6 +16,7 @@ export type StoredMessage = {
   id: string;
   role: "user" | "assistant";
   content: string;
+  evidence?: SearchEvidence | null;
 };
 type Thread = {
   id: string;
@@ -99,8 +101,16 @@ export class SelfHostedStore {
             );
           })
           .immediate();
-      else if (version?.value !== 3)
+      else if (version?.value !== 3 && version?.value !== 4)
         throw new LocalError("Unsupported local schema version.", 503);
+      if (version && version.value <= 3)
+        this.db
+          .transaction(() =>
+            this.db.exec(
+              "CREATE TABLE IF NOT EXISTS run_evidence(run TEXT PRIMARY KEY REFERENCES runs(id) ON DELETE CASCADE, message TEXT UNIQUE NOT NULL REFERENCES messages(id) ON DELETE CASCADE, payload TEXT NOT NULL); UPDATE version SET value=4 WHERE id=1",
+            ),
+          )
+          .immediate();
       // Single-process lock proves no live writer is using these runs. Never automatically replay.
       this.db.exec("UPDATE runs SET state='interrupted' WHERE state='running'");
     } catch (error) {
@@ -175,10 +185,14 @@ export class SelfHostedStore {
       .get(id, owner);
     if (!row) throw new LocalError("Thread not found.", 404);
     const messages = this.db
-      .query<StoredMessage, [string]>(
-        "SELECT id,role,content FROM messages WHERE thread=? ORDER BY seq",
+      .query<StoredMessage & { payload: string | null }, [string]>(
+        "SELECT m.id,m.role,m.content,e.payload FROM messages m LEFT JOIN run_evidence e ON e.message=m.id WHERE m.thread=? ORDER BY m.seq",
       )
-      .all(id);
+      .all(id)
+      .map(({ payload, ...message }) => ({
+        ...message,
+        evidence: payload ? (JSON.parse(payload) as SearchEvidence) : null,
+      }));
     const lastRun = this.db
       .query<
         { id: string; state: Run["state"]; model: string | null },
@@ -277,7 +291,12 @@ export class SelfHostedStore {
       })
       .immediate();
   }
-  completeRun(owner: string, id: string, reply: string) {
+  completeRun(
+    owner: string,
+    id: string,
+    reply: string,
+    evidence?: SearchEvidence,
+  ) {
     if (!reply.trim() || reply.length > 16000)
       throw new LocalError(
         "The model response exceeded the local answer budget.",
@@ -290,9 +309,14 @@ export class SelfHostedStore {
         if (run.state !== "running")
           throw new LocalError("This run cannot be completed.", 409);
         const count = this.thread(owner, run.thread).messages.length;
+        const messageId = randomUUID();
         this.db
           .query("INSERT INTO messages VALUES(?,?,?,?,?)")
-          .run(randomUUID(), run.thread, "assistant", reply, count);
+          .run(messageId, run.thread, "assistant", reply, count);
+        if (evidence)
+          this.db
+            .query("INSERT INTO run_evidence VALUES(?,?,?)")
+            .run(id, messageId, JSON.stringify(evidence));
         this.db
           .query(
             "UPDATE runs SET state='completed',reply=? WHERE id=? AND owner=?",
@@ -310,6 +334,15 @@ export class SelfHostedStore {
         "UPDATE runs SET state='failed' WHERE id=? AND owner=? AND state='running'",
       )
       .run(id, owner);
+  }
+  evidence(owner: string, id: string): SearchEvidence | null {
+    this.run(owner, id);
+    const row = this.db
+      .query<{ payload: string }, [string]>(
+        "SELECT payload FROM run_evidence WHERE run=?",
+      )
+      .get(id);
+    return row ? (JSON.parse(row.payload) as SearchEvidence) : null;
   }
   previousRun(owner: string, request: string) {
     return this.db
