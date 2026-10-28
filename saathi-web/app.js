@@ -187,6 +187,9 @@ async function enter(session) {
   $("#workspace").hidden = false;
   $("#model").textContent =
     "Choose a model for your next reply. Switching keeps this conversation and reviewed preferences.";
+  if (session.daily_limits)
+    $("#model").textContent +=
+      ` Shared demo allowance: ${session.daily_limits.owner} model attempts per workspace and ${session.daily_limits.global} total per day; resets at midnight UTC.`;
   await threads();
   await memories();
   const records = await api("/api/threads");

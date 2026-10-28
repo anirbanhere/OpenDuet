@@ -1,0 +1,13 @@
+*
+!app.js
+!manifest.json
+!LICENSE
+!linux-runtime.tgz
+!examples/
+!examples/**
+!saathi-web/
+!saathi-web/**
+!licenses/
+!licenses/**
+**/.env*
+**/*.sqlite*

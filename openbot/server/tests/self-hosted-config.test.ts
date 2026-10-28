@@ -24,6 +24,28 @@ test("paid OpenRouter and Meta are separate explicit opt-ins", () => {
   expect(configured.maxOutputPrice).toBe(1);
 });
 
+test("public sharing requires a canonical HTTPS origin and bounded daily limits", () => {
+  const config = selfHostedConfig({
+    SAATHI_PUBLIC_ORIGIN: "https://saathi.example.test",
+  });
+  expect(config.publicOrigin).toBe("https://saathi.example.test");
+  expect(config.dailyLimits).toEqual({ global: 20, owner: 5 });
+  expect(config.host).toBe("127.0.0.1");
+  for (const origin of [
+    "http://example.test",
+    "https://user:pass@example.test",
+    "https://example.test/path",
+    "https://example.test/?x=1",
+  ])
+    expect(() => selfHostedConfig({ SAATHI_PUBLIC_ORIGIN: origin })).toThrow();
+  expect(() =>
+    selfHostedConfig({
+      SAATHI_PUBLIC_ORIGIN: "https://example.test",
+      SAATHI_DAILY_CALLS: "0",
+    }),
+  ).toThrow();
+});
+
 test.each([
   { SAATHI_ALLOW_PAID_MODELS: "yes" },
   { SAATHI_MAX_INPUT_PRICE: "NaN" },

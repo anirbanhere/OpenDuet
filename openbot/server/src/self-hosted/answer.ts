@@ -1,4 +1,3 @@
-import { resolve } from "node:path";
 import { z } from "zod";
 import { loadTenantPackage } from "../tenant-package";
 import type { AnswerInput } from "./app";
@@ -26,9 +25,7 @@ export async function createAnswer(
   config: ReturnType<typeof selfHostedConfig>,
   transport: { fetch?: ProviderFetch } = {},
 ) {
-  const tenant = await loadTenantPackage(
-    resolve(import.meta.dir, "../../../examples/saathi"),
-  );
+  const tenant = await loadTenantPackage(config.tenantPath);
   const call = transport.fetch ?? fetch;
   return async (input: AnswerInput): Promise<string> => {
     const selected = input.model ?? {

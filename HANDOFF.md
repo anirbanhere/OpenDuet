@@ -1,5 +1,15 @@
 # Saathi on OpenDuet handoff
 
+## Active deployment — shareable public demo
+
+29 October 2026. Human requested deployment for sharing; existing GCP project/US-central region retained. Branch `codex/public-demo` on picker head `637db3d`. Read `docs/saathi/public-deployment.md` and `public-demo-plan.md`. The old Python Cloud Run deployment and local workspace files are unchanged. Compute API enabled; no public URL/resource readiness is claimed until the release evidence below is completed.
+
+Implemented public-origin reverse-proxy mode (backend still loopback-only), Secure cookies/HSTS, schema v3 durable attempt budgets (20 global/five per workspace per UTC day), explicit bundle tenant/web paths, minimal audited packaging, pinned runtime integrity and explicit VM provisioning/startup scripts. New config/quota tests were red before implementation. Current local focused suite: 55 pass. Public proxy/asset ownership checks and the packed-service boot/assets/cookie/ownership/durable-database smoke pass without model keys. Server types pass; Linux frozen test-type gate remains a release check.
+
+Release audit identified old Zod/Hono. Separate patched dependency commits: `4cf2168` (Zod 4.6.6), `4e74b65` (Hono 4.13.14); their focused regressions passed. The bundle contains only Zod/Hono/YAML/Drizzle and has zero matching observed advisories. Full upstream audit still reports 24 non-bundled advisory package names; do not claim a clean full-platform audit. Upstream licences are retained. No secret is embedded by the build; final release must be clean, manifest-listed and scanned before upload.
+
+Infrastructure plan is one e2-micro VM, 10 GB boot + retained 10 GB data disk, isolated VPC and HTTP(S)/IAP rules, static IP/sslip.io HTTPS, private release bucket and secret-specific VM permissions. Public IPv4 is USD 0.005/hour, compute/disk free-tier eligibility conditional; Meta costs separate. No automatic PR deployment. Exact source, build hash, resource status, browser/live/duplicate/restart evidence and rollback notes are recorded after provisioning. Until then this is preparation, not a deployed result.
+
 ## Latest live check — Meta connected
 
 29 October 2026, Asia/Kolkata. Human configured the private Meta key/enable flag and explicitly requested a test, then selected a public city/date-dependent forecast question. Restarted the existing loopback service at 8790 to load the private profile. Meta catalogue discovery succeeded with `muse-spark-1.3`, no catalogue issues. Keys were never printed or committed; paid OpenRouter remains disabled. Credit entitlement/billing amounts remain unverified.

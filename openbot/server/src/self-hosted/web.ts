@@ -4,8 +4,8 @@ import { LocalError } from "./store";
 
 export function attachSelfHostedWeb(
   app: ReturnType<typeof createSelfHostedApp>,
+  web = resolve(import.meta.dir, "../../../../saathi-web"),
 ) {
-  const web = resolve(import.meta.dir, "../../../../saathi-web");
   app.get(
     "/",
     () =>

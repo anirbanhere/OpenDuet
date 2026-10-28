@@ -56,7 +56,13 @@ export class SelfHostedStore {
   private db: Database;
   private release: () => void;
   private closed = false;
-  constructor(path: string) {
+  constructor(
+    path: string,
+    private options: {
+      limits?: { global: number; owner: number };
+      now?: () => number;
+    } = {},
+  ) {
     mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
     this.release = ownDatabase(path);
     let opened: Database | undefined;
@@ -85,7 +91,15 @@ export class SelfHostedStore {
             );
           })
           .immediate();
-      else if (version?.value !== 2)
+      if (version?.value === 1 || version?.value === 2)
+        this.db
+          .transaction(() => {
+            this.db.exec(
+              "CREATE TABLE IF NOT EXISTS inference_usage(run TEXT PRIMARY KEY, owner TEXT NOT NULL, day TEXT NOT NULL); CREATE INDEX IF NOT EXISTS usage_day_owner ON inference_usage(day,owner); UPDATE version SET value=3 WHERE id=1",
+            );
+          })
+          .immediate();
+      else if (version?.value !== 3)
         throw new LocalError("Unsupported local schema version.", 503);
       // Single-process lock proves no live writer is using these runs. Never automatically replay.
       this.db.exec("UPDATE runs SET state='interrupted' WHERE state='running'");
@@ -234,6 +248,7 @@ export class SelfHostedStore {
         if (thread.messages.length + 2 > 100)
           throw new LocalError("Thread message budget reached.", 429);
         const id = randomUUID();
+        this.reserveInference(owner, id);
         this.db
           .query(
             "INSERT INTO runs(id,owner,thread,request,digest,state,reply,model) VALUES(?,?,?,?,?,'running',NULL,?)",
@@ -302,6 +317,37 @@ export class SelfHostedStore {
         "SELECT * FROM runs WHERE owner=? AND request=?",
       )
       .get(owner, request);
+  }
+  limits() {
+    return this.options.limits ? { ...this.options.limits } : null;
+  }
+  private reserveInference(owner: string, run: string) {
+    const day = new Date((this.options.now ?? Date.now)())
+      .toISOString()
+      .slice(0, 10);
+    const limits = this.options.limits;
+    if (limits) {
+      const total = this.db
+        .query<{ n: number }, [string]>(
+          "SELECT count(*) n FROM inference_usage WHERE day=?",
+        )
+        .get(day);
+      const own = this.db
+        .query<{ n: number }, [string, string]>(
+          "SELECT count(*) n FROM inference_usage WHERE day=? AND owner=?",
+        )
+        .get(day, owner);
+      if (!total || !own)
+        throw new LocalError("Demo allowance storage is unavailable.", 503);
+      if (total.n >= limits.global || own.n >= limits.owner)
+        throw new LocalError(
+          "Demo daily model-call allowance reached. It resets at midnight UTC; no new message or inference was started.",
+          429,
+        );
+    }
+    this.db
+      .query("INSERT INTO inference_usage VALUES(?,?,?)")
+      .run(run, owner, day);
   }
   run(owner: string, id: string) {
     const row = this.db

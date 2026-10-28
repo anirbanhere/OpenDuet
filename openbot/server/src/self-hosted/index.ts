@@ -9,14 +9,16 @@ import { attachSelfHostedWeb } from "./web";
 process.env.COPILOTKIT_TELEMETRY_DISABLED = "true";
 const config = selfHostedConfig(process.env);
 const answer = await createAnswer(config);
-const store = new SelfHostedStore(config.path);
+const store = new SelfHostedStore(config.path, { limits: config.dailyLimits });
 const app = attachSelfHostedWeb(
   createSelfHostedApp({
     store,
     answer,
     model: config.model,
     models: createModelCatalog(config),
+    publicOrigin: config.publicOrigin,
   }),
+  config.webPath,
 );
 const server = Bun.serve({
   hostname: config.host,

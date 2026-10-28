@@ -5,6 +5,7 @@ import { basename, dirname, join, resolve } from "node:path";
 import { type AnswerInput, createSelfHostedApp } from "../src/self-hosted/app";
 import type { ModelCatalog } from "../src/self-hosted/models";
 import { SelfHostedStore } from "../src/self-hosted/store";
+import { attachSelfHostedWeb } from "../src/self-hosted/web";
 
 const cleanups: (() => void)[] = [];
 afterEach(() => {
@@ -14,6 +15,7 @@ async function fixture(
   answer = async (input: AnswerInput) =>
     `Remembered: ${input.memories.join(";") || "nothing"}`,
   models?: () => Promise<ModelCatalog>,
+  publicOrigin?: string,
 ) {
   const dir = mkdtempSync(join(tmpdir(), "saathi-http-"));
   const store = new SelfHostedStore(join(dir, "db.sqlite"));
@@ -33,11 +35,16 @@ async function fixture(
     answer,
     model: "synthetic:free",
     models,
+    publicOrigin,
   });
-  const start = await app.request("http://localhost:8790/api/session", {
+  if (publicOrigin) attachSelfHostedWeb(app);
+  const base = publicOrigin
+    ? publicOrigin.replace("https:", "http:")
+    : "http://localhost:8790";
+  const start = await app.request(`${base}/api/session`, {
     method: "POST",
     headers: {
-      Origin: "http://localhost:8790",
+      Origin: publicOrigin ?? base,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ consent: true }),
@@ -45,18 +52,41 @@ async function fixture(
   const session = await start.json();
   const headers = {
     Cookie: start.headers.get("set-cookie")!.split(";")[0]!,
-    Origin: "http://localhost:8790",
+    Origin: publicOrigin ?? base,
     "Content-Type": "application/json",
     "X-Saathi-CSRF": session.csrf,
   };
   const request = (path: string, body?: unknown, method = "POST", extra = {}) =>
-    app.request(`http://localhost:8790${path}`, {
+    app.request(`${base}${path}`, {
       method: body === undefined ? "GET" : method,
       headers: { ...headers, ...extra },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
-  return { app, request, headers };
+  return { app, request, headers, start };
 }
+
+test("public TLS proxy mode validates host/origin and secures sessions and raw assets", async () => {
+  const { app, request, start } = await fixture(
+    undefined,
+    undefined,
+    "https://saathi.example.test",
+  );
+  expect(start.headers.get("set-cookie")).toContain("Secure");
+  expect((await request("/")).headers.get("strict-transport-security")).toBe(
+    "max-age=86400",
+  );
+  expect((await app.request("http://wrong.example.test/health")).status).toBe(
+    403,
+  );
+  expect(
+    (
+      await request("/api/threads", { agent: "saathi" }, "POST", {
+        Origin: "http://saathi.example.test",
+      })
+    ).status,
+  ).toBe(403);
+  expect((await request("/api/threads", { agent: "saathi" })).status).toBe(201);
+});
 
 test("anonymous requests, cross-origin and forged CSRF fail before storage/model access", async () => {
   const { app, request } = await fixture();
