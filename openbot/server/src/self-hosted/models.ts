@@ -9,6 +9,7 @@ export type ModelChoice = {
   name: string;
   inputPerMillion: number | null;
   outputPerMillion: number | null;
+  webSearch?: boolean;
 };
 export type ModelCatalog = {
   models: ModelChoice[];
@@ -92,6 +93,7 @@ export function createModelCatalog(
                 name: `Meta · ${row.data.id}`,
                 inputPerMillion: null,
                 outputPerMillion: null,
+                webSearch: config.metaWebSearch,
               });
           } else {
             const row = textModel.safeParse(raw);

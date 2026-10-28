@@ -14,6 +14,7 @@ const choices = ["one", "two"].map((name) => ({
   name: `FIXTURE ${name} · no live inference`,
   inputPerMillion: 0,
   outputPerMillion: 0,
+  webSearch: name === "two",
 }));
 const app = attachSelfHostedWeb(
   createSelfHostedApp({
@@ -36,6 +37,21 @@ const app = attachSelfHostedWeb(
           "Synthetic provider failure; no live inference.",
           503,
         );
+      if (messages.at(-1)?.content === "Synthetic source preview")
+        return {
+          text: "Synthetic public-source answer. This is a UI fixture, not a weather report.",
+          evidence: {
+            sources: [
+              {
+                title: "Synthetic IMD page",
+                url: "https://mausam.imd.gov.in/chennai/",
+                kind: "opened_page" as const,
+              },
+            ],
+            searchedAt: "2026-10-29T00:00:00Z",
+            searchCalls: 1,
+          },
+        };
       return `Synthetic fixture answer from ${model?.id}. Reviewed preferences: ${memories.join("; ") || "none"}.`;
     },
   }),

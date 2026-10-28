@@ -9,6 +9,7 @@ import shutil
 import subprocess
 import sys
 import tarfile
+from datetime import datetime, timezone
 
 ROOT = Path(__file__).resolve().parents[2]
 PROJECT = "sathi-home-agent"
@@ -37,6 +38,42 @@ def cloud(*args, payload=None, missing=False):
 def ensure(probe, create):
     if cloud(*probe, missing=True) is None:
         cloud(*create)
+
+
+def update_existing(archive, manifest, digest, object_name):
+    """Explicit update: retain identities/secrets/network and stop before a consistent disk snapshot."""
+    instance = cloud("compute", "instances", "describe", VM, f"--zone={ZONE}")
+    if instance.get("status") != "RUNNING" or [row.get("email") for row in instance.get("serviceAccounts", [])] != [IDENTITY]:
+        raise RuntimeError("Expected running VM/resource-scoped identity not found; update refused.")
+    disk = next((row for row in instance.get("disks", []) if row.get("deviceName") == "saathi-data"), None)
+    if not disk or disk.get("autoDelete") is not False or not disk.get("source", "").endswith("/disks/saathi-demo-data"):
+        raise RuntimeError("Expected retained data disk not found; update refused.")
+    address = cloud("compute", "addresses", "describe", "saathi-demo-ip", f"--region={REGION}")["address"]
+    ipaddress.IPv4Address(address)
+    host = f"{address}.sslip.io"
+    cloud("storage", "cp", str(archive), f"gs://{BUCKET}/{object_name}", "--if-generation-match=0")
+    startup = (ROOT / "deploy/public/startup.sh").read_text(encoding="utf-8")
+    for key, value in {"PROJECT": PROJECT, "HOST": host, "BUCKET": BUCKET, "OBJECT": object_name, "SHA256": digest}.items():
+        startup = startup.replace(f"__{key}__", value)
+    rendered = ROOT / "artifacts/saathi-vm-startup.sh"
+    rendered.write_text(startup, encoding="utf-8", newline="\n")
+    previous = {"metadata": instance.get("metadata"), "release": json.loads((ROOT / "artifacts/public-deploy-state.json").read_text())}
+    (ROOT / "artifacts/public-deploy-previous.json").write_text(json.dumps(previous, indent=2), encoding="utf-8")
+    snapshot = "saathi-demo-data-pre-web-" + datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+    print("Stopping existing demo for a consistent data-disk backup before migration.", flush=True)
+    cloud("compute", "instances", "stop", VM, f"--zone={ZONE}")
+    try:
+        cloud("compute", "snapshots", "create", snapshot, "--source-disk=saathi-demo-data", f"--source-disk-zone={ZONE}", f"--storage-location={REGION}")
+        backup = cloud("compute", "snapshots", "describe", snapshot)
+        if backup.get("status") != "READY":
+            raise RuntimeError("Pre-migration snapshot is not ready; update refused.")
+        cloud("compute", "instances", "add-metadata", VM, f"--zone={ZONE}", f"--metadata-from-file=startup-script={rendered}")
+    finally:
+        # If snapshot fails, unchanged metadata boots the previous release. Never erase/restore data automatically.
+        cloud("compute", "instances", "start", VM, f"--zone={ZONE}")
+    state = {"project": PROJECT, "region": REGION, "zone": ZONE, "vm": VM, "url": f"https://{host}/", "source": manifest["source"], "archive_sha256": digest, "object": object_name, "pre_migration_snapshot": snapshot}
+    (ROOT / "artifacts/public-deploy-state.json").write_text(json.dumps(state, indent=2), encoding="utf-8")
+    print(json.dumps(state, indent=2))
 
 
 def main():
@@ -71,6 +108,9 @@ def main():
                 raise RuntimeError("Credential found in packaged input.")
     digest = hashlib.sha256(content).hexdigest()
     object_name = f"releases/{manifest['source']}-{digest}.tgz"
+    if "--update" in sys.argv[1:]:
+        update_existing(archive, manifest, digest, object_name)
+        return
     ensure(["iam", "service-accounts", "describe", IDENTITY], ["iam", "service-accounts", "create", "saathi-demo-vm", "--display-name=Saathi isolated demo VM"])
     for name, value in keys.items():
         ensure(["secrets", "describe", name], ["secrets", "create", name, "--replication-policy=automatic"])

@@ -92,6 +92,27 @@ test("Meta chat uses only its own key and stateless endpoint with the selected S
   expect((body.messages as { role: string }[])[0]?.role).toBe("developer");
 });
 
+test("request clock resolves tomorrow in India after the UTC midnight boundary", async () => {
+  let body: { messages?: { content: string }[] } = {};
+  const answer = await createAnswer(
+    selfHostedConfig({ OPENROUTER_API_KEY: "synthetic" }),
+    {
+      now: () => Date.parse("2026-10-28T20:00:00Z"),
+      fetch: async (_url, init) => {
+        body = JSON.parse(String(init.body));
+        return Response.json({
+          choices: [{ message: { content: "Synthetic" } }],
+        });
+      },
+    },
+  );
+  await answer(input());
+  expect(body.messages?.[0]?.content).toContain(
+    "Today in Asia/Kolkata: 2026-10-29",
+  );
+  expect(body.messages?.[0]?.content).toContain("Tomorrow: 2026-10-30");
+});
+
 test("a disabled provider or paid choice is rejected without an outbound attempt", async () => {
   let calls = 0;
   const answer = await createAnswer(

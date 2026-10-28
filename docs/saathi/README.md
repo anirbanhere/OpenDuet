@@ -88,3 +88,5 @@ Free inference does not make computer containers, storage, speech, hosted memory
 ## Verification and gaps
 
 Read root HANDOFF.md for exact commands/results/CI. Focused tests validate a real tenant load and configuration rejection, and nearby upstream tests mock HTTP transports. They do not demonstrate live OpenRouter, Intelligence, ASR, approvals, bookings or a public site. The existing Python project's tests/deployment remain independent evidence, not test counts for this fork.
+
+Read-only live information: [web lookup and date plan](live-web-plan.md), including the Meta opt-in, source evidence, costs and migration boundaries.

@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { type AnswerInput, createSelfHostedApp } from "../src/self-hosted/app";
 import type { ModelCatalog } from "../src/self-hosted/models";
+import type { GroundedAnswer } from "../src/self-hosted/search";
 import { SelfHostedStore } from "../src/self-hosted/store";
 import { attachSelfHostedWeb } from "../src/self-hosted/web";
 
@@ -12,8 +13,9 @@ afterEach(() => {
   for (const close of cleanups.splice(0)) close();
 });
 async function fixture(
-  answer = async (input: AnswerInput) =>
-    `Remembered: ${input.memories.join(";") || "nothing"}`,
+  answer: (input: AnswerInput) => Promise<string | GroundedAnswer> = async (
+    input: AnswerInput,
+  ) => `Remembered: ${input.memories.join(";") || "nothing"}`,
   models?: () => Promise<ModelCatalog>,
   publicOrigin?: string,
 ) {
@@ -64,6 +66,40 @@ async function fixture(
     });
   return { app, request, headers, start };
 }
+
+test("source evidence survives API history and duplicate receipts without a second lookup", async () => {
+  let calls = 0;
+  const evidence = {
+    sources: [
+      { title: "Synthetic IMD", url: "https://mausam.imd.gov.in/chennai/" },
+    ],
+    searchedAt: "2026-10-29T00:00:00Z",
+    searchCalls: 1,
+  };
+  const { request } = await fixture(async () => {
+    calls++;
+    return { text: "Synthetic cited answer", evidence };
+  });
+  const thread = await (
+    await request("/api/threads", { agent: "saathi" })
+  ).json();
+  const body = {
+    request_id: "synthetic-search",
+    text: "Synthetic public lookup",
+  };
+  const first = await (
+    await request(`/api/threads/${thread.id}/messages`, body)
+  ).json();
+  const duplicate = await (
+    await request(`/api/threads/${thread.id}/messages`, body)
+  ).json();
+  expect(first.evidence).toEqual(evidence);
+  expect(duplicate.evidence).toEqual(evidence);
+  expect(duplicate.id).toBe(first.id);
+  expect(calls).toBe(1);
+  const saved = await (await request(`/api/threads/${thread.id}`)).json();
+  expect(saved.messages.at(-1).evidence).toEqual(evidence);
+});
 
 test("public TLS proxy mode validates host/origin and secures sessions and raw assets", async () => {
   const { app, request, start } = await fixture(

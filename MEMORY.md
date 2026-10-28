@@ -9,3 +9,5 @@
 - Initial inference profile uses OpenRouter free models; models remain replaceable. No paid fallback is configured. Key guardrails must control spend even if upstream UI settings change.
 - The separate full upstream entry still requires CopilotKit Intelligence for its threads/runners. The self-hosted starter does not use that service. Optional telemetry opt-out alone is not a replacement for cloud storage; the local mode has its own durable store.
 - Public WhatsApp, real account actions, purchases/payments and production hosting require their own access, policy, identity and operational decisions. No upstream feature claim proves Saathi-specific readiness.
+
+- Explicit current-information requests can use native Meta read-only search/page opens with the existing key. OpenRouter remains free/text-only and never switches silently. Local SQLite still owns threads/memory; stateless Meta requests use store=false. Source links distinguish search hits, completed page opens and citations; provider evidence is not independent freshness or accuracy proof.
