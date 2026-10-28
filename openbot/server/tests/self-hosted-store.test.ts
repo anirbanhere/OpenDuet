@@ -75,6 +75,35 @@ test("duplicate IDs do not create another run and pending work is not replayed",
     reopened.beginRun(a.owner, thread.id, "message-1", "Hello").state,
   ).toBe("interrupted");
   expect(reopened.thread(a.owner, thread.id).messages).toHaveLength(1);
+  expect(reopened.thread(a.owner, thread.id).lastRun?.state).toBe(
+    "interrupted",
+  );
+});
+
+test("a send reserves room for its reply after a failed run near the message limit", () => {
+  const { store, a } = world();
+  const thread = store.createThread(a.owner, "saathi");
+  for (let i = 0; i < 49; i++) {
+    const run = store.beginRun(
+      a.owner,
+      thread.id,
+      `complete-${i}`,
+      "Synthetic question",
+    );
+    store.completeRun(a.owner, run.id, "Synthetic answer");
+  }
+  const failed = store.beginRun(
+    a.owner,
+    thread.id,
+    "failed-at-limit",
+    "Synthetic failure",
+  );
+  store.failRun(a.owner, failed.id);
+  expect(store.thread(a.owner, thread.id).messages).toHaveLength(99);
+  expect(() =>
+    store.beginRun(a.owner, thread.id, "over-limit", "One more"),
+  ).toThrow("budget");
+  expect(store.thread(a.owner, thread.id).messages).toHaveLength(99);
 });
 
 test("memory needs explicit review, is scoped, and supports deletion", () => {

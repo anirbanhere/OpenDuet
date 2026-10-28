@@ -23,7 +23,9 @@ const completion = z.object({
 /** One bounded inference request. The tenant is reused; no cloud thread/runner client is created. */
 export async function createAnswer(
   config: ReturnType<typeof selfHostedConfig>,
-  transport: { fetch?: typeof fetch } = {},
+  transport: {
+    fetch?: (url: string, init: RequestInit) => Promise<Response>;
+  } = {},
 ) {
   const tenant = await loadTenantPackage(
     resolve(import.meta.dir, "../../../examples/saathi"),

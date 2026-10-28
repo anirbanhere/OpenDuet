@@ -1,5 +1,7 @@
 # Saathi customization guide
 
+**Latest direction:** the human chose fully self-hosted threads/memory. Read [the runnable self-hosted guide](self-hosted.md) and HANDOFF first. Root `start`/`saathi:start` now select that local SQLite mode; no Intelligence project or Docker is needed. The guide below records the earlier full-upstream profile and remains applicable only to its explicitly named upstream/cloud commands.
+
 28 October2026. Upstream inspected at `60fd4c71d9d82e13739dce00827278154d13c947`, [CopilotKit/OpenDuet](https://github.com/CopilotKit/OpenDuet). Fork: [anirbanhere/OpenDuet](https://github.com/anirbanhere/OpenDuet). MIT notices remain intact.
 
 ## What this fork changes
@@ -10,7 +12,7 @@ Hindi/Tamil/Malayalam/Kannada/English response instructions are present. This do
 
 The startup model profile uses `provider: openai` for the **compatible API protocol**, `OPENAI_BASE_URL=https://openrouter.ai/api/v1`, and `BOT_MODEL=openrouter/free`. `model.yaml` reads the same `BOT_MODEL`, so the tenant and sample framework bot share the choice. A permitted specific `:free` model can replace it. OpenRouter's [free router](https://openrouter.ai/openrouter/free) selects available free models with requested feature support; key permissions/capacity still matter. A free catalogue entry is not a successful inference test. No new live call or paid fallback was made/configured here.
 
-`saathi:check` validates local profile/tenant configuration without contacting services or printing keys. It refuses missing keys, the public zero encryption placeholder, non-OpenRouter endpoint, non-free model and non-loopback profile. It is a startup helper, **not** a runtime spend/action policy: an administrator can change the upstream model picker later. Keep key-level model/spend restrictions. Independent role-specific model pins and task-switch reconciliation from the Python reference have not been ported.
+`upstream:tenant-check` validates the separate upstream profile/tenant configuration without contacting services or printing keys. It refuses missing keys, the public zero encryption placeholder, non-OpenRouter endpoint, non-free model and non-loopback profile. It is a startup helper, **not** a runtime spend/action policy: an administrator can change the upstream model picker later. Keep key-level model/spend restrictions. Independent role-specific model pins and task-switch reconciliation from the Python reference have not been ported.
 
 ## Architecture and remaining dependencies
 
@@ -30,29 +32,29 @@ This is an early upstream template, not an already-complete Saathi product. Its 
 
 CopilotKit Intelligence is required by the current boot configuration. A project/API key is separate from OpenRouter. Threads and memory go to that service when configured; disabling optional telemetry does not eliminate this data flow. Do not use private household data until this boundary is accepted. The initial fork has no connected Google, Composio, WhatsApp, clinic, train, grocery or bill-payment account. Existing Python integrations are not automatically available here.
 
-## Local setup
+## Separate upstream setup (optional; not the self-hosted starter)
 
 Use an isolated checkout and a Linux/WSL environment with working Docker Linux engine, Bun1.4.3 and Node/npx. Native Windows can validate the tenant/build; the upstream Bash/symlink/container startup is not verified there. No public ingress or cloud resources are created by these steps.
 
 ```sh
 git clone https://github.com/anirbanhere/OpenDuet.git
 cd OpenDuet
-git checkout codex/saathi-kickoff
+git checkout codex/self-hosted-demo
 bun install --cwd openbot --frozen-lockfile
 cp saathi.env.example openbot/.env
 ```
 
-Fill **only this fork's** `openbot/.env`; do not copy the legacy `.env`. Put the existing operator-managed OpenRouter key into `OPENAI_API_KEY` and choose a key-permitted free model in `BOT_MODEL`. CopilotKit Intelligence needs a separate project key for `INTELLIGENCE_API_KEY`; upstream's [quick start](../../README.md#quick-start) describes its CLI login/project/learning-container setup. Confirm that remote thread/memory storage is acceptable before configuring it; the fully self-hosted alternative is a separate pending design choice. Run approved setup from this fork with one canonical `.env` as its guide requires. Do not place a key in chat, a committed file or a command-line argument. Generate a fresh random32-byte base64 encryption key in the private `.env`; the public all-zero placeholder is rejected at startup. The preflight checks shape/nonzero bytes, not cryptographic randomness.
+This upstream mode uses `openbot/.env`, an OpenRouter key in `OPENAI_API_KEY` and a permitted `BOT_MODEL`. It also requires CopilotKit Intelligence and a fresh 32-byte vault encryption key. The human has chosen self-hosted storage instead, so do not configure this cloud mode as part of default Saathi setup. Its original requirements remain here for platform reference. Never copy the legacy `.env` wholesale or place a key in chat, a committed file or a command-line argument.
 
 ```sh
 bun run saathi:test
-bun run saathi:check
-bun run saathi:start
+bun run upstream:tenant-check
+bun run saathi:cloud-start
 ```
 
-`saathi:start` checks the profile before invoking upstream `scripts/start.sh`; startup may build/start Docker services, migrate **this fork's** PostgreSQL and mint local tokens. It is not a preview-only command. `COMPOSE_PROJECT_NAME=saathi-openduet` separates its volumes from OpenDuet/OpenBot defaults. The intended local app is localhost:3010, API localhost:3001; actual startup must verify them. Do not expose `OPENBOT_SINGLE_USER=true` publicly.
+`saathi:cloud-start` checks the upstream profile before invoking `scripts/start.sh`; startup may build/start Docker services, migrate **this fork's** PostgreSQL and mint local tokens. It is not a preview-only command. `COMPOSE_PROJECT_NAME=saathi-openduet` separates its volumes from OpenDuet/OpenBot defaults. The intended upstream app is localhost:3010, API localhost:3001; actual startup must verify them. Do not expose `OPENBOT_SINGLE_USER=true` publicly.
 
-On native PowerShell, `Copy-Item saathi.env.example openbot/.env` prepares the template. No actual key file was created in this implementation session. Config generation/build without credentials:
+On native PowerShell, `Copy-Item saathi.env.example openbot/.env` prepares the optional upstream template. It is distinct from the starter's private `.env.self-hosted` profile. Config generation/build without credentials:
 
 ```powershell
 $env:TENANT_PACKAGE_DIR='../examples/saathi'

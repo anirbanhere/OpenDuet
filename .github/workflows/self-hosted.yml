@@ -22,3 +22,4 @@ jobs:
       - run: bun install --frozen-lockfile --ignore-scripts
       - run: bun test self-hosted
       - run: bun run --cwd server typecheck
+      - run: bun run typecheck:tests

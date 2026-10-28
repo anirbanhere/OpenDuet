@@ -13,6 +13,14 @@ export type AnswerInput = {
   threadId: string;
 };
 type Session = { owner: string; csrf: string };
+const securityHeaders = {
+  "Cache-Control": "no-store",
+  "X-Content-Type-Options": "nosniff",
+  "Referrer-Policy": "no-referrer",
+  "X-Frame-Options": "DENY",
+  "Content-Security-Policy":
+    "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
+};
 const equal = (a: string, b: string) => {
   const left = Buffer.from(a),
     right = Buffer.from(b);
@@ -43,14 +51,8 @@ export function createSelfHostedApp(options: {
     ),
   );
   app.use("*", async (c, next) => {
-    c.header("Cache-Control", "no-store");
-    c.header("X-Content-Type-Options", "nosniff");
-    c.header("Referrer-Policy", "no-referrer");
-    c.header("X-Frame-Options", "DENY");
-    c.header(
-      "Content-Security-Policy",
-      "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
-    );
+    for (const [name, value] of Object.entries(securityHeaders))
+      c.header(name, value);
     const url = new URL(c.req.url);
     if (!["127.0.0.1", "localhost", "[::1]"].includes(url.hostname))
       throw new LocalError("This Saathi mode is loopback-only.", 403);
@@ -110,6 +112,9 @@ export function createSelfHostedApp(options: {
       c.set("session", session);
     }
     await next();
+    // Raw file Responses do not inherit the Context's prepared response headers.
+    for (const [name, value] of Object.entries(securityHeaders))
+      c.res.headers.set(name, value);
   });
   const input = <T>(schema: z.ZodType<T>, body: unknown) => {
     const parsed = schema.safeParse(body);

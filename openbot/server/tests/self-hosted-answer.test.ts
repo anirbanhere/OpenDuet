@@ -19,7 +19,7 @@ test("the tenant/model HTTP path receives reviewed context without a cloud memor
   const answer = await createAnswer(
     selfHostedConfig({ OPENROUTER_API_KEY: "synthetic-key" }),
     {
-      fetch: (async (url, init) => {
+      fetch: async (url, init) => {
         urls.push(String(url));
         sent = String(init?.body);
         return Response.json({
@@ -32,7 +32,7 @@ test("the tenant/model HTTP path receives reviewed context without a cloud memor
             },
           ],
         });
-      }) as typeof fetch,
+      },
     },
   );
   expect(await answer(input())).toBe("Synthetic model answer.");
@@ -54,19 +54,17 @@ test("provider429 is one attempt and never logs a raw provider payload", async (
       );
     },
   });
-  const previous = process.env.OPENAI_BASE_URL,
-    originalError = console.error,
+  const originalError = console.error,
     originalWarn = console.warn;
   const errors: unknown[][] = [];
   console.error = (...args) => {
     errors.push(args);
   };
   console.warn = () => {};
-  process.env.OPENAI_BASE_URL = proxy.url.origin;
   try {
     const answer = await createAnswer(
       selfHostedConfig({ OPENROUTER_API_KEY: "synthetic-key" }),
-      { fetch: (async (_url, init) => fetch(proxy.url, init)) as typeof fetch },
+      { fetch: async (_url, init) => fetch(proxy.url, init) },
     );
     await expect(answer(input())).rejects.toThrow();
     expect(calls).toBe(1);
@@ -75,8 +73,6 @@ test("provider429 is one attempt and never logs a raw provider payload", async (
     await proxy.stop(true);
     console.error = originalError;
     console.warn = originalWarn;
-    if (previous === undefined) delete process.env.OPENAI_BASE_URL;
-    else process.env.OPENAI_BASE_URL = previous;
   }
 });
 
@@ -106,7 +102,7 @@ test.each([
   async (body) => {
     const answer = await createAnswer(
       selfHostedConfig({ OPENROUTER_API_KEY: "synthetic-key" }),
-      { fetch: (async () => Response.json(body)) as typeof fetch },
+      { fetch: async () => Response.json(body) },
     );
     await expect(answer(input())).rejects.toThrow();
   },
@@ -115,7 +111,7 @@ test.each([
 test("received provider response bytes are bounded", async () => {
   const answer = await createAnswer(
     selfHostedConfig({ OPENROUTER_API_KEY: "synthetic-key" }),
-    { fetch: (async () => new Response("x".repeat(64001))) as typeof fetch },
+    { fetch: async () => new Response("x".repeat(64001)) },
   );
   await expect(answer(input())).rejects.toThrow("byte budget");
 });

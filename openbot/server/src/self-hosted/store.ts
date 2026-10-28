@@ -156,7 +156,12 @@ export class SelfHostedStore {
         "SELECT id,role,content FROM messages WHERE thread=? ORDER BY seq",
       )
       .all(id);
-    return { ...row, messages };
+    const lastRun = this.db
+      .query<{ id: string; state: Run["state"] }, [string]>(
+        "SELECT id,state FROM runs WHERE thread=? ORDER BY rowid DESC LIMIT 1",
+      )
+      .get(id);
+    return { ...row, messages, lastRun };
   }
   deleteThread(owner: string, id: string) {
     return this.db
@@ -207,7 +212,8 @@ export class SelfHostedStore {
             "An answer is already running in this workspace.",
             409,
           );
-        if (thread.messages.length >= 100)
+        // Reserve both the new question and its possible answer, even after failures.
+        if (thread.messages.length + 2 > 100)
           throw new LocalError("Thread message budget reached.", 429);
         const id = randomUUID();
         this.db

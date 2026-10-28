@@ -2,7 +2,7 @@ name: Saathi tenant
 on:
   pull_request:
   push:
-    branches: ["codex/saathi-kickoff"]
+    branches: ["codex/saathi-kickoff", "codex/self-hosted-storage", "codex/self-hosted-api", "codex/self-hosted-demo"]
 permissions:
   contents: read
 jobs:
@@ -18,6 +18,9 @@ jobs:
           bun-version: 1.4.3
       - run: bun install --cwd openbot --frozen-lockfile --ignore-scripts
       - run: bun run saathi:test
+      - run: bun run saathi:self-hosted:test
+      - run: node --check saathi-web/app.js
+      - run: bun run --cwd openbot/server typecheck
       - run: bun test server/tests/model-providers.test.ts server/tests/routing-model-url.test.ts
         working-directory: openbot
       - run: bun run --cwd openbot generate:app-config
