@@ -6,10 +6,14 @@
   "description": "Saathi's household-agent customization of OpenDuet, built on OpenBot and CopilotKit.",
   "scripts": {
     "postinstall": "bun install --cwd openbot",
-    "start": "bash scripts/start.sh",
-    "saathi:check": "bun --env-file=openbot/.env scripts/saathi-preflight.ts",
+    "start": "bun run saathi:start",
+    "upstream:start": "bash scripts/start.sh",
+    "upstream:tenant-check": "bun --env-file=openbot/.env scripts/saathi-preflight.ts",
+    "saathi:check": "bun --env-file=openbot/.env.self-hosted scripts/saathi-self-hosted-check.ts",
     "saathi:test": "bun test ./openbot/server/tests/saathi-tenant.test.ts",
-    "saathi:start": "bun run saathi:check && bash scripts/start.sh",
-    "stop": "bash scripts/stop.sh"
+    "saathi:cloud-start": "bun run upstream:tenant-check && bash scripts/start.sh",
+    "saathi:start": "bun --env-file=openbot/.env.self-hosted openbot/server/src/self-hosted/index.ts",
+    "saathi:self-hosted:test": "bun test ./openbot/server/tests/self-hosted-store.test.ts ./openbot/server/tests/self-hosted-http.test.ts ./openbot/server/tests/self-hosted-config.test.ts ./openbot/server/tests/self-hosted-answer.test.ts ./openbot/server/tests/self-hosted-web.test.ts",
+    "upstream:stop": "bash scripts/stop.sh"
   }
 }
