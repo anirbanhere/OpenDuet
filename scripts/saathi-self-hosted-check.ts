@@ -8,5 +8,5 @@ console.log(
   `Local binding: ${config.host}:${config.port}. Model: ${config.model}.`,
 );
 console.log(
-  `Chat key: ${config.apiKey ? "configured, capacity unverified" : "missing; storage UI still starts"}. Actions/speech/background jobs: unavailable.`,
+  `OpenRouter key: ${config.apiKey ? "configured" : "missing"}; paid models: ${config.allowPaid ? `enabled within ${config.maxInputPrice}/${config.maxOutputPrice} USD per million token ceilings` : "disabled"}. Meta key: ${config.metaApiKey ? "configured" : "missing"}; Meta inference: ${config.metaEnabled ? "enabled, billing/availability unverified" : "disabled"}. Actions/speech/background jobs: unavailable.`,
 );

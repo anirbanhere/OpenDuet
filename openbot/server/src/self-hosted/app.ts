@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { z } from "zod";
+import type { ModelCatalog, ModelChoice } from "./models";
 import { LocalError, type SelfHostedStore, type StoredMessage } from "./store";
 
 export type AnswerInput = {
@@ -11,6 +12,7 @@ export type AnswerInput = {
   memories: string[];
   runId: string;
   threadId: string;
+  model?: ModelChoice;
 };
 type Session = { owner: string; csrf: string };
 const securityHeaders = {
@@ -31,8 +33,30 @@ export function createSelfHostedApp(options: {
   store: SelfHostedStore;
   answer: (input: AnswerInput) => Promise<string>;
   model: string;
+  models?: () => Promise<ModelCatalog>;
 }) {
   const { store, answer, model } = options;
+  const getModels =
+    options.models ??
+    (async () => ({
+      models: [
+        {
+          id: `openrouter:${model}`,
+          provider: "openrouter" as const,
+          model,
+          name: model,
+          inputPerMillion: 0,
+          outputPerMillion: 0,
+        },
+      ],
+      defaultModel: `openrouter:${model}`,
+      allowPaid: false,
+      metaEnabled: false,
+      maxInputPrice: 0,
+      maxOutputPrice: 0,
+      checkedAt: Date.now(),
+      issues: [],
+    }));
   const app = new Hono<{ Variables: { session: Session; body: unknown } }>();
   const writes: number[] = [];
   app.onError((error, c) =>
@@ -154,6 +178,7 @@ export function createSelfHostedApp(options: {
         .map(({ owner: _owner, ...thread }) => thread),
     ),
   );
+  app.get("/api/models", async (c) => c.json(await getModels()));
   app.post("/api/threads", (c) => {
     const body = input(
       z.object({ agent: z.enum(["saathi", "kitchen", "inventory"]) }).strict(),
@@ -182,16 +207,53 @@ export function createSelfHostedApp(options: {
         .object({
           request_id: z.string().regex(/^[A-Za-z0-9_-]{1,80}$/),
           text: z.string().trim().min(1).max(2000),
+          model: z.string().min(1).max(180).optional(),
         })
         .strict(),
       c.var.body,
     );
     const owner = c.var.session.owner,
       threadId = c.req.param("id");
-    const run = store.beginRun(owner, threadId, body.request_id, body.text);
+    store.thread(owner, threadId);
+    const prior = store.previousRun(owner, body.request_id);
+    if (prior) {
+      // Saved receipts remain readable even if the provider/catalogue is down or a model was removed.
+      const duplicate = store.beginRun(
+        owner,
+        threadId,
+        body.request_id,
+        body.text,
+        body.model ?? (prior.model === null ? null : `openrouter:${model}`),
+      );
+      return c.json(
+        {
+          id: duplicate.id,
+          state: duplicate.state,
+          reply: duplicate.reply,
+          model: duplicate.model,
+        },
+        duplicate.state === "running" ? 202 : 200,
+      );
+    }
+    const catalog = await getModels();
+    const choice = catalog.models.find(
+      (candidate) => candidate.id === (body.model ?? catalog.defaultModel),
+    );
+    if (!choice)
+      throw new LocalError(
+        "Choose an available model allowed by this server's keys and cost policy.",
+        400,
+      );
+    const run = store.beginRun(
+      owner,
+      threadId,
+      body.request_id,
+      body.text,
+      choice.id,
+    );
     if (!run.fresh)
       return c.json(
-        { id: run.id, state: run.state, reply: run.reply },
+        { id: run.id, state: run.state, reply: run.reply, model: run.model },
         run.state === "running" ? 202 : 200,
       );
     try {
@@ -217,9 +279,15 @@ export function createSelfHostedApp(options: {
         memories,
         runId: run.id,
         threadId,
+        model: choice,
       });
       store.completeRun(owner, run.id, reply);
-      return c.json({ id: run.id, state: "completed", reply });
+      return c.json({
+        id: run.id,
+        state: "completed",
+        reply,
+        model: run.model,
+      });
     } catch (error) {
       store.failRun(owner, run.id);
       throw error instanceof LocalError

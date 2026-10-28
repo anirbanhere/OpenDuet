@@ -2,7 +2,8 @@ import { afterEach, expect, test } from "bun:test";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
-import { createSelfHostedApp } from "../src/self-hosted/app";
+import { type AnswerInput, createSelfHostedApp } from "../src/self-hosted/app";
+import type { ModelCatalog } from "../src/self-hosted/models";
 import { SelfHostedStore } from "../src/self-hosted/store";
 
 const cleanups: (() => void)[] = [];
@@ -10,8 +11,9 @@ afterEach(() => {
   for (const close of cleanups.splice(0)) close();
 });
 async function fixture(
-  answer = async (input: { memories: string[] }) =>
+  answer = async (input: AnswerInput) =>
     `Remembered: ${input.memories.join(";") || "nothing"}`,
+  models?: () => Promise<ModelCatalog>,
 ) {
   const dir = mkdtempSync(join(tmpdir(), "saathi-http-"));
   const store = new SelfHostedStore(join(dir, "db.sqlite"));
@@ -26,7 +28,12 @@ async function fixture(
       );
     rmSync(dir, { recursive: true, force: true });
   });
-  const app = createSelfHostedApp({ store, answer, model: "synthetic:free" });
+  const app = createSelfHostedApp({
+    store,
+    answer,
+    model: "synthetic:free",
+    models,
+  });
   const start = await app.request("http://localhost:8790/api/session", {
     method: "POST",
     headers: {
@@ -73,6 +80,78 @@ test("anonymous requests, cross-origin and forged CSRF fail before storage/model
   expect((await app.request("https://public.example/api/session")).status).toBe(
     403,
   );
+});
+
+test("selection is server-eligible, persisted and duplicate-safe even during catalogue failure", async () => {
+  let calls = 0,
+    available = true;
+  const choices = ["one", "two"].map((name) => ({
+    id: `openrouter:synthetic/${name}:free`,
+    provider: "openrouter" as const,
+    model: `synthetic/${name}:free`,
+    name,
+    inputPerMillion: 0,
+    outputPerMillion: 0,
+  }));
+  const { app, request } = await fixture(
+    async (input) => {
+      calls++;
+      return `Selected ${input.model?.id}`;
+    },
+    async () => {
+      if (!available) throw new Error("synthetic catalogue failure");
+      return {
+        models: choices,
+        defaultModel: choices[0]!.id,
+        allowPaid: false,
+        metaEnabled: false,
+        maxInputPrice: 0,
+        maxOutputPrice: 0,
+        checkedAt: 0,
+        issues: [],
+      };
+    },
+  );
+  expect((await app.request("http://localhost:8790/api/models")).status).toBe(
+    401,
+  );
+  expect((await (await request("/api/models")).json()).models).toHaveLength(2);
+  const thread = await (
+    await request("/api/threads", { agent: "saathi" })
+  ).json();
+  const bad = {
+    request_id: "selected",
+    text: "Synthetic",
+    model: "openrouter:forged/paid",
+  };
+  expect(
+    (await request(`/api/threads/${thread.id}/messages`, bad)).status,
+  ).toBe(400);
+  expect(calls).toBe(0);
+  expect(
+    (await (await request(`/api/threads/${thread.id}`)).json()).messages,
+  ).toHaveLength(0);
+  const body = { ...bad, model: choices[1]!.id };
+  const result = await (
+    await request(`/api/threads/${thread.id}/messages`, body)
+  ).json();
+  expect(result.model).toBe(choices[1]!.id);
+  available = false;
+  expect(
+    (await request(`/api/threads/${thread.id}/messages`, body)).status,
+  ).toBe(200);
+  expect(
+    (
+      await request(`/api/threads/${thread.id}/messages`, {
+        ...body,
+        model: choices[0]!.id,
+      })
+    ).status,
+  ).toBe(409);
+  expect(calls).toBe(1);
+  expect(
+    (await (await request(`/api/threads/${thread.id}`)).json()).lastRun.model,
+  ).toBe(choices[1]!.id);
 });
 
 test("chat and reviewed memory are durable, owned and not duplicated", async () => {

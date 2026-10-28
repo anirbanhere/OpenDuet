@@ -212,11 +212,7 @@ export class SelfHostedStore {
               ? `${threadId}\0${text}`
               : JSON.stringify([threadId, text, model]),
           );
-        const prior = this.db
-          .query<Run, [string, string]>(
-            "SELECT * FROM runs WHERE owner=? AND request=?",
-          )
-          .get(owner, request);
+        const prior = this.previousRun(owner, request);
         if (prior) {
           if (prior.digest !== digest)
             throw new LocalError(
@@ -299,6 +295,13 @@ export class SelfHostedStore {
         "UPDATE runs SET state='failed' WHERE id=? AND owner=? AND state='running'",
       )
       .run(id, owner);
+  }
+  previousRun(owner: string, request: string) {
+    return this.db
+      .query<Run, [string, string]>(
+        "SELECT * FROM runs WHERE owner=? AND request=?",
+      )
+      .get(owner, request);
   }
   run(owner: string, id: string) {
     const row = this.db

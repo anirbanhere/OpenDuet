@@ -2,7 +2,7 @@ name: Saathi self-hosted
 on:
   pull_request:
   push:
-    branches: ["codex/self-hosted-storage", "codex/self-hosted-api", "codex/self-hosted-demo"]
+    branches: ["codex/self-hosted-storage", "codex/self-hosted-api", "codex/self-hosted-demo", "codex/model-selection"]
 permissions:
   contents: read
 jobs:
