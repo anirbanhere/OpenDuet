@@ -9,9 +9,58 @@ export function selfHostedConfig(
       "Remove cloud thread/memory credentials from the self-hosted profile.",
     );
   const model = env.BOT_MODEL?.trim() || "openrouter/free";
-  if (model !== "openrouter/free" && !/^[A-Za-z0-9_./-]+:free$/.test(model))
+  const flag = (name: string) => {
+    const value = env[name]?.trim() || "false";
+    if (value !== "true" && value !== "false")
+      throw new LocalError(`${name} must be true or false.`);
+    return value === "true";
+  };
+  const allowPaid = flag("SAATHI_ALLOW_PAID_MODELS");
+  const metaEnabled = flag("SAATHI_ENABLE_META");
+  const price = (name: string, fallback: number) => {
+    const value = Number(env[name] ?? fallback);
+    if (!Number.isFinite(value) || value < 0 || value > 100)
+      throw new LocalError(
+        `${name} must be a token rate between 0 and 100 USD per million.`,
+      );
+    return value;
+  };
+  const maxInputPrice = price("SAATHI_MAX_INPUT_PRICE", 0.25);
+  const maxOutputPrice = price("SAATHI_MAX_OUTPUT_PRICE", 1);
+  if (
+    !/^[A-Za-z0-9_./:-]{1,150}$/.test(model) ||
+    (!allowPaid && model !== "openrouter/free" && !model.endsWith(":free"))
+  )
     throw new LocalError(
       "Choose a free OpenRouter model; no paid fallback is enabled.",
+    );
+  const metaApiKey =
+    env.META_API_KEY?.trim() || env.MODEL_API_KEY?.trim() || null;
+  if (metaEnabled && !metaApiKey)
+    throw new LocalError(
+      "Configure META_API_KEY before enabling Meta inference.",
+    );
+  const metaModels = [
+    ...new Set(
+      (env.SAATHI_META_MODELS || "muse-spark-1.3")
+        .split(",")
+        .map((value) => value.trim()),
+    ),
+  ];
+  if (
+    !metaModels.length ||
+    metaModels.some(
+      (value) =>
+        ![
+          "muse-spark-1.3",
+          "muse-spark-1.2",
+          "muse-spark-1.1",
+          "muse-wonder-1.0",
+        ].includes(value),
+    )
+  )
+    throw new LocalError(
+      "Choose supported Meta Standard-mode text models. Contributor mode is not enabled by this profile.",
     );
   if (
     env.OPENAI_BASE_URL &&
@@ -33,6 +82,12 @@ export function selfHostedConfig(
         resolve(import.meta.dir, "../../../../.saathi/state.sqlite"),
     ),
     model,
+    allowPaid,
+    maxInputPrice,
+    maxOutputPrice,
+    metaEnabled,
+    metaModels,
+    metaApiKey,
     apiKey:
       env.OPENROUTER_API_KEY?.trim() || env.OPENAI_API_KEY?.trim() || null,
   };

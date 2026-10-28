@@ -31,6 +31,7 @@ type Run = {
   digest: string;
   state: "running" | "completed" | "failed" | "interrupted";
   reply: string | null;
+  model: string | null;
 };
 type Memory = { id: string; content: string; created: number };
 const hash = (text: string) => createHash("sha256").update(text).digest("hex");
@@ -76,7 +77,15 @@ export class SelfHostedStore {
       const version = this.db
         .query<{ value: number }, []>("SELECT value FROM version WHERE id=1")
         .get();
-      if (version?.value !== 1)
+      if (version?.value === 1)
+        this.db
+          .transaction(() => {
+            this.db.exec(
+              "ALTER TABLE runs ADD COLUMN model TEXT; UPDATE version SET value=2 WHERE id=1",
+            );
+          })
+          .immediate();
+      else if (version?.value !== 2)
         throw new LocalError("Unsupported local schema version.", 503);
       // Single-process lock proves no live writer is using these runs. Never automatically replay.
       this.db.exec("UPDATE runs SET state='interrupted' WHERE state='running'");
@@ -157,8 +166,11 @@ export class SelfHostedStore {
       )
       .all(id);
     const lastRun = this.db
-      .query<{ id: string; state: Run["state"] }, [string]>(
-        "SELECT id,state FROM runs WHERE thread=? ORDER BY rowid DESC LIMIT 1",
+      .query<
+        { id: string; state: Run["state"]; model: string | null },
+        [string]
+      >(
+        "SELECT id,state,model FROM runs WHERE thread=? ORDER BY rowid DESC LIMIT 1",
       )
       .get(id);
     return { ...row, messages, lastRun };
@@ -179,7 +191,13 @@ export class SelfHostedStore {
       })
       .immediate();
   }
-  beginRun(owner: string, threadId: string, request: string, text: string) {
+  beginRun(
+    owner: string,
+    threadId: string,
+    request: string,
+    text: string,
+    model: string | null = null,
+  ) {
     if (
       !/^[A-Za-z0-9_-]{1,80}$/.test(request) ||
       !text.trim() ||
@@ -189,7 +207,11 @@ export class SelfHostedStore {
     return this.db
       .transaction(() => {
         const thread = this.thread(owner, threadId),
-          digest = hash(`${threadId}\0${text}`);
+          digest = hash(
+            model === null
+              ? `${threadId}\0${text}`
+              : JSON.stringify([threadId, text, model]),
+          );
         const prior = this.db
           .query<Run, [string, string]>(
             "SELECT * FROM runs WHERE owner=? AND request=?",
@@ -217,8 +239,10 @@ export class SelfHostedStore {
           throw new LocalError("Thread message budget reached.", 429);
         const id = randomUUID();
         this.db
-          .query("INSERT INTO runs VALUES(?,?,?,?,?,'running',NULL)")
-          .run(id, owner, threadId, request, digest);
+          .query(
+            "INSERT INTO runs(id,owner,thread,request,digest,state,reply,model) VALUES(?,?,?,?,?,'running',NULL,?)",
+          )
+          .run(id, owner, threadId, request, digest, model);
         this.db
           .query("INSERT INTO messages VALUES(?,?,?,?,?)")
           .run(
@@ -236,6 +260,7 @@ export class SelfHostedStore {
           digest,
           state: "running" as const,
           reply: null,
+          model,
           fresh: true,
         };
       })
