@@ -5,13 +5,14 @@
 <a class="skip" href="#message">Skip to conversation</a>
 <header><div class="brand">saathi<span>A little help with your everyday.</span></div><span class="badge">SELF-HOSTED STORAGE</span></header>
 <main>
-  <section id="welcome" class="panel welcome"><p class="eyebrow">YOUR SPACE, ON YOUR SERVER</p><h1>Pick up where you left off.</h1><p>Conversations and reviewed memories are saved in this server's SQLite database. This is a private browser workspace, with a 24-hour session and no account recovery.</p><p>Chat uses OpenRouter. Recent messages and saved preferences go to the selected model when you send. Use synthetic details for this demo; keep credentials and private records out.</p><button id="start">Start a local workspace</button></section>
+  <section id="welcome" class="panel welcome"><p class="eyebrow">YOUR SPACE, ON YOUR SERVER</p><h1>Pick up where you left off.</h1><p>Conversations and reviewed memories are saved in this server's SQLite database. This is a private browser workspace, with a 24-hour session and no account recovery.</p><p>Chat uses the model provider you select: OpenRouter or operator-enabled Meta. Recent messages and saved preferences go to that provider when you send. Use synthetic details for this demo; keep credentials and private records out.</p><button id="start">Start a local workspace</button></section>
   <div id="workspace" class="workspace" hidden>
     <nav class="panel sidebar" aria-label="Saved conversations"><p class="eyebrow">CONVERSATIONS</p><label for="agent">Assistant</label><select id="agent"><option value="saathi">Saathi · Everyday help</option><option value="kitchen">Saathi Kitchen</option><option value="inventory">Saathi Stock</option></select><button id="new-thread">New conversation</button><div id="threads"></div></nav>
     <section class="panel conversation" aria-label="Conversation">
       <div class="conversation-heading"><div><p class="eyebrow">SPEAK NATURALLY</p><h1 id="thread-title">How can I help?</h1></div><button id="refresh" class="secondary">Refresh saved state</button></div>
       <p class="notice">Text answers and drafts only. Actions, bookings, speech and background jobs are unavailable in this starter. Language support is a target, not a tested fluency claim.</p>
       <p id="model" class="muted"></p>
+      <label for="model-select">Reply model</label><select id="model-select" aria-describedby="model-policy"><option value="">Loading eligible models…</option></select><p id="model-policy" class="muted" aria-live="polite"></p><button id="models-refresh" class="secondary" type="button">Refresh model list</button>
       <p id="thread-state" class="muted" role="status"></p>
       <div id="messages" role="log" aria-label="Saved messages"></div>
       <form id="chat"><label for="message">Your message</label><textarea id="message" rows="3" maxlength="2000" required placeholder="English, हिन्दी, தமிழ், മലയാളം or ಕನ್ನಡ"></textarea><div class="actions"><span class="muted">Saved on this server. Sent to the model for a reply.</span><button id="send" type="submit">Send message ↗</button></div></form>

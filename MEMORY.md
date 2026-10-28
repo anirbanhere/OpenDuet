@@ -1,5 +1,7 @@
 # Stable Saathi decisions
 
+- Human supplied a Meta Model API dashboard and requested inexpensive/selectable inference. OpenRouter remains free-only by default; cheap models use a separate token-rate opt-in. Meta has its own key/opt-in and Standard-mode text allowlist; credits/billing are unverified. Contributor-mode training consent is not inferred from lower-cost requests. Model switching cannot replay a run.
+
 - Human chose fully self-hosted threads and memories. The initial local entry uses server-side SQLite with browser-scoped anonymous workspaces and explicitly reviewed preferences; no Intelligence service/key is required. Model inference may still use OpenRouter, so context sent for an answer leaves the server. Upstream worker/computer/full-UI integration remains a separate migration; no fake cloud entitlement or in-memory-only durability substitute.
 
 - This fork uses OpenDuet/OpenBot/CopilotKit as a candidate product foundation. The Python Saathi reference and deployed Home Agents site remain separate; no data/runtime migration has happened.

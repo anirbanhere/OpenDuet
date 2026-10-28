@@ -2,7 +2,12 @@ import { expect, test } from "bun:test";
 import { selfHostedConfig } from "../src/self-hosted/config";
 import { createModelCatalog } from "../src/self-hosted/models";
 
-const row = (id: string, prompt = "0", completion = "0", request = "0") => ({
+const row = (
+  id: string,
+  prompt = "0",
+  completion = "0",
+  request: unknown = "0",
+) => ({
   id,
   name: id,
   architecture: { input_modalities: ["text"], output_modalities: ["text"] },
@@ -36,6 +41,26 @@ test("catalogue is key-filtered, free-only and bounded; malformed prices and ext
   expect(urls).toEqual(["https://openrouter.ai/api/v1/models/user"]);
   expect(result.models.map((m) => m.id)).toEqual(["openrouter:vendor/ok:free"]);
   expect(JSON.stringify(result)).not.toContain("synthetic-router");
+});
+
+test("current OpenRouter rows may omit request pricing; explicit unknown or nonzero fees remain excluded", async () => {
+  const omitted = {
+    ...row("vendor/omitted:free"),
+    pricing: { prompt: "0", completion: "0" },
+  };
+  const catalog = createModelCatalog(config(), {
+    fetch: async () =>
+      Response.json({
+        data: [
+          omitted,
+          row("vendor/null:free", "0", "0", null),
+          row("vendor/fee:free", "0", "0", "0.01"),
+        ],
+      }),
+  });
+  expect((await catalog()).models.map((m) => m.model)).toEqual([
+    "vendor/omitted:free",
+  ]);
 });
 
 test("cheap opt-in respects both token ceilings and never grants unknown pricing", async () => {
