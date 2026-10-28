@@ -74,6 +74,42 @@ export function selfHostedConfig(
     throw new LocalError("Choose a local port between1024 and65535.");
   if (env.SAATHI_HOST && env.SAATHI_HOST !== "127.0.0.1")
     throw new LocalError("The starter service is loopback-only.");
+  let publicOrigin: string | null = null;
+  if (env.SAATHI_PUBLIC_ORIGIN?.trim()) {
+    try {
+      const url = new URL(env.SAATHI_PUBLIC_ORIGIN.trim());
+      if (
+        url.protocol !== "https:" ||
+        url.username ||
+        url.password ||
+        url.pathname !== "/" ||
+        url.search ||
+        url.hash
+      )
+        throw new Error("origin");
+      publicOrigin = url.origin;
+    } catch {
+      throw new LocalError(
+        "Configure one canonical HTTPS public origin without credentials, path or query.",
+      );
+    }
+  }
+  const count = (name: string, fallback: number, maximum: number) => {
+    const value = Number(env[name] ?? fallback);
+    if (!Number.isInteger(value) || value < 1 || value > maximum)
+      throw new LocalError(`${name} is outside its bounded demo allowance.`);
+    return value;
+  };
+  const dailyLimits = publicOrigin
+    ? {
+        global: count("SAATHI_DAILY_CALLS", 20, 100),
+        owner: count("SAATHI_WORKSPACE_DAILY_CALLS", 5, 20),
+      }
+    : undefined;
+  if (dailyLimits && dailyLimits.owner > dailyLimits.global)
+    throw new LocalError(
+      "Workspace allowance cannot exceed the server allowance.",
+    );
   return {
     host: "127.0.0.1" as const,
     port,
@@ -82,6 +118,15 @@ export function selfHostedConfig(
         resolve(import.meta.dir, "../../../../.saathi/state.sqlite"),
     ),
     model,
+    publicOrigin,
+    dailyLimits,
+    tenantPath: resolve(
+      env.SAATHI_TENANT_PATH ||
+        resolve(import.meta.dir, "../../../examples/saathi"),
+    ),
+    webPath: resolve(
+      env.SAATHI_WEB_ROOT || resolve(import.meta.dir, "../../../../saathi-web"),
+    ),
     allowPaid,
     maxInputPrice,
     maxOutputPrice,

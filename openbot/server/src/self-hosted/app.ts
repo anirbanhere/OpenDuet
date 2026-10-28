@@ -34,6 +34,7 @@ export function createSelfHostedApp(options: {
   answer: (input: AnswerInput) => Promise<string>;
   model: string;
   models?: () => Promise<ModelCatalog>;
+  publicOrigin?: string | null;
 }) {
   const { store, answer, model } = options;
   const getModels =
@@ -78,13 +79,18 @@ export function createSelfHostedApp(options: {
     for (const [name, value] of Object.entries(securityHeaders))
       c.header(name, value);
     const url = new URL(c.req.url);
-    if (!["127.0.0.1", "localhost", "[::1]"].includes(url.hostname))
+    const expectedOrigin = options.publicOrigin ?? url.origin;
+    if (options.publicOrigin) {
+      if (url.host !== new URL(options.publicOrigin).host)
+        throw new LocalError("Unrecognized public host.", 403);
+      c.header("Strict-Transport-Security", "max-age=86400");
+    } else if (!["127.0.0.1", "localhost", "[::1]"].includes(url.hostname))
       throw new LocalError("This Saathi mode is loopback-only.", 403);
     if (!["GET", "POST", "DELETE"].includes(c.req.method))
       throw new LocalError("Unsupported method.", 405);
     if (c.req.method !== "GET") {
       if (
-        c.req.header("origin") !== url.origin ||
+        c.req.header("origin") !== expectedOrigin ||
         c.req.header("content-type")?.split(";")[0] !== "application/json"
       )
         throw new LocalError("Use same-origin JSON.", 403);
@@ -139,6 +145,8 @@ export function createSelfHostedApp(options: {
     // Raw file Responses do not inherit the Context's prepared response headers.
     for (const [name, value] of Object.entries(securityHeaders))
       c.res.headers.set(name, value);
+    if (options.publicOrigin)
+      c.res.headers.set("Strict-Transport-Security", "max-age=86400");
   });
   const input = <T>(schema: z.ZodType<T>, body: unknown) => {
     const parsed = schema.safeParse(body);
@@ -152,6 +160,8 @@ export function createSelfHostedApp(options: {
       actions: false,
       speech: false,
       model,
+      public_demo: Boolean(options.publicOrigin),
+      daily_limits: store.limits(),
     }),
   );
   app.post("/api/session", (c) => {
@@ -162,14 +172,25 @@ export function createSelfHostedApp(options: {
       sameSite: "Strict",
       path: "/",
       maxAge: 86400,
+      secure: Boolean(options.publicOrigin),
     });
     return c.json(
-      { csrf: session.csrf, storage: "self-hosted-sqlite", model },
+      {
+        csrf: session.csrf,
+        storage: "self-hosted-sqlite",
+        model,
+        daily_limits: store.limits(),
+      },
       201,
     );
   });
   app.get("/api/session", (c) =>
-    c.json({ csrf: c.var.session.csrf, storage: "self-hosted-sqlite", model }),
+    c.json({
+      csrf: c.var.session.csrf,
+      storage: "self-hosted-sqlite",
+      model,
+      daily_limits: store.limits(),
+    }),
   );
   app.get("/api/threads", (c) =>
     c.json(

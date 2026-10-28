@@ -107,6 +107,55 @@ test("a send reserves room for its reply after a failed run near the message lim
   expect(store.thread(a.owner, thread.id).messages).toHaveLength(99);
 });
 
+test("daily inference budgets survive restart/deletion and do not charge duplicates", () => {
+  const { store, a, b, path } = world();
+  store.close();
+  let now = Date.UTC(2026, 9, 29);
+  const options = { limits: { global: 2, owner: 1 }, now: () => now };
+  const bounded = new SelfHostedStore(path, options);
+  stores.push(bounded);
+  const first = bounded.createThread(a.owner, "saathi");
+  const run = bounded.beginRun(
+    a.owner,
+    first.id,
+    "quota-one",
+    "Synthetic question",
+  );
+  bounded.failRun(a.owner, run.id);
+  expect(
+    bounded.beginRun(a.owner, first.id, "quota-one", "Synthetic question")
+      .fresh,
+  ).toBe(false);
+  expect(() =>
+    bounded.beginRun(a.owner, first.id, "quota-two", "Another"),
+  ).toThrow("allowance");
+  bounded.deleteThread(a.owner, first.id);
+  bounded.close();
+  const resumed = new SelfHostedStore(path, options);
+  stores.push(resumed);
+  const second = resumed.createThread(a.owner, "saathi");
+  expect(() =>
+    resumed.beginRun(a.owner, second.id, "quota-three", "Another"),
+  ).toThrow("allowance");
+  const other = resumed.createThread(b.owner, "saathi");
+  const otherRun = resumed.beginRun(
+    b.owner,
+    other.id,
+    "quota-other",
+    "Synthetic",
+  );
+  resumed.failRun(b.owner, otherRun.id);
+  const c = resumed.createSession(),
+    third = resumed.createThread(c.owner, "saathi");
+  expect(() =>
+    resumed.beginRun(c.owner, third.id, "quota-global", "Synthetic"),
+  ).toThrow("allowance");
+  now += 86400000;
+  expect(
+    resumed.beginRun(c.owner, third.id, "quota-next-day", "Synthetic").fresh,
+  ).toBe(true);
+});
+
 test("memory needs explicit review, is scoped, and supports deletion", () => {
   const { store, a, b } = world();
   expect(() => store.saveMemory(a.owner, "Preference", false)).toThrow(

@@ -1,5 +1,7 @@
 # Saathi on OpenDuet — coding agent instructions
 
+Current deployment slice: `codex/public-demo` on the picker. The human explicitly asked to deploy for public sharing in the existing GCP project. Follow `docs/saathi/public-deployment.md` and latest HANDOFF for observed release state. The fresh single-VM demo uses persistent SQLite, strict public HTTPS origin and durable daily attempt budgets; preserve local data and the older Python Cloud Run service. This is not authorization for unrelated resources, merges, real actions or disabling provider guardrails.
+
 Current inference continuation: `codex/model-picker` on `codex/model-selection`; see `docs/saathi/model-selection.md` and latest HANDOFF. Free OpenRouter is default; capped paid OpenRouter and Meta are independent opt-ins. Never infer Contributor training consent, Meta credit eligibility or permission for automatic paid smoke tests. SQLite v2 binds models to run identity; preserve duplicate/restart semantics and unknown historical model metadata.
 
 Latest continuation: the human explicitly requires fully self-hosted threads/memory. Current review branch is `codex/self-hosted-demo`, stacked on `codex/self-hosted-api` and `codex/self-hosted-storage`. See `docs/saathi/self-hosted.md` and the active HANDOFF. The bounded SQLite entry/console is separate from the upstream Intelligence bootstrap. Do not add cloud memory credentials or pretend its workers/computer actions are ported. Prior initial-scope statements below are historical where superseded.

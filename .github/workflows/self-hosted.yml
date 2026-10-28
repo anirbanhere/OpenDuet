@@ -23,3 +23,5 @@ jobs:
       - run: bun test self-hosted
       - run: bun run --cwd server typecheck
       - run: bun run typecheck:tests
+      - run: bun ../scripts/build-demo.ts --audit
+      - run: bun ../deploy/public/smoke-bundle.ts
