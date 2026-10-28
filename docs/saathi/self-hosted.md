@@ -1,5 +1,7 @@
 # Self-hosted Saathi starter
 
+Latest continuation: [Meta keys and model selection](model-selection.md) adds the picker, optional cheap OpenRouter tier and separately enabled Meta chat. Read that guide for current provider settings; the initial single-free-model checkpoint below remains historical verification.
+
 Implemented 28 October 2026 after the human selected fully self-hosted threads and memory. The default root `start` and `saathi:start` now run a local Bun service backed by SQLite. It needs no CopilotKit Intelligence project, licence, thread service, Docker or PostgreSQL server. Upstream's cloud bootstrap remains available only through explicitly named upstream/cloud commands.
 
 This is a bounded **text/storage starter in the OpenDuet fork**, not a migration of its complete React UI, AG-UI runner, worker/computer platform or the older Python Saathi runtime. It reuses the official Saathi tenant definitions. No cloud licence or entitlement is emulated. The separate full OpenDuet entry still has its original requirements and approvals; they were not bypassed to make this mode run.

@@ -1,5 +1,7 @@
 # Saathi — OpenDuet customization
 
+Current inference setup: [Meta keys and free/cheap model selection](docs/saathi/model-selection.md). Keys remain on the server; threads/memories stay in SQLite. Paid OpenRouter and Meta are independent opt-ins.
+
 Fork of [CopilotKit/OpenDuet](https://github.com/CopilotKit/OpenDuet), retaining the MIT licence and upstream platform. Start with [Saathi setup, architecture and next steps](docs/saathi/README.md), [HANDOFF.md](HANDOFF.md) and [AGENTS.md](AGENTS.md).
 
 The default Saathi entry now has [fully self-hosted threads and reviewed memory](docs/saathi/self-hosted.md) in local SQLite, with a browser console and bounded free OpenRouter chat. It starts without CopilotKit Intelligence or Docker. This is a limited text/storage starter: the complete upstream UI/workers/computer actions, real Indic speech, WhatsApp, clinic, payment and inventory integrations are not ported/connected. Existing Saathi/Home Agents deployments are separate.

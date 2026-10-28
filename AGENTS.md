@@ -1,5 +1,7 @@
 # Saathi on OpenDuet — coding agent instructions
 
+Current inference continuation: `codex/model-picker` on `codex/model-selection`; see `docs/saathi/model-selection.md` and latest HANDOFF. Free OpenRouter is default; capped paid OpenRouter and Meta are independent opt-ins. Never infer Contributor training consent, Meta credit eligibility or permission for automatic paid smoke tests. SQLite v2 binds models to run identity; preserve duplicate/restart semantics and unknown historical model metadata.
+
 Latest continuation: the human explicitly requires fully self-hosted threads/memory. Current review branch is `codex/self-hosted-demo`, stacked on `codex/self-hosted-api` and `codex/self-hosted-storage`. See `docs/saathi/self-hosted.md` and the active HANDOFF. The bounded SQLite entry/console is separate from the upstream Intelligence bootstrap. Do not add cloud memory credentials or pretend its workers/computer actions are ported. Prior initial-scope statements below are historical where superseded.
 
 Read HANDOFF.md, docs/saathi/README.md and SOUL.md first. CLAUDE.md is a short entry point. This is a fork of CopilotKit/OpenDuet, not the Python Saathi/Home Agents repository. Do not change that repository or its deployments while working here.
@@ -15,7 +17,7 @@ Preserve upstream MIT notices and the `upstream` remote. Create `codex/` feature
 - Bun1.4.3 is pinned upstream. Install `openbot/` dependencies from its lockfile; do not regenerate it just to accommodate local tooling.
 - `bun run saathi:test` from root is the focused no-network tenant/preflight suite. Relevant upstream provider regressions: from `openbot/`, `bun test server/tests/model-providers.test.ts server/tests/routing-model-url.test.ts`.
 - Generate the app config with `TENANT_PACKAGE_DIR=../examples/saathi bun run --cwd openbot generate:app-config`; then build `openbot/app`. Do not hand-edit generated config. Use native PowerShell environment assignment on Windows.
-- `bun run saathi:check` reads this fork's `openbot/.env.self-hosted` and reports configuration only. `bun run saathi:start` starts the native Bun/SQLite console at 127.0.0.1:8790; Ctrl+C stops it. It needs no Intelligence or Docker. `bun run saathi:self-hosted:test` runs the 25 new tests. The explicitly named `upstream:*`/cloud commands retain their own requirements. Passing a check is not live-provider, language or fulfillment evidence.
+- `bun run saathi:check` reads this fork's `openbot/.env.self-hosted` and reports configuration only. `bun run saathi:start` starts the native Bun/SQLite console at 127.0.0.1:8790; Ctrl+C stops it. It needs no Intelligence or Docker. `bun run saathi:self-hosted:test` runs the starter suites. The explicitly named `upstream:*`/cloud commands retain their own requirements. Passing a check is not live-provider, language or fulfillment evidence.
 - Full upstream CI/tests have their own PostgreSQL/container/browser requirements. Do not claim focused tests prove the full platform. CI must use synthetic state and no production keys.
 
 ## Boundaries

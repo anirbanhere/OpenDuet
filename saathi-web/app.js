@@ -8,7 +8,8 @@ const el = (tag, text) => {
 let csrf = "",
   selected = null,
   busy = false,
-  pending = null;
+  pending = null,
+  lastModel = null;
 async function api(path, body, method = "POST") {
   const response = await fetch(
     path,
@@ -34,6 +35,8 @@ async function api(path, body, method = "POST") {
 async function run(action, focusAfter = null) {
   if (busy) return;
   busy = true;
+  $("#model-select").disabled = true;
+  $("#message").readOnly = true;
   document.querySelectorAll("button").forEach((button) => {
     button.disabled = true;
   });
@@ -53,6 +56,9 @@ async function run(action, focusAfter = null) {
     $("#send").textContent = pending
       ? "Check previous send ↗"
       : "Send message ↗";
+    $("#model-select").disabled = Boolean(pending);
+    $("#message").readOnly = Boolean(pending);
+    $("#send").disabled = !pending && !$("#model-select").value;
     if (succeeded) focusAfter?.focus();
   }
 }
@@ -88,12 +94,16 @@ async function show(id) {
   selected = id;
   $("#delete-thread").hidden = false;
   const runState = thread.lastRun?.state;
+  lastModel = thread.lastRun?.model || null;
   $("#thread-state").textContent =
     runState === "running"
       ? "An answer is still running. Refresh saved state to check it."
       : ["failed", "interrupted"].includes(runState)
         ? `Last send: ${runState}. It was not replayed. A new send is a new model request.`
         : "";
+  if (thread.lastRun)
+    $("#thread-state").textContent +=
+      ` Last model: ${thread.lastRun.model || "unknown (historical run)"}.`;
   $("#thread-title").textContent =
     thread.agent === "saathi"
       ? "Everyday help"
@@ -142,12 +152,41 @@ async function memories() {
   }
   if (!records.length) list.append(el("p", "No memories saved."));
 }
+async function models() {
+  const data = await api("/api/models"),
+    picker = $("#model-select");
+  const previous =
+    pending?.model || picker.value || lastModel || data.defaultModel;
+  picker.replaceChildren();
+  const empty = el("option", "Choose a reply model");
+  empty.value = "";
+  picker.append(empty);
+  for (const model of data.models) {
+    const cost =
+      model.provider === "meta"
+        ? "Meta · billing/credits unverified"
+        : `$${model.inputPerMillion} input / $${model.outputPerMillion} output per 1M tokens`;
+    const option = el("option", `${model.name} · ${cost}`);
+    option.value = model.id;
+    picker.append(option);
+  }
+  if (pending && !data.models.some((model) => model.id === pending.model)) {
+    const saved = el("option", `${pending.model} · reconcile previous send`);
+    saved.value = pending.model;
+    picker.append(saved);
+  }
+  if ([...picker.options].some((option) => option.value === previous))
+    picker.value = previous;
+  picker.disabled = Boolean(pending);
+  $("#model-policy").textContent =
+    `${data.allowPaid ? `OpenRouter rate ceilings: $${data.maxInputPrice} input / $${data.maxOutputPrice} output per 1M tokens.` : "OpenRouter is free-only."} ${data.metaEnabled ? "Meta is separately enabled; OpenRouter price ceilings do not apply to Meta." : "Meta is disabled until configured on the server."} ${data.models.length ? "Only models matching server keys and policy are listed." : "No eligible models. Configure a key or check its model permissions."} ${data.issues.join(" ")} Prices are token rates, not a total spending limit. Language quality and capacity are unverified.`;
+}
 async function enter(session) {
   csrf = session.csrf;
   $("#welcome").hidden = true;
   $("#workspace").hidden = false;
   $("#model").textContent =
-    `Chat model: ${session.model}. Free-provider capacity and language quality may vary.`;
+    "Choose a model for your next reply. Switching keeps this conversation and reviewed preferences.";
   await threads();
   await memories();
   const records = await api("/api/threads");
@@ -155,7 +194,12 @@ async function enter(session) {
     await show(records[0].id);
     await threads();
   }
+  await models();
 }
+$("#models-refresh").addEventListener("click", () => run(models));
+$("#model-select").addEventListener("change", () => {
+  $("#send").disabled = !$("#model-select").value;
+});
 $("#start").addEventListener("click", () =>
   run(async () => enter(await api("/api/session", { consent: true }))),
 );
@@ -180,18 +224,26 @@ $("#chat").addEventListener("submit", (event) => {
   run(async () => {
     const text = $("#message").value.trim();
     if (!text) return;
+    const choice = pending?.model || $("#model-select").value;
+    if (!choice) throw new Error("Choose an eligible reply model first.");
     if (!selected) {
       const thread = await api("/api/threads", { agent: $("#agent").value });
       await show(thread.id);
       await threads();
     }
     if (!pending || pending.text !== text || pending.thread !== selected)
-      pending = { id: crypto.randomUUID(), text, thread: selected };
+      pending = {
+        id: crypto.randomUUID(),
+        text,
+        thread: selected,
+        model: choice,
+      };
     let result;
     try {
       result = await api(`/api/threads/${selected}/messages`, {
         request_id: pending.id,
         text,
+        model: pending.model,
       });
     } finally {
       await show(selected);

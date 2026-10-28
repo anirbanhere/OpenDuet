@@ -1,5 +1,7 @@
 # Saathi customization guide
 
+Current inference continuation: [Meta keys and model selection](model-selection.md). This extends the local starter, not the full upstream worker/action platform or older Python deployment.
+
 **Latest direction:** the human chose fully self-hosted threads/memory. Read [the runnable self-hosted guide](self-hosted.md) and HANDOFF first. Root `start`/`saathi:start` now select that local SQLite mode; no Intelligence project or Docker is needed. The guide below records the earlier full-upstream profile and remains applicable only to its explicitly named upstream/cloud commands.
 
 28 October2026. Upstream inspected at `60fd4c71d9d82e13739dce00827278154d13c947`, [CopilotKit/OpenDuet](https://github.com/CopilotKit/OpenDuet). Fork: [anirbanhere/OpenDuet](https://github.com/anirbanhere/OpenDuet). MIT notices remain intact.

@@ -32,7 +32,7 @@ const textModel = z.object({
   pricing: z.object({
     prompt: z.unknown(),
     completion: z.unknown(),
-    request: z.unknown(),
+    request: z.unknown().optional(),
   }),
   supported_parameters: z.array(z.string()),
 });
@@ -97,9 +97,11 @@ export function createModelCatalog(
             const row = textModel.safeParse(raw);
             if (!row.success) continue;
             const m = row.data;
+            // Current rows may omit request pricing; inference independently caps request fees at zero.
             const input = price(m.pricing.prompt),
               output = price(m.pricing.completion),
-              fee = price(m.pricing.request);
+              fee =
+                m.pricing.request === undefined ? 0 : price(m.pricing.request);
             if (
               input === null ||
               output === null ||
