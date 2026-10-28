@@ -1,5 +1,21 @@
 # Saathi on OpenDuet handoff
 
+## Shipped fix — public weather / IMD lookup
+
+29 October 2026, Asia/Kolkata. Same share URL: **https://35.208.235.27.sslip.io/**. Deployed executable source `52821a4773b5ddc427d2bd6e2a6e685faef34e7c` from `codex/live-web-lookup`; [PR8](https://github.com/anirbanhere/OpenDuet/pull/8) remains draft/unmerged, base `codex/public-demo`. This documentation checkpoint does not change the executable bundle. Earlier text-only limitations below are historical: Meta Muse Spark 1.3 now has explicitly enabled native read-only search/page opens. Free OpenRouter remains text-only. Select **Meta / Web lookup** in the picker; no automatic paid switch.
+
+Release evidence:
+- [Exact-source self-hosted CI 40766490785](https://github.com/anirbanhere/OpenDuet/actions/runs/40766490785) and [tenant CI 40766490747](https://github.com/anirbanhere/OpenDuet/actions/runs/40766490747) passed. Scoped job includes 64 tests, server types, frozen Linux test types, bundle audit/build and actual packed-service smoke. Windows baseline text mismatches remain unchanged; broader upstream platform CI/dependency debt is separate.
+- Clean build with environment inlining disabled, pinned runtime integrity, configured-secret scans and exact manifest/upload allowlist passed. Server bundle SHA256 `08b41fef007b383b1fdf63c8271ab2f597506d249117c1ea15d74dffe92ffe65`. Release archive SHA256 `6dd29e34914ee35008120517d90362a5c6cfd7497593a1daab1bcd4b8c418c8f`; private object `releases/52821a4773b5ddc427d2bd6e2a6e685faef34e7c-6dd29e34914ee35008120517d90362a5c6cfd7497593a1daab1bcd4b8c418c8f.tgz`.
+- Existing VM stopped before consistent retained-data-disk snapshot **saathi-demo-data-pre-web-20261028-205025**, observed READY. Explicit update reused VM/address/disk/identity and existing secret versions; no IAM/network/legacy runtime changes. Startup ready marker at `2026-10-28T20:53:17Z`. Schema v4 now retains source metadata alongside owned messages/runs and preserves v3 quota usage. Do not use old v3 code against this database or overwrite newer state with the backup automatically.
+- Actual public HTTPS synthetic acceptance: Chennai tomorrow question HTTP200 in 9.1 seconds, IMD follow-up HTTP200 in 10.3 seconds. Both opened the official IMD homepage and `mcdata/chn_fcst_mng.pdf`, returned target **30 October 2026** and the source bulletin issue date, and persisted two page-open links/retrieval time each. Same request IDs returned identical saved run/evidence without replay. Saved thread had four messages; separate visitor received 404. This is observed provider evidence, not an independent forecast accuracy/freshness guarantee.
+- Actual public browser retained its pre-update empty thread and one reviewed synthetic preference. Picker shows Meta Web lookup and free Text only. A picker-automation mistake initially sent one extra free-router test, which received 429; reconciling its saved failed run did not replay it or fall back. Explicitly selected Meta then succeeded in the same thread and displayed two safe IMD/PDF anchors. Mobile width/scroll 390/390. Synthetic UI fixture stopped; real local 8790 remains separate and was not migrated/restarted in this slice.
+
+Limits remain20 global / 5 per workspace attempts per UTC day; failures count. Meta search may add provider charges, with at most three read-only tool calls per model attempt, not a guaranteed monetary cap or one-query-per-call promise. No new API key required. No speech, WhatsApp, login, purchases/payments, general interactive browser or background actions were enabled. Legacy Cloud Run remains `home-agents-00010-w5z`. No PR was merged.
+
+Next: use the public site with Meta Web lookup; follow the issue/validity dates of returned bulletins. Future model-independent public research and stronger source-content/freshness checks are separate slices. Local opt-in is `SAATHI_META_WEB_SEARCH=true` plus existing Meta enable/key and restart, with a consistent local database backup before v4 migration. Do not upload local personal state or turn CI into a live-provider test. See live-web-plan.md for the contract and boundaries.
+
+
 ## Active fix — read-only web lookup and India dates
 
 29 October 2026. `codex/live-web-lookup` stacks on public demo. Read `docs/saathi/live-web-plan.md`. Deployed root cause was text-only inference with no trusted date context. Current change adds explicit `SAATHI_META_WEB_SEARCH`, Meta stateless Responses search/page opens (one inference attempt, three built-in tool calls, 60-second/128 KB response bounds), safe saved source metadata and Asia/Kolkata today/tomorrow for all providers. Free OpenRouter stays text-only; no paid model switch or action grants.
@@ -96,7 +112,7 @@ Next actionable work: obtain capacity on a permitted free model without weakenin
 
 ## Prior fork checkpoint
 
-28 October2026, Asia/Kolkata. Human requested forking the repo linked in Atai Barkai's OpenDuet announcement and starting customization. Fork: https://github.com/anirbanhere/OpenDuet; origin is this fork, upstream is https://github.com/CopilotKit/OpenDuet. Base `60fd4c71d9d82e13739dce00827278154d13c947`, branch `codex/saathi-kickoff`. Preserve MIT notices. The Python Saathi/Home Agents repo, its open PRs and public GCP service were not migrated, merged or deployed.
+28 October 2026, Asia/Kolkata. Human requested forking the repo linked in Atai Barkai's OpenDuet announcement and starting customization. Fork: https://github.com/anirbanhere/OpenDuet; origin is this fork, upstream is https://github.com/CopilotKit/OpenDuet. Base `60fd4c71d9d82e13739dce00827278154d13c947`, branch `codex/saathi-kickoff`. Preserve MIT notices. The Python Saathi/Home Agents repo, its open PRs and public GCP service were not migrated, merged or deployed.
 
 ## Implemented
 
