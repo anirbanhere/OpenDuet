@@ -8,6 +8,7 @@ const ready = {
   TENANT_PACKAGE_DIR: "../examples/saathi",
   OPENBOT_HOST: "127.0.0.1",
   OPENBOT_SINGLE_USER: "true",
+  KEY_ENCRYPTION_KEY: Buffer.alloc(32, 1).toString("base64"),
   BOT_PROVIDER: "openai",
   BOT_MODEL: "openrouter/free",
   OPENAI_BASE_URL: "https://openrouter.ai/api/v1",
@@ -54,6 +55,7 @@ describe("Saathi tenant", () => {
     ["BOT_PROVIDER", "anthropic"],
     ["TENANT_PACKAGE_DIR", "../examples/openduet"],
     ["OPENBOT_HOST", "0.0.0.0"],
+    ["KEY_ENCRYPTION_KEY", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="],
   ])("rejects an incomplete or mismatched %s setting", (key, value) => {
     expect(
       configurationChecks({ ...ready, [key]: value }).some(

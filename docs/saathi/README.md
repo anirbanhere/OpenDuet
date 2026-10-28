@@ -10,7 +10,7 @@ Hindi/Tamil/Malayalam/Kannada/English response instructions are present. This do
 
 The startup model profile uses `provider: openai` for the **compatible API protocol**, `OPENAI_BASE_URL=https://openrouter.ai/api/v1`, and `BOT_MODEL=openrouter/free`. `model.yaml` reads the same `BOT_MODEL`, so the tenant and sample framework bot share the choice. A permitted specific `:free` model can replace it. OpenRouter's [free router](https://openrouter.ai/openrouter/free) selects available free models with requested feature support; key permissions/capacity still matter. A free catalogue entry is not a successful inference test. No new live call or paid fallback was made/configured here.
 
-`saathi:check` validates local profile/tenant configuration without contacting services or printing keys. It refuses missing keys, non-OpenRouter endpoint, non-free model and non-loopback profile. It is a startup helper, **not** a runtime spend/action policy: an administrator can change the upstream model picker later. Keep key-level model/spend restrictions. Independent role-specific model pins and task-switch reconciliation from the Python reference have not been ported.
+`saathi:check` validates local profile/tenant configuration without contacting services or printing keys. It refuses missing keys, the public zero encryption placeholder, non-OpenRouter endpoint, non-free model and non-loopback profile. It is a startup helper, **not** a runtime spend/action policy: an administrator can change the upstream model picker later. Keep key-level model/spend restrictions. Independent role-specific model pins and task-switch reconciliation from the Python reference have not been ported.
 
 ## Architecture and remaining dependencies
 
@@ -42,7 +42,7 @@ bun install --cwd openbot --frozen-lockfile
 cp saathi.env.example openbot/.env
 ```
 
-Fill **only this fork's** `openbot/.env`; do not copy the legacy `.env`. Put the existing operator-managed OpenRouter key into `OPENAI_API_KEY` and choose a key-permitted free model in `BOT_MODEL`. Obtain a CopilotKit Intelligence project key for `INTELLIGENCE_API_KEY`; upstream's [quick start](../../README.md#quick-start) describes its CLI login/project/learning-container setup. Run that setup from this fork with one canonical `.env` as its guide requires. Do not place a key in chat, a committed file or a command-line argument. Generate a fresh encryption key before saving real credentials; the example's all-zero key is only a public local placeholder.
+Fill **only this fork's** `openbot/.env`; do not copy the legacy `.env`. Put the existing operator-managed OpenRouter key into `OPENAI_API_KEY` and choose a key-permitted free model in `BOT_MODEL`. CopilotKit Intelligence needs a separate project key for `INTELLIGENCE_API_KEY`; upstream's [quick start](../../README.md#quick-start) describes its CLI login/project/learning-container setup. Confirm that remote thread/memory storage is acceptable before configuring it; the fully self-hosted alternative is a separate pending design choice. Run approved setup from this fork with one canonical `.env` as its guide requires. Do not place a key in chat, a committed file or a command-line argument. Generate a fresh random32-byte base64 encryption key in the private `.env`; the public all-zero placeholder is rejected at startup. The preflight checks shape/nonzero bytes, not cryptographic randomness.
 
 ```sh
 bun run saathi:test

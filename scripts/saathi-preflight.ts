@@ -6,6 +6,7 @@ type Environment = Readonly<Record<string, string | undefined>>;
 /** Local configuration checks only: no inference, account connection, or key values in output. */
 export function configurationChecks(env: Environment) {
   const model = env.BOT_MODEL?.trim() ?? "";
+  const vaultKey = env.KEY_ENCRYPTION_KEY?.trim() ?? "";
   return [
     {
       name: "Saathi tenant",
@@ -15,6 +16,13 @@ export function configurationChecks(env: Environment) {
       name: "Loopback-only local profile",
       ready:
         env.OPENBOT_HOST === "127.0.0.1" && env.OPENBOT_SINGLE_USER === "true",
+    },
+    {
+      name: "Non-placeholder 32-byte vault key",
+      ready:
+        /^[A-Za-z0-9+/]{43}=$/.test(vaultKey) &&
+        Buffer.from(vaultKey, "base64").length === 32 &&
+        Buffer.from(vaultKey, "base64").some((byte) => byte !== 0),
     },
     {
       name: "OpenAI-compatible protocol",
