@@ -1,3 +1,4 @@
+import { Database } from "bun:sqlite";
 import { afterEach, expect, test } from "bun:test";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -115,6 +116,68 @@ test("memory needs explicit review, is scoped, and supports deletion", () => {
   expect(() => store.deleteMemory(b.owner, memory.id)).toThrow("not found");
   store.deleteMemory(a.owner, memory.id);
   expect(store.memories(a.owner)).toEqual([]);
+});
+
+test("selected model survives reopen and cannot change under the same request ID", () => {
+  const { store, a, path } = world();
+  const thread = store.createThread(a.owner, "saathi");
+  const run = store.beginRun(
+    a.owner,
+    thread.id,
+    "model-choice",
+    "Hello",
+    "openrouter:synthetic:free",
+  );
+  store.completeRun(a.owner, run.id, "Synthetic reply");
+  expect(() =>
+    store.beginRun(
+      a.owner,
+      thread.id,
+      "model-choice",
+      "Hello",
+      "meta:muse-spark-1.3",
+    ),
+  ).toThrow("conflicts");
+  store.close();
+  const reopened = new SelfHostedStore(path);
+  stores.push(reopened);
+  expect(reopened.run(a.owner, run.id).model).toBe("openrouter:synthetic:free");
+  expect(reopened.thread(a.owner, thread.id).lastRun?.model).toBe(
+    "openrouter:synthetic:free",
+  );
+});
+
+test("v1 migration preserves historical messages and leaves their model unknown", () => {
+  const { store, a, path } = world();
+  const thread = store.createThread(a.owner, "saathi");
+  const run = store.beginRun(
+    a.owner,
+    thread.id,
+    "old-client",
+    "Historic synthetic message",
+  );
+  store.completeRun(a.owner, run.id, "Historic synthetic answer");
+  store.close();
+  const old = new Database(path);
+  try {
+    old.exec(
+      "ALTER TABLE runs DROP COLUMN model; UPDATE version SET value=1 WHERE id=1",
+    );
+  } finally {
+    old.close();
+  }
+  const upgraded = new SelfHostedStore(path);
+  stores.push(upgraded);
+  expect(upgraded.thread(a.owner, thread.id).messages).toHaveLength(2);
+  expect(upgraded.run(a.owner, run.id).model).toBeNull();
+  expect(
+    upgraded.beginRun(
+      a.owner,
+      thread.id,
+      "old-client",
+      "Historic synthetic message",
+    ).fresh,
+  ).toBe(false);
 });
 
 test("a second server cannot interrupt or steal the first server's pending run", () => {

@@ -1,6 +1,7 @@
 import { createAnswer } from "./answer";
 import { createSelfHostedApp } from "./app";
 import { selfHostedConfig } from "./config";
+import { createModelCatalog } from "./models";
 import { SelfHostedStore } from "./store";
 import { attachSelfHostedWeb } from "./web";
 
@@ -10,7 +11,12 @@ const config = selfHostedConfig(process.env);
 const answer = await createAnswer(config);
 const store = new SelfHostedStore(config.path);
 const app = attachSelfHostedWeb(
-  createSelfHostedApp({ store, answer, model: config.model }),
+  createSelfHostedApp({
+    store,
+    answer,
+    model: config.model,
+    models: createModelCatalog(config),
+  }),
 );
 const server = Bun.serve({
   hostname: config.host,
@@ -23,7 +29,7 @@ console.log(
   `Saathi self-hosted threads/memory: http://${config.host}:${config.port}`,
 );
 console.log(
-  `Storage: SQLite on this server. Chat: ${config.apiKey ? "OpenRouter configured, availability unverified" : "key not configured"}. Actions/speech/background jobs unavailable.`,
+  `Storage: SQLite on this server. Chat keys: OpenRouter ${config.apiKey ? "configured" : "missing"}; Meta ${config.metaEnabled ? "enabled, availability unverified" : "disabled"}. Actions/speech/background jobs unavailable.`,
 );
 const stop = () => {
   server.stop(true);
