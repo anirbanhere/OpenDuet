@@ -1,5 +1,7 @@
 # Saathi on OpenDuet — coding agent instructions
 
+Media admission checkpoint: tasks/owned-media.md and latest HANDOFF. prepareMedia is an internal pure validator/normalizer only: caller authenticates the server owner/session/time context. Storage consent is separate from processing consent; bytes/digests/metadata and expiry are derived, URLs/paths/client ownership rejected. No durable media, consent ledger, quotas, cleanup, upload route or processing is implemented by that helper. Proposed v8 store work must use fresh synthetic DB and preserve v7 state; no public/private migration follows from running contract tests.
+
 Speech response policies: tasks/speech-response-policy.md and docs/saathi/speech-replies.md. Internal composition pins a server-owned TTS role, requires literal consent for a single bounded voice attempt, keeps voice_only text null on failure, and makes zero TTS calls for text_only. Preserve cancellation, sanitized outcomes, WAV/duration/identity checks and fixture_only without deliverable voice. A ready composition is not delivery or durable consent. Public registration, owner media and speech spend/admission remain separate gates.
 
 GitHub canonical fork is now anirbanhere/saathi (verified rename/redirect from anirbanhere/OpenDuet, still a fork of CopilotKit/OpenDuet). Existing local path/origin are preserved. Use the canonical name for new CLI/PR operations; do not create a duplicate repository. Historical links redirect.

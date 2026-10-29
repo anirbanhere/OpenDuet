@@ -21,7 +21,7 @@ The separate Python repository has tested mock task/approval/audio fixtures. The
 | FR-004 context/preferences | Owned history and explicitly reviewed text preferences | Structured locale/timezone/address consent pending; demo task stores chosen locale |
 | FR-005 WhatsApp window/templates | Absent | Eligibility, test number, templates and delivery access needed |
 | FR-006 help/status/cancel/stop/forget/disconnect | Thread/memory deletion and saved inference state | Demo task status/cancel/reject; multilingual intents, reminder stop and provider disconnect pending |
-| FR-007 secured voice media/transcoding | Absent | Upload lifecycle, formats/size/duration, consent/retention and ASR integration pending |
+| FR-007 secured voice media/transcoding | Internal pure WAV admission/consent/expiry contract on media-admission branch | No durable store or route yet; ownership/quotas/revocation/deletion, upload lifecycle, transcoding and ASR integration pending |
 | FR-008 two STT adapters | Fixture contracts plus internal Sarvam/ElevenLabs wire adapters on vendor-STT branch | Disabled/unregistered factories with mocked HTTP/WAV tests; owned media, budgets, real provider setup and consented evaluation remain pending |
 | FR-009 two TTS adapters/policies | Internal Sarvam/ElevenLabs transports plus text_only/voice_only/text_and_voice composition | Disabled/unregistered factories and policies have mocked PCM/WAV/HTTP/cancellation checks; owned media, durable consent/admission/budgets and genuine provider/quality evaluation remain pending |
 | FR-010 Indic/code-switching | Prompt language targets; no measured evaluation | en/hi/ta demo receipt text; actual speech/fluency evaluation and ml/kn work pending |
