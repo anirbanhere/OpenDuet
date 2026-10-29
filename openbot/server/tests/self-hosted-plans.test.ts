@@ -148,7 +148,7 @@ test("v5 upgrade preserves history, preferences, mock bookings and attempt usage
   expect(
     verify.query<{ value: number }, []>("SELECT value FROM version").get()
       ?.value,
-  ).toBe(6);
+  ).toBe(7);
   expect(
     verify
       .query<{ n: number }, []>("SELECT count(*) n FROM inference_usage")

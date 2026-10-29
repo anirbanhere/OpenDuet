@@ -7,6 +7,7 @@ import {
   type TaskPlan,
   validatePlan,
 } from "./plan-contract";
+import { savedPlanRead } from "./plan-reads";
 import type { ProviderRoles } from "./roles";
 
 type State =
@@ -68,6 +69,7 @@ export class TaskPlans {
       roles: JSON.parse(row.roles) as ProviderRoles,
       state: row.state,
       plan: row.plan ? (JSON.parse(row.plan) as TaskPlan) : null,
+      read_result: savedPlanRead(this.db, row.id),
       created: row.created,
       updated: row.updated,
       events: this.db
