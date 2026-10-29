@@ -4,6 +4,7 @@ import { chmodSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { DemoAppointments, migrateAppointments } from "./appointments";
 import { LocalError } from "./errors";
+import { migratePlanReads, PlanReads } from "./plan-reads";
 import { migratePlans, TaskPlans } from "./plans";
 import type { SearchEvidence } from "./search";
 
@@ -53,6 +54,7 @@ function ownDatabase(path: string) {
 export class SelfHostedStore {
   readonly appointments: DemoAppointments;
   readonly plans: TaskPlans;
+  readonly planReads: PlanReads;
   private db: Database;
   private release: () => void;
   private closed = false;
@@ -103,7 +105,8 @@ export class SelfHostedStore {
         version?.value !== 3 &&
         version?.value !== 4 &&
         version?.value !== 5 &&
-        version?.value !== 6
+        version?.value !== 6 &&
+        version?.value !== 7
       )
         throw new LocalError("Unsupported local schema version.", 503);
       if (version && version.value <= 3)
@@ -129,12 +132,25 @@ export class SelfHostedStore {
             this.db.exec("UPDATE version SET value=6 WHERE id=1");
           })
           .immediate();
+      if (version && version.value <= 6)
+        this.db
+          .transaction(() => {
+            migratePlanReads(this.db);
+            this.db.exec("UPDATE version SET value=7 WHERE id=1");
+          })
+          .immediate();
       this.plans = new TaskPlans(this.db, {
         reserve: (owner, id) => this.reserveInference(owner, id),
         busy: (owner) => this.inferenceRunning(owner),
         now: options.now ?? Date.now,
       });
       this.plans.recover();
+      this.planReads = new PlanReads(
+        this.db,
+        this.plans,
+        this.appointments,
+        options.now,
+      );
       // Single-process lock proves no live writer is using these runs. Never automatically replay.
       this.db.exec("UPDATE runs SET state='interrupted' WHERE state='running'");
     } catch (error) {

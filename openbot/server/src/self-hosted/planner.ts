@@ -65,6 +65,13 @@ export function attachPlanRoutes(
   options: { store: SelfHostedStore; roles?: ProviderRoles; planner?: Planner },
 ) {
   const plans = options.store.plans;
+  app.post("/api/task-plans/:id/run-readonly", (c) => {
+    if (!z.object({}).strict().safeParse(c.var.body).success)
+      throw new LocalError("Unsupported read-only execution fields.");
+    return c.json(
+      options.store.planReads.run(c.var.session.owner, c.req.param("id")),
+    );
+  });
   app.get("/api/task-plans", (c) => c.json(plans.list(c.var.session.owner)));
   app.get("/api/task-plans/:id", (c) =>
     c.json(plans.get(c.var.session.owner, c.req.param("id"))),

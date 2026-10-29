@@ -26,11 +26,11 @@ The separate Python repository has tested mock task/approval/audio fixtures. The
 | FR-011 uncertainty/critical fields | Prompt guidance only | Demo date/slot/amount exact review; transcript confidence/critical-field evaluation pending |
 | FR-012 independent reasoning/reply/STT/TTS | Independent immutable roles and actual internal model routing on provider-role branch | Default/selected chat routing, synthetic speech swaps and redacted diagnostics tested; durable generic-task pins, genuine speech and consent/media integration pending |
 | FR-013 typed task plans | Deterministic appointment plan; structured model proposals on planning branch | Up to three schema-checked read/draft steps, dependencies, risk, expected output, timeout and compensation; general execution/observe loop pending |
-| FR-014 bounded agent loop/state | Native Meta read-only tool loop capped at three calls | Durable mock appointment state; general observe/plan/tool/resume loop pending |
+| FR-014 bounded agent loop/state | Native Meta tool cap; durable plans and native read-step branch | At most three local read/draft steps, saved observations and duplicate recovery; model-led observe/replan, remote tool steps and general resume loop pending |
 | FR-015 clarification | Exact appointment date/slot; structured planning clarification state | Planning lookup dates must match a separate user-confirmed field; other material fields/natural-language extraction and live actions remain pending |
 | FR-016 side-effect serialization/idempotency | Inference duplicate IDs and one pending run per owner | SQL mock reservation/decision idempotency; real provider reconciliation pending |
 | FR-017 policy outside model | Provider/model/cost limits, read-only tool selection | Explicit server-owned mock approval, no model authorization; general tool/grant engine pending |
-| FR-018 typed tool outcomes | Basic inference failed/interrupted/completed | Mock selection/approval/expired/unavailable/terminal states; normalized live-provider outcomes pending |
+| FR-018 typed tool outcomes | Inference/mock states; native read-result outcomes on read-step branch | Local completed/unavailable/requires_user_action/retryable/permanently_failed observations; requires_auth and live-provider normalization pending |
 | FR-019 native/MCP registry | No general tool registry | Fixed demo appointment capability only; remote MCP discovery/schema/auth/fees pending |
 | FR-020 user capability grants | No authenticated account tools | Demo restricted to mock provider; per-user live grants/OAuth pending |
 | FR-021 strict schemas/untrusted outputs | Zod HTTP/provider boundaries, safe DOM text, bounded responses | Strict appointment schemas; MCP returns and speech boundaries pending |

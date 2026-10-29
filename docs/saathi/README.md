@@ -1,5 +1,7 @@
 # Saathi customization guide
 
+[Native read-step core](read-only-plan-steps.md) adds explicit local read/draft execution and persisted observations. It has no booking authority or public/UI deployment implied by its presence in the repository.
+
 [Structured planning](structured-planning.md) adds saved draft proposals with pinned roles, strict tool/date contracts and shared inference budgets. It does not execute the proposed steps. Check HANDOFF for branch/CI status; a checked-in UI is not evidence of public deployment.
 
 Independent model/speech configuration and the keyless synthetic contract evaluator are described in [provider roles](provider-roles.md). Model defaults route through their configured role while browser selection remains explicit. This does not enable public voice or finish generic planning; read current HANDOFF for source/CI/deployment evidence.

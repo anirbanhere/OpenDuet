@@ -1,5 +1,23 @@
 # Saathi on OpenDuet handoff
 
+## Native read-step core — PR13 scoped Linux checks passed
+
+Exact source `38837e03d1f39271af4edff3575451e97d65060a`, draft [PR13](https://github.com/anirbanhere/OpenDuet/pull/13), base PR12. [Self-hosted CI40849248421](https://github.com/anirbanhere/OpenDuet/actions/runs/40849248421) and [tenant CI40849248781](https://github.com/anirbanhere/OpenDuet/actions/runs/40849248781) passed, including96 focused tests, server types, unchanged frozen Linux test types, audited bundle and existing packed-service smoke. Wider inherited CI40849248533 was still running; do not claim whole-platform green. No merge/deployment occurred. Public remains9123f2f/schema v5, original private8790 untouched.
+
+Previous goal turn made concrete progress (PR11/12 model/speech contracts and durable planning); this turn added/verified the bounded native read core. Goal/heartbeat remain active. Next exact increment: browser Run read-only checks control and saved mock/draft evidence/time display on the existing plan cards, without extra inference, then actual browser and packed read acceptance. Use an isolated synthetic DB/fixture; no live/private inputs. Only after review/live-synthetic acceptance and consistent retained-disk backup should public v7 be updated. Do not treat core CI as UI/live-fulfillment evidence. Check fresh usage on continuation; never redeem reset credits without explicit permission.
+
+
+## Native read-step core — local verification checkpoint
+
+29 October 2026. Branch `codex/read-only-plan-steps`, stacked on PR12 documentation head d113413. Read tasks/read-only-plan-steps.md and docs/saathi/read-only-plan-steps.md. Added schema v7 read-result storage and an explicit owner/CSRF POST `/api/task-plans/:id/run-readonly` with an empty body. At most three validated local read/draft steps save typed observations/evidence mode/time atomically. Duplicates return original cached results across reopen; manual prerequisites stop dependent work. Non-ready/cancelled drafts cannot start reads, and cancellation after a read does not erase/re-run it. The clinic port exposes only options(date), with strict result validation and no booking methods.
+
+Evidence: four core tests red before implementation; now96 focused tests/782 assertions pass, server types pass, changed-file Biome passes. Tests include malformed fake-live output rejection, batch rollback without partial evidence, v6 upgrade, ownership/CSRF/unsupported fields, duplicate/reopen and no extra inference/booking. Windows frozen gate still displays the eight known gallery path-text mismatches; baseline unchanged, final Linux CI is next. Audited dirty validation bundle reports zero matching shipped advisories and28 advisory packages in wider upstream; packed service passes existing failed-plan/duplicate/mock-booking regressions. No UI change was made in this core slice, so no new browser acceptance is claimed.
+
+No live inference, external provider/account, public/private database migration or cloud deployment. Public stays9123f2f/schema v5; original private8790 is untouched. V7 exists only in synthetic test databases. No model loop, remote/MCP/write execution, genuine appointment or fulfilled errand is claimed. Plan state remains DRAFT_READY; a completed read result means only the local read batch completed. UI controls/evidence display, browser/packed read acceptance and backed-up public release follow. Goal/heartbeat stay active; no reset credits used.
+
+Next: publish draft PR13 and scoped Linux checks, then add an explicit Run read-only checks control with mock/source time/results and manual-required state. No new model inference is needed to run saved permitted reads. Later consent/media/real speech, reminders and authenticated integrations remain PRD gaps.
+
+
 ## Structured planning slice — PR12 exact-source Linux checks passed
 
 Executable source `c2e821267b7bd0f41e1bcae5f202511a8ea32998`, draft [PR12](https://github.com/anirbanhere/OpenDuet/pull/12), base PR11. [Self-hosted CI40847746604](https://github.com/anirbanhere/OpenDuet/actions/runs/40847746604) and [tenant CI40847746579](https://github.com/anirbanhere/OpenDuet/actions/runs/40847746579) passed, including90 focused tests, server types, unchanged frozen Linux test-type gate, audited build and packed-service smoke. These are the required scoped checks, not a whole-platform-green claim. PR12 wider CI was still running; PR11 wider CI40845250795 failed the Python LangGraph provider regressions and broad Bun test job/aggregate verify, the same job/step names already failing on PR10 base CI40839381935. Do not erase that debt or describe all CI as green.

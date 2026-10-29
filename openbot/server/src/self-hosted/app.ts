@@ -175,6 +175,7 @@ export function createSelfHostedApp(options: {
       demo_appointments: true,
       task_planning: Boolean(options.roles && options.planner),
       general_task_execution: false,
+      native_read_steps: true,
       model,
       public_demo: Boolean(options.publicOrigin),
       daily_limits: store.limits(),

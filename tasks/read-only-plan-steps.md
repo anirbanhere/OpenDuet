@@ -1,0 +1,12 @@
+# Native read-only plan steps
+
+Continue the active PRD goal after PR12. This slice makes its existing clinic-availability proposal executable without granting booking authority. Branch codex/read-only-plan-steps stacks on PR12. No genuine service, model call, private account or public deployment is needed for implementation.
+
+Add schema v7 with one immutable read-result record per saved plan. An explicit owner/CSRF-protected POST with an empty body runs at most three validated steps in one SQLite transaction. The fixed application registry permits only controlled demo-clinic options and unverified manual guidance. Revalidate the saved plan against its confirmed date and tool/risk contracts. Native results must pass output schemas. Manual guidance requires user action; dependent steps must not silently proceed. No arbitrary URL/code, model inference, booking create/approve, payment, message or receipt.
+
+Save per-step IDs, typed outcome, evidence mode and retrieval time. A duplicate run returns the same saved result and original timestamp, never refreshes availability invisibly. A cancelled/non-ready plan cannot start reads. An existing saved result remains readable after cancellation; cancellation does not undo prior reads. Because all current tools are bounded synchronous local reads/drafts, save the batch atomically: a crash cannot leave an external operation in doubt. Reopen returns committed observations; it never automatically invokes tools. New live/async tools require their own operation/reconciliation design, not reuse of this shortcut.
+
+Preserve v6 role pins, drafts, history, bookings and usage. No extra inference reservation for these model-free reads. Plan schemas still prevent unknown writes. The current public service remains schema v5 until a consistent backed-up release. Old binaries cannot open newer schemas; do not falsify version or restore over newer data.
+
+TDD: red then green ownership, explicit run/cancel/nonready boundaries, exact confirmed dates, result validation, dependencies, no booking/inference effect, duplicates and real reopen, v6 migration preservation. Run focused Bun tests/server types and frozen Linux gate in the review PR; use synthetic state only. UI integration follows after the core tests; no interface should imply real-world fulfillment. Keep HANDOFF current before stopping.
+Core/API complete on source38837e0, draft PR13;96 tests and scoped Linux CI pass. UI and public release are next, with no live fulfillment claimed. See HANDOFF for exact evidence.
