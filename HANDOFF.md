@@ -1,5 +1,12 @@
 # Saathi on OpenDuet handoff
 
+## Read console acceptance resumed after natural usage reset
+
+29 October 2026. Fresh usage check showed0% five-hour used; reset credits untouched. On codex/read-step-console, completed synthetic browser acceptance for manual guidance plus a skipped dependent lookup, and an out-of-window date returning Unavailable/no-source evidence. Read results remain explicitly mock/draft and create no booking.390px layout has no overflow. Browser console showed only the expected initial401 from the expired/unrecognized workspace probe; no runtime exception was observed. Fixture8791 stopped; original private8790/public unchanged.
+
+Extended the actual packed-service smoke: seed one owned synthetic proposal offline, then have the packaged HTTP service run native reads, preserve the same cached result on duplicate, deny another owner and persist exactly one read batch. The seed uses no model; its fixture reservation plus the deliberate missing-key failed attempt account for two ledger rows. Build audit/packed smoke pass with no outbound model calls. PR14's prior source e1f93ad passed scoped Linux CI40849914166. Follow-on before public release: expose a permitted per-new-task reasoning model choice (independent of reply picker), preserving pinned roles/duplicate identity and no paid fallback; actual synthetic model planning acceptance, final CI/clean packaging and consistent retained-disk backup. Current public default free-model capacity cannot be assumed working merely from configuration.
+
+
 ## Read-step console — browser checkpoint before usage reset
 
 29 October 2026. Branch `codex/read-step-console`, stacked on PR13 handoff head5863480. Added Run read-only checks for ready plans without saved evidence, mock/draft result and cached IST timestamp display, manual/skipped/error outcome labels and preserved cancellation. The plan card no longer says no steps executed after a read result exists. Source text remains textContent; no model or write authority is added. Updated the panel's capability copy.

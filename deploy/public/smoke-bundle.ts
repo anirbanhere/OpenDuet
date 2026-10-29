@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
+import { selfHostedConfig } from "../../openbot/server/src/self-hosted/config";
+import { SelfHostedStore } from "../../openbot/server/src/self-hosted/store";
 
 const root = resolve(import.meta.dir, "../.."),
   build = join(root, "artifacts/public-build");
@@ -12,6 +14,43 @@ if (
   !basename(folder).startsWith("saathi-bundle-")
 )
   throw new Error("Unsafe test cleanup target");
+// Seed only an owned synthetic proposal; the actual packaged HTTP service executes its reads.
+const seed = new SelfHostedStore(join(folder, "state.sqlite"));
+const seedSession = seed.createSession();
+const seedDate = new Date(Date.now() + 19800000 + 86400000)
+  .toISOString()
+  .slice(0, 10);
+const seedTask = seed.plans.begin(
+  seedSession.owner,
+  {
+    request_id: "packed-ready",
+    goal: "Synthetic mock slot read",
+    locale: "en-IN",
+    date: seedDate,
+  },
+  selfHostedConfig({}).roles,
+);
+seed.plans.complete(seedSession.owner, seedTask.id, {
+  goal: seedTask.input.goal,
+  status: "ready",
+  question: null,
+  unavailable_reason: null,
+  steps: [
+    {
+      id: "s1",
+      description: "Read mock slots",
+      prerequisites: [],
+      tool: "demo.clinic.options",
+      risk: "READ",
+      approval_required: false,
+      arguments: { date: seedDate },
+      expected_output: "Mock availability",
+      timeout_ms: 1000,
+      compensation: "none",
+    },
+  ],
+});
+seed.close();
 const probe = Bun.serve({
   hostname: "127.0.0.1",
   port: 0,
@@ -76,6 +115,24 @@ try {
   assert(ready, "Bundle did not start");
   const health = await (await request("/health")).json();
   assert.equal(health.public_demo, true);
+  const readAuth = {
+    Cookie: `saathi_self_hosted=${seedSession.token}`,
+    "X-Saathi-CSRF": seedSession.csrf,
+  };
+  const readPath = `/api/task-plans/${seedTask.id}/run-readonly`;
+  const read = await (
+    await request(readPath, { method: "POST", headers: readAuth, body: "{}" })
+  ).json();
+  assert.equal(read.mode, "read_only");
+  assert.equal(read.status, "completed");
+  assert.equal(read.results[0].evidence_mode, "mock");
+  assert.equal(read.results[0].output.date, seedDate);
+  assert.deepEqual(
+    await (
+      await request(readPath, { method: "POST", headers: readAuth, body: "{}" })
+    ).json(),
+    read,
+  );
   assert.deepEqual(health.daily_limits, { global: 20, owner: 5 });
   const page = await request("/");
   assert.equal(page.status, 200);
@@ -100,6 +157,10 @@ try {
   assert.equal(thread.status, 201);
   const { id } = await thread.json();
   const auth = { Cookie: cookie, "X-Saathi-CSRF": data.csrf };
+  assert.equal(
+    (await request(`/api/task-plans/${seedTask.id}`, { headers: auth })).status,
+    404,
+  );
   const roles = await (
     await request("/api/provider-roles", { headers: auth })
   ).json();
@@ -204,12 +265,17 @@ try {
   const db = new Database(join(folder, "state.sqlite"), { readonly: true });
   try {
     assert.equal(
+      (db.query("SELECT count(*) n FROM plan_read_runs").get() as { n: number })
+        .n,
+      1,
+    );
+    assert.equal(
       (
         db.query("SELECT count(*) n FROM inference_usage").get() as {
           n: number;
         }
       ).n,
-      1,
+      2,
     );
     assert.equal(
       (db.query("SELECT count(*) n FROM demo_bookings").get() as { n: number })
@@ -224,7 +290,7 @@ try {
     db.close();
   }
   console.log(
-    "Packed public service passed: boot/assets/session/ownership, durable failed-plan recovery and repeat-safe mock booking. One reserved missing-key attempt; no outbound model calls.",
+    "Packed service passed: owned cached mock reads, failed-plan recovery and repeat-safe mock booking. Synthetic seeded attempt plus one missing-key attempt; no outbound model calls.",
   );
 } finally {
   child.kill();
