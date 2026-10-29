@@ -1,4 +1,6 @@
 # PRD implementation audit — 29 October 2026
+
+**Latest public release:** source27de098 now runs independent planner selection, saved typed proposals and cached read-only evidence on schema v7, after a consistent snapshot and preservation checks. One approved local Meta plan/read succeeded; approval consumed. Public speech/live actions remain off. See current HANDOFF and public-deployment.md for exact evidence.
 **Shipped after this audit:** the controlled demo clinic text workflow is now live at https://35.208.235.27.sslip.io/. Choose **Try a demo appointment**. It adds owned tasks, exact expiring approval, slot contention protection, saved mock receipts, reject/cancel and reload recovery. No inference key is needed for this flow. It remains a simulation; real appointments, voice, reminders and general autonomous planning are not complete. Core PR9 and UI PR10 remain draft/unmerged. Deployed executable source: `9123f2f`; exact evidence is in HANDOFF.md.
 
 Source: root `PRD.md`, copied unchanged from the human's replacement PRD in the Python repository. Later human decisions select this OpenDuet fork, fully self-hosted threads/memory and the existing GCP VM. Those decisions replace the PRD's suggested Python runtime stack, not its workflow requirements. No document authorizes live transactions or clears a provider/channel gate.
