@@ -95,7 +95,7 @@ def main():
     with tarfile.open(archive, "w:gz") as tar:
         for name in manifest["files"]:
             path=build/name
-            if ".." in name or not re.fullmatch(r"(?:app.js|manifest.json|LICENSE|linux-runtime.tgz|examples/saathi/[A-Za-z0-9_./-]+\.(?:yaml|md)|saathi-web/(?:index.html|app.js|style.css)|licenses/[A-Za-z0-9_.-]+)",name) or not path.resolve().is_relative_to(build.resolve()) or not path.is_file() or path.is_symlink():
+            if ".." in name or not re.fullmatch(r"(?:app.js|manifest.json|LICENSE|linux-runtime.tgz|examples/saathi/[A-Za-z0-9_./-]+\.(?:yaml|md)|saathi-web/(?:index.html|app.js|appointments.js|style.css)|licenses/[A-Za-z0-9_.-]+)",name) or not path.resolve().is_relative_to(build.resolve()) or not path.is_file() or path.is_symlink():
                 raise RuntimeError("Unexpected or escaping release input.")
             tar.add(path, arcname=name, recursive=False)
     content = archive.read_bytes()

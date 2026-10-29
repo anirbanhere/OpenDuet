@@ -76,6 +76,7 @@ try {
   assert.equal(page.headers.get("strict-transport-security"), "max-age=86400");
   assert((await page.text()).includes("Reply model"));
   assert.equal((await request("/assets/app.js")).status, 200);
+  assert.equal((await request("/assets/appointments.js")).status, 200);
   const session = await request("/api/session", {
     method: "POST",
     body: JSON.stringify({ consent: true }),
@@ -91,6 +92,54 @@ try {
   });
   assert.equal(thread.status, 201);
   const { id } = await thread.json();
+  const auth = { Cookie: cookie, "X-Saathi-CSRF": data.csrf };
+  const options = await (
+    await request("/api/demo-appointments/options", { headers: auth })
+  ).json();
+  const date = new Date(Date.parse(`${options.min_date}T00:00:00Z`) + 86400000)
+    .toISOString()
+    .slice(0, 10);
+  const task = await (
+    await request("/api/demo-appointments", {
+      method: "POST",
+      headers: auth,
+      body: JSON.stringify({
+        request_id: "packed-demo",
+        date,
+        locale: "en-IN",
+      }),
+    })
+  ).json();
+  const review = await (
+    await request(`/api/demo-appointments/${task.id}/preview`, {
+      method: "POST",
+      headers: auth,
+      body: JSON.stringify({ slot_id: "10:00", version: task.version }),
+    })
+  ).json();
+  const decision = {
+    request_id: "packed-decision",
+    decision: "approve",
+    version: review.task.version,
+    nonce: review.nonce,
+  };
+  const booked = await (
+    await request(`/api/demo-appointments/${task.id}/decision`, {
+      method: "POST",
+      headers: auth,
+      body: JSON.stringify(decision),
+    })
+  ).json();
+  assert.equal(booked.state, "COMPLETED");
+  assert(booked.receipt.reference.startsWith("MOCK-"));
+  const duplicate = await (
+    await request(`/api/demo-appointments/${task.id}/decision`, {
+      method: "POST",
+      headers: auth,
+      body: JSON.stringify(decision),
+    })
+  ).json();
+  assert.equal(duplicate.receipt.reference, booked.receipt.reference);
   const other = await request("/api/session", {
     method: "POST",
     body: JSON.stringify({ consent: true }),
@@ -108,6 +157,11 @@ try {
   const db = new Database(join(folder, "state.sqlite"), { readonly: true });
   try {
     assert.equal(
+      (db.query("SELECT count(*) n FROM demo_bookings").get() as { n: number })
+        .n,
+      1,
+    );
+    assert.equal(
       (db.query("SELECT count(*) n FROM threads").get() as { n: number }).n,
       1,
     );
@@ -115,7 +169,7 @@ try {
     db.close();
   }
   console.log(
-    "Packed public service passed: boot, assets, Secure session, ownership and durable database. No model calls.",
+    "Packed public service passed: boot, assets, Secure session, ownership, repeat-safe mock booking and durable database. No model calls.",
   );
 } finally {
   child.kill();

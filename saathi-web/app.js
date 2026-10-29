@@ -1,3 +1,5 @@
+import { createAppointmentConsole } from "./appointments.js";
+
 const $ = (selector) => document.querySelector(selector);
 const el = (tag, text) => {
   const element = document.createElement(tag);
@@ -9,6 +11,7 @@ let csrf = "",
   busy = false,
   pending = null,
   lastModel = null;
+const demoAppointments = createAppointmentConsole({ api, run, el, button });
 async function api(path, body, method = "POST") {
   const response = await fetch(
     path,
@@ -24,16 +27,20 @@ async function api(path, body, method = "POST") {
         },
   );
   const result = await response.json();
-  if (!response.ok)
-    throw new Error(
+  if (!response.ok) {
+    const error = new Error(
       result.error?.message ||
         "Request failed. Refresh saved state before retrying.",
     );
+    error.status = response.status;
+    throw error;
+  }
   return result;
 }
 async function run(action, focusAfter = null) {
   if (busy) return;
   busy = true;
+  demoAppointments.setBusy(true);
   $("#model-select").disabled = true;
   $("#message").readOnly = true;
   document.querySelectorAll("button").forEach((button) => {
@@ -58,6 +65,7 @@ async function run(action, focusAfter = null) {
     $("#model-select").disabled = Boolean(pending);
     $("#message").readOnly = Boolean(pending);
     $("#send").disabled = !pending && !$("#model-select").value;
+    demoAppointments.setBusy(false);
     if (succeeded) focusAfter?.focus();
   }
 }
@@ -238,7 +246,9 @@ async function enter(session) {
     await threads();
   }
   await models();
+  await demoAppointments.initialize();
 }
+
 $("#models-refresh").addEventListener("click", () => run(models));
 $("#model-select").addEventListener("change", () => {
   $("#send").disabled = !$("#model-select").value;
@@ -260,6 +270,7 @@ $("#refresh").addEventListener("click", () =>
     if (selected) await show(selected);
     await threads();
     await memories();
+    await demoAppointments.refresh();
   }),
 );
 $("#chat").addEventListener("submit", (event) => {

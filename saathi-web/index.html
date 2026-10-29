@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Saathi · Self-hosted</title><link rel="stylesheet" href="/assets/style.css"><script defer src="/assets/app.js"></script></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Saathi · Self-hosted</title><link rel="stylesheet" href="/assets/style.css"><script type="module" src="/assets/app.js"></script></head>
 <body>
 <a class="skip" href="#message">Skip to conversation</a>
 <header><div class="brand">saathi<span>A little help with your everyday.</span></div><span class="badge">SELF-HOSTED STORAGE</span></header>
@@ -10,7 +10,7 @@
     <nav class="panel sidebar" aria-label="Saved conversations"><p class="eyebrow">CONVERSATIONS</p><label for="agent">Assistant</label><select id="agent"><option value="saathi">Saathi · Everyday help</option><option value="kitchen">Saathi Kitchen</option><option value="inventory">Saathi Stock</option></select><button id="new-thread">New conversation</button><div id="threads"></div></nav>
     <section class="panel conversation" aria-label="Conversation">
       <div class="conversation-heading"><div><p class="eyebrow">SPEAK NATURALLY</p><h1 id="thread-title">How can I help?</h1></div><button id="refresh" class="secondary">Refresh saved state</button></div>
-      <p class="notice">Select a Meta model marked Web lookup for current weather and public website research. Free OpenRouter models are text-only. Actions, bookings, speech and background jobs are unavailable. Language support is a target, not a tested fluency claim.</p>
+      <p class="notice">Select a Meta model marked Web lookup for current weather and public website research. Free OpenRouter models are text-only. <a href="#demo-appointments">Try a demo appointment</a> below. Real bookings, speech and notifications are unavailable.</p>
       <p id="model" class="muted"></p>
       <label for="model-select">Reply model</label><select id="model-select" aria-describedby="model-policy"><option value="">Loading eligible models…</option></select><p id="model-policy" class="muted" aria-live="polite"></p><button id="models-refresh" class="secondary" type="button">Refresh model list</button>
       <p id="thread-state" class="muted" role="status"></p>
@@ -19,6 +19,14 @@
       <button id="delete-thread" class="text-button" hidden>Delete this conversation</button>
     </section>
     <aside class="panel memory" aria-labelledby="memory-heading"><p class="eyebrow">PREFERENCES YOU REVIEW</p><h2 id="memory-heading">What Saathi remembers</h2><p class="muted">Saved explicitly by you. These preferences are included in this workspace's model context. No automatic extraction or cross-workspace memory. Deleting a memory removes its record; earlier messages may still mention it.</p><form id="memory-form"><label for="memory-text">A preference to remember</label><textarea id="memory-text" rows="3" maxlength="2000" required placeholder="For example: reply in Tamil."></textarea><label class="check"><input id="reviewed" type="checkbox" required> I reviewed this preference and want to save it.</label><button type="submit" class="secondary">Save reviewed memory</button></form><div id="memories"></div></aside>
+    <section id="demo-appointments" class="panel appointments" aria-labelledby="appointments-heading">
+      <p class="eyebrow">CONTROLLED DEMO · NO MODEL KEY NEEDED</p><h2 id="appointments-heading">Try a dental appointment</h2>
+      <p class="notice">Saathi DEMO Dental, Chennai. All slots, quotes and receipts are simulated. No real appointment, charge or reminder is created. Use this to try choosing a slot, reviewing it and approving a mock booking.</p>
+      <fieldset id="appointment-controls"><legend class="visually-hidden">Demo appointment controls</legend>
+      <form id="appointment-form" class="appointment-form"><div><label for="appointment-date">Appointment date (India)</label><input id="appointment-date" type="date" required></div><div><label for="appointment-locale">Receipt language</label><select id="appointment-locale"><option value="en-IN">English</option><option value="hi-IN">हिन्दी</option><option value="ta-IN">தமிழ்</option></select></div><button id="appointment-create" type="submit">Find demo slots</button></form>
+      <button id="appointment-refresh" class="secondary" type="button">Refresh demo tasks</button>
+      <div id="appointment-tasks" tabindex="-1" aria-live="polite" aria-label="Demo task status"></div></fieldset>
+    </section>
   </div>
   <p id="status" role="status" aria-live="polite" aria-atomic="true"></p>
 </main>

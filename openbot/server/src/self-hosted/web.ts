@@ -15,7 +15,7 @@ export function attachSelfHostedWeb(
   );
   app.get("/assets/:name", (c) => {
     const name = c.req.param("name");
-    if (name !== "app.js" && name !== "style.css")
+    if (name !== "app.js" && name !== "appointments.js" && name !== "style.css")
       throw new LocalError("Asset not found.", 404);
     return new Response(Bun.file(resolve(web, name)), {
       headers: {
