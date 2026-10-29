@@ -1,5 +1,12 @@
 # Saathi on OpenDuet handoff
 
+## Structured planning — durable storage checkpoint
+
+29 October 2026. Branch `codex/structured-planning`, stacked on PR11, scope in tasks/structured-planning.md. Added local schema v6 owned planning tasks/events, credential-free role snapshots, strict bounded draft-plan contracts, request identity, cancellation/late-result suppression and restart interruption. Planning reserves attempts in the existing inference_usage ledger and shares chat's running/owner/global guard. Cancelling an in-flight plan keeps its inference slot until completion/failure settles; restart clears interrupted work without replay.
+
+Three new storage tests were red before implementation; full focused suite now84 pass/692 assertions and server TypeScript passes. One extra cancellation regression was red before the pending-slot fix. No planning HTTP/provider/UI path yet; no external action/tool execution, live inference, public deployment, production/private DB migration or profile edit occurred. Schema v6 is only used in synthetic test databases. Public remains9123f2f/v5. Next: typed planner/API tests and implementation, then dedicated review UI, browser validation and final exact-source CI. Goal remains active; do not call this an autonomous executor or finished PRD.
+
+
 ## Provider-role slice — PR11 scoped Linux checks passed
 
 Exact executable source `d12154092d2bbcd3fec1bb4a03e4341725c73f3d`, draft [PR11](https://github.com/anirbanhere/OpenDuet/pull/11), base PR10. [Self-hosted Linux CI 40845012022](https://github.com/anirbanhere/OpenDuet/actions/runs/40845012022) and [tenant CI 40845011896](https://github.com/anirbanhere/OpenDuet/actions/runs/40845011896) passed, including focused tests, server types, unchanged frozen Linux test-type baseline, audited build and packed no-key service smoke. Wider inherited CI is separate and was still running at this checkpoint. No merge/deployment occurred; public executable remains `9123f2f`. Next bounded slice: durable read-only structured planning with pinned roles and shared inference quota, then media/speech integration. Goal remains active.
