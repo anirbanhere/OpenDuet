@@ -1,5 +1,38 @@
 import { LocalError } from "./errors";
 
+/** Wrap signed little-endian PCM16 without decoding, resampling or changing samples. */
+export function pcm16ToWav(pcm: Uint8Array, sampleRate: number, channels = 1) {
+  if (
+    !(pcm instanceof Uint8Array) ||
+    ![1, 2].includes(channels) ||
+    ![8000, 16000, 22050, 24000, 44100, 48000].includes(sampleRate) ||
+    pcm.length < channels * 2 ||
+    pcm.length % (channels * 2) !== 0 ||
+    pcm.length + 44 > 2_000_000 ||
+    pcm.length > sampleRate * channels * 2 * 60
+  )
+    throw new LocalError("Invalid or oversized PCM16 audio.");
+  const bytes = new Uint8Array(pcm.length + 44),
+    view = new DataView(bytes.buffer),
+    label = (at: number, text: string) =>
+      bytes.set(new TextEncoder().encode(text), at);
+  label(0, "RIFF");
+  view.setUint32(4, bytes.length - 8, true);
+  label(8, "WAVE");
+  label(12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, channels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * channels * 2, true);
+  view.setUint16(32, channels * 2, true);
+  view.setUint16(34, 16, true);
+  label(36, "data");
+  view.setUint32(40, pcm.length, true);
+  bytes.set(pcm, 44);
+  return bytes;
+}
+
 /** Bounded PCM16 RIFF/WAVE inspection, not a general codec decoder or transcoder. */
 export function inspectPcmWav(bytes: Uint8Array) {
   const invalid = (): never => {

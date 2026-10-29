@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { syntheticSpeechFixture } from "../src/self-hosted/speech";
-import { inspectPcmWav } from "../src/self-hosted/wav";
+import { inspectPcmWav, pcm16ToWav } from "../src/self-hosted/wav";
 
 test("PCM WAV metadata comes from bounded chunk evidence rather than an audio MIME label", () => {
   const { audio } = syntheticSpeechFixture("ta-IN");
@@ -29,6 +29,17 @@ test("PCM WAV metadata comes from bounded chunk evidence rather than an audio MI
   stereoView.setUint32(28, 64000, true);
   stereoView.setUint16(32, 4, true);
   expect(inspectPcmWav(stereo).durationMs).toBe(125);
+});
+
+test("PCM16 wrapping preserves sample bytes and derives duration from the explicit rate", () => {
+  const pcm = syntheticSpeechFixture("en-IN").audio.slice(44);
+  const wav = pcm16ToWav(pcm, 24000);
+  expect(wav.slice(44)).toEqual(pcm);
+  expect(inspectPcmWav(wav).sampleRate).toBe(24000);
+  expect(inspectPcmWav(wav).frames).toBe(4000);
+  expect(() => pcm16ToWav(new Uint8Array(3), 24000)).toThrow("PCM");
+  expect(() => pcm16ToWav(pcm, 0)).toThrow("PCM");
+  expect(() => pcm16ToWav(new Uint8Array(2_000_000), 24000)).toThrow("PCM");
 });
 
 test("malformed/truncated RIFF, forged alignment, codec, duration and oversized bytes fail closed", () => {

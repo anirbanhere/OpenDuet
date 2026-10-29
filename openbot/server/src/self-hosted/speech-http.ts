@@ -1,11 +1,14 @@
 import { LocalError } from "./errors";
 import type { ProviderFetch } from "./http-json";
 
-const byteLimit = 128000;
-async function jsonBody(response: Response, signal: AbortSignal) {
+const maxByteLimit = 2_700_000;
+async function boundedBody(
+  response: Response,
+  signal: AbortSignal,
+  byteLimit: number,
+) {
   const reader = response.body?.getReader();
-  if (!reader)
-    throw new LocalError("Speech provider returned no JSON body.", 502);
+  if (!reader) throw new LocalError("Speech provider returned no body.", 502);
   const cancel = () => {
     void reader.cancel().catch(() => {});
   };
@@ -28,7 +31,9 @@ async function jsonBody(response: Response, signal: AbortSignal) {
       }
       chunks.push(value);
     }
-    return JSON.parse(Buffer.concat(chunks).toString("utf8")) as unknown;
+    if (signal.aborted)
+      throw new LocalError("Speech request was aborted.", 408);
+    return new Uint8Array(Buffer.concat(chunks));
   } finally {
     signal.removeEventListener("abort", cancel);
     reader.releaseLock();
@@ -36,13 +41,17 @@ async function jsonBody(response: Response, signal: AbortSignal) {
 }
 
 /** One request, bounded body and cooperative cancellation. Never logs provider errors or keys. */
-export async function speechJson(
+export async function speechBytes(
   call: ProviderFetch,
   url: string,
   init: RequestInit,
   parent: AbortSignal,
   timeoutMs: number,
+  byteLimit: number,
+  contentTypes: readonly string[],
 ) {
+  if (!Number.isInteger(byteLimit) || byteLimit < 1 || byteLimit > maxByteLimit)
+    throw new LocalError("Unsupported speech response byte budget.");
   if (parent.aborted) throw new LocalError("Speech request was aborted.", 408);
   const controller = new AbortController();
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -91,19 +100,23 @@ export async function speechJson(
           );
         }
         const length = response.headers.get("content-length"),
-          contentType = response.headers.get("content-type") || "";
+          contentType = (
+            (response.headers.get("content-type") || "").split(";", 1)[0] ?? ""
+          )
+            .trim()
+            .toLowerCase();
         if (
-          !contentType.toLowerCase().startsWith("application/json") ||
+          !contentTypes.includes(contentType) ||
           (length !== null &&
             (!/^\d+$/.test(length) || Number(length) > byteLimit))
         ) {
           await response.body?.cancel().catch(() => {});
           throw new LocalError(
-            "Speech provider returned unsupported or oversized JSON.",
+            "Speech provider returned an unsupported or oversized body.",
             502,
           );
         }
-        return jsonBody(response, controller.signal);
+        return boundedBody(response, controller.signal, byteLimit);
       }),
     ]);
   } catch (error) {
@@ -115,5 +128,30 @@ export async function speechJson(
   } finally {
     clearTimeout(timer);
     parent.removeEventListener("abort", parentAbort);
+  }
+}
+
+/** STT retains its smaller default; only TTS opts into a bounded base64 envelope. */
+export async function speechJson(
+  call: ProviderFetch,
+  url: string,
+  init: RequestInit,
+  parent: AbortSignal,
+  timeoutMs: number,
+  byteLimit = 128000,
+): Promise<unknown> {
+  const bytes = await speechBytes(
+    call,
+    url,
+    init,
+    parent,
+    timeoutMs,
+    byteLimit,
+    ["application/json"],
+  );
+  try {
+    return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
+  } catch {
+    throw new LocalError("Speech provider returned invalid JSON.", 502);
   }
 }

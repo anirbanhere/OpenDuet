@@ -1,10 +1,20 @@
 # Saathi on OpenDuet handoff
 
+## Vendor TTS foundation — ready for scoped CI
+
+29 October2026. Branch codex/vendor-tts-adapters stacks on PR16. Added internal disabled-by-default Sarvam bulbul:v3 / ElevenLabs eleven_v3 synthesis factories with explicit operator voice/model/key, literal consent and fixed endpoint/header isolation. Shared bounded HTTP now supports binary output while preserving the128KB STT default; Sarvam canonical base64 WAV and ElevenLabs24kHz little-endian PCM normalize to inspected WAV. Text500, WAV2MB/60s, no redirect/retry/provider or retention fallback. Response locale/isSpeech describe requested vendor generation, not independently verified speaking/language/voice rights.
+
+Evidence: missing module/PCM export tests were red before implementation;114 focused tests/970 assertions now pass, server types pass after fixing the new Uint8Array backing-buffer annotation, changed-file Biome passes. Tests cover malformed/base64/PCM/WAV/size/MIME/provider error redaction, cancellation/reader cleanup/deadline and disabled/consent/model/voice/language guards. Initial Windows test types included that fixed annotation plus the eight known gallery path-text mismatches; final scoped Linux CI is pending and baseline unchanged. Audited dirty validation build and packed owned-read/duplicate/owner/failed-plan/mock-booking checks pass, with zero observed shipped advisories/28 wider upstream packages. Bundle remains955c8f2 because factories are unwired; runtimeIntegrity=null is not a deployable runtime release.
+
+No live/paid speech/model call, new key, public/private migration, upload/channel route or cloud change. Public remains27de098/schema v7; private8790/profile untouched. The single approved Meta planning probe remains consumed. Full goal is incomplete; native tracker usageLimited bookkeeping below still applies. Fresh account usage permits ordinary scheduled work; reset credits untouched.
+
+Next: draft stacked PR/scoped Linux CI, then a separate pure response-composition increment for text_only/voice_only/text_and_voice with explicit unavailable/fixture states and no message delivery. Owner-scoped media/durable consent/retention, speech admission/spend ledger and actual consented language evaluation remain prerequisites to public voice. Read tasks/vendor-tts-adapters.md and docs/saathi/vendor-tts.md; preserve the current changes rather than restarting them.
+
 ## Continuation bookkeeping clarification
 
 Latest native get_goal returned status usageLimited from the earlier exhausted window; it was not automatically resumed by the later account reset. Fresh account checks did permit ordinary work, and the standing human request plus existing hourly heartbeat authorized the resumed implementation/release. No goal-status override, duplicate goal or reset credit was used. The objective remains ongoing/incomplete and recurring continuation remains configured; do not describe the native tracker itself as active while it reports usageLimited. Only the human/system can resume that tracker. Continue permitted scheduled work using fresh account limits and this handoff.
 
-Public release27de098 is verified above, with the one approved Meta test consumed. TTS branch is clean and ready for its saved implementation plan.
+Public release27de098 is verified below, with the one approved Meta test consumed. Current TTS progress is recorded in the latest checkpoint above.
 
 
 ## Shipped — independent task planning and cached read-only checks
