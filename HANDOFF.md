@@ -1,5 +1,16 @@
 # Saathi on OpenDuet handoff
 
+## Planner picker — PR15 verified and clean release prepared
+
+Exact source `58f92193516042d91736b97e7f41a0e6d7afb579`, draft [PR15](https://github.com/anirbanhere/OpenDuet/pull/15), base PR14. [Self-hosted CI40876553739](https://github.com/anirbanhere/OpenDuet/actions/runs/40876553739) and [tenant CI40876553868](https://github.com/anirbanhere/OpenDuet/actions/runs/40876553868) passed:97 focused tests, server types, unchanged frozen Linux test types, audited bundle and actual packed read/duplicate/owner/failed-plan/mock-booking smoke. No whole-platform CI-green claim.
+
+Prepared a clean committed runtime build of that executable source: dirty=false, Bun1.4.3 Linux distribution SHA512 integrity verified, server bundle SHA256 `955c8f2a48e5bd06e3879a48be97ef3d9fc5048a3be86d0cbed9103b60ad688e`. Audited shipped graph has zero observed advisory matches; wider upstream remains28 advisory packages. Enhanced packed smoke passes. Actual gcloud upload inventory lists exactly20 permitted manifest files and no environment/DB/private data. Operational correction: copy deploy/public/upload.gcloudignore to artifacts/public-build/.gcloudignore, then use gcloud meta list-files-for-upload with that build directory; passing an absolute --ignore-file alone returned an empty inventory and was not accepted as proof. Nothing was uploaded/provisioned/restarted; no archive/deployment claim.
+
+The one-Meta planning-test approval remains PENDING; do not treat the scheduled heartbeat, elapsed time, configured key or enabled catalogue as consent for a paid smoke. The isolated helper is prepared at ignored artifacts/meta-plan-smoke.ts and must not be run without a direct human grant. It permits one Meta chat completion, max2048 output tokens, no web tools/fallback/private context, fresh synthetic SQLite and zero booking. One prior free-only OpenRouter probe failed and was not retried. Public remains9123f2f/schema v5; local private8790 is unchanged.
+
+Next if approved: run that single prepared synthetic Meta test with the ignored profile; if its plan/reads are valid, run the existing stopped-VM snapshot update procedure and prove pre-upgrade synthetic thread/preference/usage/mock receipt persistence and public owned planning/read/duplicate behavior. Never overwrite or downgrade data. If approval remains pending, continue independent owner-scoped media/real speech adapter development on a separate feature branch; the full PRD goal is active and not blocked as a whole. No reset credits were used.
+
+
 ## Independent planner selection — ready for scoped CI
 
 29 October 2026. Branch codex/planner-model-selection, stacked on PR14 acceptance04665e8. Added a separate eligible-model picker for new task reasoning. Optional reasoning_model is part of request identity, validated before reservation against the existing key/policy-filtered catalogue. Only the new reasoning model changes; other roles and server budgets remain. Credential-free snapshot revision is recomputed/frozen. Duplicates retain their saved selection without catalogue IO, even after a catalogue outage; changed-model reuse conflicts. Added spacing for plan action buttons.
