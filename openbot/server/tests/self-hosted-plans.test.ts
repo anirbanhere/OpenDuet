@@ -404,3 +404,30 @@ test("unsafe planner output fails durably, is charged once, and never becomes a 
   );
   expect(store.appointments.list(a.owner)).toEqual([]);
 });
+
+test("actual planner adapter refuses fenced or malformed JSON without retry or tool execution", async () => {
+  const { store, a } = world();
+  const config = selfHostedConfig({ OPENROUTER_API_KEY: "synthetic-router" });
+  for (const [index, content] of ["```json\n{}\n```", "{invalid"].entries()) {
+    const task = store.plans.begin(
+      a.owner,
+      { ...input, request_id: `invalid-${index}` },
+      config.roles,
+    );
+    let calls = 0;
+    const planner = await createPlanner(config, {
+      fetch: async () => {
+        calls++;
+        return Response.json({
+          choices: [
+            { finish_reason: "stop", message: { role: "assistant", content } },
+          ],
+        });
+      },
+    });
+    await expect(planner(task)).rejects.toThrow("strict JSON");
+    expect(calls).toBe(1);
+    store.plans.fail(a.owner, task.id);
+  }
+  expect(store.appointments.list(a.owner)).toEqual([]);
+});

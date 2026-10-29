@@ -5,11 +5,7 @@ import type { AppVariables } from "./app";
 import type { selfHostedConfig } from "./config";
 import { LocalError } from "./errors";
 import type { ProviderFetch } from "./http-json";
-import {
-  planInput,
-  planningInstructions,
-  validatePlan,
-} from "./plan-contract";
+import { planInput, planningInstructions, validatePlan } from "./plan-contract";
 import type { TaskPlans } from "./plans";
 import type { ProviderRoles } from "./roles";
 import type { SelfHostedStore } from "./store";

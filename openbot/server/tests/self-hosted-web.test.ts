@@ -33,6 +33,9 @@ test("the console serves only its fixed assets with local security headers", asy
       (await app.request("http://localhost:8790/assets/app.js")).status,
     ).toBe(200);
     expect(
+      (await app.request("http://localhost:8790/assets/plans.js")).status,
+    ).toBe(200);
+    expect(
       (await app.request("http://localhost:8790/assets/.env")).status,
     ).toBe(404);
   } finally {

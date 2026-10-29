@@ -28,7 +28,7 @@ Use Bun1.4.3, current Hono/Zod/SQLite, no dependency or broad upstream refactor.
 
 ## Progress
 
-- [ ] Durable storage/pins and shared budget.
-- [ ] Typed planner/provider/API boundaries.
-- [ ] Review UI and browser acceptance.
+- [x] Durable storage/pins and shared budget.
+- [x] Typed planner/provider/API boundaries.
+- [x] Review UI and synthetic real-browser acceptance; no live model/fluency claim.
 - [ ] Final CI, review PR and deployment decision/handoff.

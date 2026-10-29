@@ -19,6 +19,19 @@
       <button id="delete-thread" class="text-button" hidden>Delete this conversation</button>
     </section>
     <aside class="panel memory" aria-labelledby="memory-heading"><p class="eyebrow">PREFERENCES YOU REVIEW</p><h2 id="memory-heading">What Saathi remembers</h2><p class="muted">Saved explicitly by you. These preferences are included in this workspace's model context. No automatic extraction or cross-workspace memory. Deleting a memory removes its record; earlier messages may still mention it.</p><form id="memory-form"><label for="memory-text">A preference to remember</label><textarea id="memory-text" rows="3" maxlength="2000" required placeholder="For example: reply in Tamil."></textarea><label class="check"><input id="reviewed" type="checkbox" required> I reviewed this preference and want to save it.</label><button type="submit" class="secondary">Save reviewed memory</button></form><div id="memories"></div></aside>
+    <section id="task-planning" class="panel appointments" aria-labelledby="plans-heading">
+      <p class="eyebrow">DRAFT AND REVIEW</p><h2 id="plans-heading">Plan an everyday task</h2>
+      <p class="notice">Send a goal to the reasoning model to draft a saved proposal. This path can propose a demo-clinic slot lookup or manual guidance; it does not execute steps, book, pay or send messages. Draft text is unverified model output. For a simulated booking, use the appointment panel below.</p>
+      <p id="plan-model" class="muted"></p>
+      <form id="plan-form"><fieldset id="plan-fields"><legend class="visually-hidden">Task plan details</legend>
+        <label for="plan-goal">Your goal</label><textarea id="plan-goal" rows="3" maxlength="2000" required placeholder="Help me find demo dental slots in Chennai."></textarea>
+        <div class="appointment-form"><div><label for="plan-date">Exact date (India, optional)</label><input id="plan-date" type="date" aria-describedby="plan-date-help"></div><div><label for="plan-locale">Plan language</label><select id="plan-locale"><option value="en-IN">English</option><option value="hi-IN">हिन्दी</option><option value="ta-IN">தமிழ்</option></select></div><button id="plan-create" type="submit">Draft a plan</button></div>
+        <p id="plan-date-help" class="muted">Confirm the exact date here for demo-clinic steps. Without it, the planner should ask a question.</p>
+        <p class="muted">This goal, date and language go to the displayed reasoning provider. Use synthetic details. No chat history or saved preferences are sent by this panel.</p>
+      </fieldset></form>
+      <p id="plan-status" role="status" aria-live="polite"></p><button id="plan-refresh" class="secondary" type="button">Refresh saved plans</button>
+      <div id="plan-tasks" tabindex="-1" aria-live="polite" aria-label="Saved task proposals"></div>
+    </section>
     <section id="demo-appointments" class="panel appointments" aria-labelledby="appointments-heading">
       <p class="eyebrow">CONTROLLED DEMO · NO MODEL KEY NEEDED</p><h2 id="appointments-heading">Try a dental appointment</h2>
       <p class="notice">Saathi DEMO Dental, Chennai. All slots, quotes and receipts are simulated. No real appointment, charge or reminder is created. Use this to try choosing a slot, reviewing it and approving a mock booking.</p>

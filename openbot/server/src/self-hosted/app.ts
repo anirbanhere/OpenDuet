@@ -173,6 +173,8 @@ export function createSelfHostedApp(options: {
       actions: false,
       speech: false,
       demo_appointments: true,
+      task_planning: Boolean(options.roles && options.planner),
+      general_task_execution: false,
       model,
       public_demo: Boolean(options.publicOrigin),
       daily_limits: store.limits(),

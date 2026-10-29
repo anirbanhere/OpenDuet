@@ -1,4 +1,5 @@
 import { createAppointmentConsole } from "./appointments.js";
+import { createPlanConsole } from "./plans.js";
 
 const $ = (selector) => document.querySelector(selector);
 const el = (tag, text) => {
@@ -12,6 +13,7 @@ let csrf = "",
   pending = null,
   lastModel = null;
 const demoAppointments = createAppointmentConsole({ api, run, el, button });
+const taskPlans = createPlanConsole({ api, run, el, button });
 async function api(path, body, method = "POST") {
   const response = await fetch(
     path,
@@ -41,6 +43,7 @@ async function run(action, focusAfter = null) {
   if (busy) return;
   busy = true;
   demoAppointments.setBusy(true);
+  taskPlans.setBusy(true);
   $("#model-select").disabled = true;
   $("#message").readOnly = true;
   document.querySelectorAll("button").forEach((button) => {
@@ -66,6 +69,7 @@ async function run(action, focusAfter = null) {
     $("#message").readOnly = Boolean(pending);
     $("#send").disabled = !pending && !$("#model-select").value;
     demoAppointments.setBusy(false);
+    taskPlans.setBusy(false);
     if (succeeded) focusAfter?.focus();
   }
 }
@@ -247,6 +251,7 @@ async function enter(session) {
   }
   await models();
   await demoAppointments.initialize();
+  await taskPlans.initialize();
 }
 
 $("#models-refresh").addEventListener("click", () => run(models));
@@ -271,6 +276,7 @@ $("#refresh").addEventListener("click", () =>
     await threads();
     await memories();
     await demoAppointments.refresh();
+    await taskPlans.refresh();
   }),
 );
 $("#chat").addEventListener("submit", (event) => {

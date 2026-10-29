@@ -1,5 +1,16 @@
 # Saathi on OpenDuet handoff
 
+## Structured planning — review panel and local acceptance
+
+29 October 2026. Branch `codex/structured-planning`, base PR11. Added a dedicated plans.js review module with goal/exact-date/locale, reasoning-model disclosure, saved draft/clarification/unavailable/failed/interrupted/cancelled states, refresh, activity and cancellation. Unknown responses retain the request identity for reconciliation. The module's asset is included in server/build/deployment allowlists. Health reports draft planning availability separately from general execution. Model output is textContent only and never creates execution authority.
+
+Verification: 90 focused tests pass/748 assertions; server types pass; new JavaScript and deployment Python syntax checks pass. New/modified files pass Biome. Windows frozen test types have only the eight known gallery path-text mismatches, baseline unchanged; exact-source Linux gate is next. Audited build reports zero matching shipped advisories (28 wider upstream advisory packages). Actual packed no-key service confirms saved failed-plan/duplicate recovery with one reserved missing-key attempt and no outbound model calls, plus repeat-safe mock booking and prior asset/session/ownership behavior. This validation build was dirty, not a deployed release.
+
+Actual isolated synthetic browser: saved ready proposal and Tamil clarification state persist after reload; payment request displays unavailable; slow in-flight proposal is cancelled, its late output is discarded and reload preserves cancellation. Mobile viewport390/scroll390, focused status list and no console errors/warnings. Fixture tone/model text is not language-quality or live-inference evidence. Local fixture8791 is stopped. Original private8790/profile/database and public VM remain untouched; public executable stays9123f2f/schema v5. No actual plan step/tool, live booking, speech, model call or cloud change happened. New schema v6 exists only in synthetic test databases.
+
+Next: publish draft PR12 and exact-source scoped CI, then add permitted read-only step execution with durable observations/recovery before updating the public demo. Goal/heartbeat remain active and reset credits were not used. Read tasks/structured-planning.md and docs/saathi/structured-planning.md; don't claim the full PRD or general autonomous execution is complete.
+
+
 ## Structured planning — typed planner/API checkpoint
 
 The reasoning adapter now requests strict JSON with the task's saved role snapshot and current provider/cost policy; it disables native lookup in planning calls. Server-owned schemas reject arbitrary tools, writes, unconfirmed dates, extra fields and invalid dependencies. Session/CSRF-protected task routes create/list/read/cancel saved draft-only proposals. No plan step is executed and no appointment/receipt is created by this path.
