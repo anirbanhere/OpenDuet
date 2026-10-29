@@ -20,3 +20,12 @@ Expose or exercise the contract through a small keyless evaluation/check path, w
 4. Add explicitly configured speech provider adapters after official-doc verification and evaluate consented launch-language samples. No new provider credential is requested until a concrete adapter is ready.
 
 Keep the existing public demo usable, preserve v5 data and quotas, publish small unmerged PRs, and update HANDOFF before stopping or context transitions. Shared contributor assignments remain unassigned; do not take over another developer's checkout or message other tasks without the human's authorization.
+
+## Current increment checklist
+
+- [x] Independent immutable role configuration and actual bounded reasoning/conversation routing.
+- [x] Session-protected diagnostic route and original-model duplicate recovery.
+- [x] Synthetic STT/TTS contracts, independent swaps, consent/input/output/deadline guards.
+- [x] Actual keyless CLI evaluation and explicit operator-script type checking.
+- [ ] Final scoped Linux CI, packed-service audit/smoke and unmerged review PR.
+- [ ] Follow-on: durable general-task role pins, structured planning, owner-scoped media and genuine speech adapters/evaluation.

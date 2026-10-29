@@ -1,5 +1,14 @@
 # Saathi on OpenDuet handoff
 
+## Provider-role continuation — synthetic contracts ready for review
+
+29 October 2026. Branch `codex/provider-role-contracts`, stacked on PR10. Independent model-role routing/configuration is followed by STT/TTS interfaces and two explicitly synthetic selections, bounded consent/schema/deadline checks, a keyless six-case en/hi/ta command and session-protected redacted diagnostics. Default conversation metadata now follows the configured conversation role. Unsupported Whisper-as-TTS is rejected. Operator scripts are explicitly included in both server/test type gates. No genuine ASR/TTS, public upload or durable generic-task role pinning is claimed.
+
+Verified locally: 81 focused tests pass, 664 assertions; server TypeScript passes; audited bundle reports zero matching advisories in the four shipped packages, while the full upstream repository has 28 advisory packages. Actual packed service passes boot/assets/session/ownership, disabled speech diagnostics and repeat-safe durable mock booking with zero model calls. Windows frozen test-type output still has its eight known gallery path-text mismatches; no baseline edit. Exact-source Linux CI and review PR are next. Build at this checkpoint was intentionally dirty validation, not a deployable exact-source release.
+
+No production/local private profile, database, migration, live inference/audio, cloud resource or public deployment changed. Public executable stays `9123f2f`; goal/heartbeat stay active. Follow-on is durable role-pinned planning integrated with the existing inference attempt ledger, then owner-scoped media/consent and real speech evaluation. Read tasks/provider-roles.md and docs/saathi/provider-roles.md.
+
+
 ## Provider-role continuation — model routing/configuration checkpoint
 
 29 October 2026. Branch `codex/provider-role-contracts`. Implemented independent immutable reasoning/conversation/extraction/STT/TTS configuration with credential-free revision; configured conversation default drives the eligible model catalogue, explicit browser selection still wins, internal reasoning/extraction route through their own provider/budget. Existing free/paid/Meta guardrails and one-attempt behavior remain. The session-protected role diagnostic endpoint distinguishes configuration from tested inference/live speech. Duplicate chat requests with an omitted model now retain the saved original selection.

@@ -14,7 +14,7 @@ const app = attachSelfHostedWeb(
   createSelfHostedApp({
     store,
     answer,
-    model: config.model,
+    model: config.roles.conversation.model,
     models: createModelCatalog(config),
     publicOrigin: config.publicOrigin,
     roles: config.roles,

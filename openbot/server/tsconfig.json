@@ -39,6 +39,8 @@
     "src",
     "scripts",
     "../scripts/composio-smoke.ts",
+    "../../scripts/saathi-role-check.ts",
+    "../../scripts/saathi-self-hosted-check.ts",
     "tests/store-provider-required.test.ts",
     // `tests/composio-grants-for.test.ts` FOR THE SAME REASON, one seam member along: its last
     // describe is a TYPE test. A broker literal omitting `authorizations` must not compile, and the

@@ -119,6 +119,10 @@ export function configureRoles(
     const selected = parsed.data,
       fixture = selected.startsWith("fixture-"),
       fixtureModel = kind === "stt" ? "synthetic-stt-v1" : "synthetic-tone-v1";
+    if (kind === "tts" && selected === "local-whisper")
+      throw new LocalError(
+        "Local Whisper is an STT candidate, not a TTS provider.",
+      );
     const id =
       env[`${prefix}_MODEL`]?.trim() || (fixture ? fixtureModel : null);
     if (selected !== "disabled" && (!id || !modelId.test(id)))

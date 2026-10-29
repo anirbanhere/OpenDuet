@@ -33,6 +33,10 @@ test("role configuration cannot enable a disabled Meta provider, paid fallback o
     { SAATHI_REASONING_TIMEOUT_MS: "120000" },
     { SAATHI_CONVERSATION_MAX_OUTPUT_TOKENS: "999999" },
     { SAATHI_STT_PROVIDER: "sarvam" },
+    {
+      SAATHI_TTS_PROVIDER: "local-whisper",
+      SAATHI_TTS_MODEL: "operator-model",
+    },
   ])
     expect(() => selfHostedConfig(env)).toThrow();
   const configured = selfHostedConfig({
