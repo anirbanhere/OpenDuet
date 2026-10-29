@@ -1,5 +1,7 @@
 # Saathi on OpenDuet — coding agent instructions
 
+Speech response policies: tasks/speech-response-policy.md and docs/saathi/speech-replies.md. Internal composition pins a server-owned TTS role, requires literal consent for a single bounded voice attempt, keeps voice_only text null on failure, and makes zero TTS calls for text_only. Preserve cancellation, sanitized outcomes, WAV/duration/identity checks and fixture_only without deliverable voice. A ready composition is not delivery or durable consent. Public registration, owner media and speech spend/admission remain separate gates.
+
 GitHub canonical fork is now anirbanhere/saathi (verified rename/redirect from anirbanhere/OpenDuet, still a fork of CopilotKit/OpenDuet). Existing local path/origin are preserved. Use the canonical name for new CLI/PR operations; do not create a duplicate repository. Historical links redirect.
 
 Vendor TTS foundation: tasks/vendor-tts-adapters.md and docs/saathi/vendor-tts.md. Sarvam/ElevenLabs factories remain disabled/unregistered; explicit voice IDs grant no voice rights. Preserve separate keys, literal consent, 500-character text cap, bounded JSON/PCM/WAV, cancellation and no retry/logging fallback. Requested locale/isSpeech/source mode are transport metadata, not verified speaking or fluency evidence. Response policies, owned media/durable consent, speech budgets and actual consented evaluation remain prerequisites for public voice. No new paid probe follows from the consumed Meta planning-test approval.
