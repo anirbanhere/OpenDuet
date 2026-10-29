@@ -1,5 +1,21 @@
 # Saathi on OpenDuet handoff
 
+## Read console acceptance resumed after natural usage reset
+
+29 October 2026. Fresh usage check showed0% five-hour used; reset credits untouched. On codex/read-step-console, completed synthetic browser acceptance for manual guidance plus a skipped dependent lookup, and an out-of-window date returning Unavailable/no-source evidence. Read results remain explicitly mock/draft and create no booking.390px layout has no overflow. Browser console showed only the expected initial401 from the expired/unrecognized workspace probe; no runtime exception was observed. Fixture8791 stopped; original private8790/public unchanged.
+
+Extended the actual packed-service smoke: seed one owned synthetic proposal offline, then have the packaged HTTP service run native reads, preserve the same cached result on duplicate, deny another owner and persist exactly one read batch. The seed uses no model; its fixture reservation plus the deliberate missing-key failed attempt account for two ledger rows. Build audit/packed smoke pass with no outbound model calls. PR14's prior source e1f93ad passed scoped Linux CI40849914166. Follow-on before public release: expose a permitted per-new-task reasoning model choice (independent of reply picker), preserving pinned roles/duplicate identity and no paid fallback; actual synthetic model planning acceptance, final CI/clean packaging and consistent retained-disk backup. Current public default free-model capacity cannot be assumed working merely from configuration.
+
+
+## Read-step console — browser checkpoint before usage reset
+
+29 October 2026. Branch `codex/read-step-console`, stacked on PR13 handoff head5863480. Added Run read-only checks for ready plans without saved evidence, mock/draft result and cached IST timestamp display, manual/skipped/error outcome labels and preserved cancellation. The plan card no longer says no steps executed after a read result exists. Source text remains textContent; no model or write authority is added. Updated the panel's capability copy.
+
+Verification:96 focused tests/782 assertions and plans.js syntax/Biome pass. Actual isolated synthetic browser: create proposal, explicitly run reads, get three MOCK clinic slots, no remaining Run button, focus returns to saved task list; reload preserves exact retrieval timestamp/results. Mobile viewport390/scroll390 and console clean. No real model/provider/booking is involved. Manual-required display is implemented but has not yet had a separate browser fixture acceptance in this slice; core dependency/manual tests passed in PR13. Packed end-to-end successful read acceptance remains next. Fixture8791 is stopped; original private8790 untouched.
+
+No public release or private/public migration; public stays9123f2f/schema v5. The full PRD remains incomplete. Next: manual/skipped/error UI acceptance, packed successful read acceptance, scoped Linux CI, synthetic-only live model planning check if appropriate, then backed-up public release. Continue from this clean branch; do not restart earlier slices or silently enable paid fallback. Goal/heartbeat remain active; usage was96% used at turn start and no reset credits were redeemed.
+
+
 ## Native read-step core — PR13 scoped Linux checks passed
 
 Exact source `38837e03d1f39271af4edff3575451e97d65060a`, draft [PR13](https://github.com/anirbanhere/OpenDuet/pull/13), base PR12. [Self-hosted CI40849248421](https://github.com/anirbanhere/OpenDuet/actions/runs/40849248421) and [tenant CI40849248781](https://github.com/anirbanhere/OpenDuet/actions/runs/40849248781) passed, including96 focused tests, server types, unchanged frozen Linux test types, audited bundle and existing packed-service smoke. Wider inherited CI40849248533 was still running; do not claim whole-platform green. No merge/deployment occurred. Public remains9123f2f/schema v5, original private8790 untouched.

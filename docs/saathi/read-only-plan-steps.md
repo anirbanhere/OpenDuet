@@ -1,6 +1,6 @@
 # Native read-only plan execution
 
-The read-step core extends saved structured proposals with one explicit local execution batch. It supports only `demo.clinic.options` and `handoff.manual`. It never calls a model, creates or approves a booking, sends a message, pays a bill or issues a receipt. General autonomous planning/replanning and remote integrations are still incomplete. Browser controls for this path follow separately; consult HANDOFF for actual source/public status.
+The read-step core extends saved structured proposals with one explicit local execution batch. It supports only `demo.clinic.options` and `handoff.manual`. It never calls a model, creates or approves a booking, sends a message, pays a bill or issues a receipt. General autonomous planning/replanning and remote integrations are still incomplete. The read-step-console branch adds **Run read-only checks** on ready plan cards and shows cached evidence/time with explicit mock/manual labels; consult HANDOFF for actual verification/public status.
 
 After an owned plan is `DRAFT_READY`, POST an empty JSON object to `/api/task-plans/:id/run-readonly` using the existing same-origin session and CSRF header. The server revalidates its fixed tool/risk/date contract and runs at most three local steps in plan order. Clients cannot supply tools, altered arguments or approvals in this request. Another owner gets404. A non-ready/cancelled draft cannot start a new read. No configured inference key or new inference allowance is consumed by this batch.
 
