@@ -33,6 +33,7 @@ const files = [
   "saathi-web/index.html",
   "saathi-web/app.js",
   "saathi-web/appointments.js",
+  "saathi-web/plans.js",
   "saathi-web/style.css",
 ];
 for (const name of ["hono", "zod", "yaml"]) {
@@ -51,7 +52,7 @@ for (const file of files) {
   if (
     !file ||
     file.includes("..") ||
-    !/^(LICENSE|openbot\/examples\/saathi\/.*\.(yaml|md)|saathi-web\/(index\.html|app\.js|appointments\.js|style\.css))$/.test(
+    !/^(LICENSE|openbot\/examples\/saathi\/.*\.(yaml|md)|saathi-web\/(index\.html|app\.js|appointments\.js|plans\.js|style\.css))$/.test(
       file,
     )
   )

@@ -1,5 +1,7 @@
 # Saathi customization guide
 
+[Structured planning](structured-planning.md) adds saved draft proposals with pinned roles, strict tool/date contracts and shared inference budgets. It does not execute the proposed steps. Check HANDOFF for branch/CI status; a checked-in UI is not evidence of public deployment.
+
 Independent model/speech configuration and the keyless synthetic contract evaluator are described in [provider roles](provider-roles.md). Model defaults route through their configured role while browser selection remains explicit. This does not enable public voice or finish generic planning; read current HANDOFF for source/CI/deployment evidence.
 
 Current requirements: [root PRD](../../PRD.md), [requirement gap audit](prd-gap-audit.md), [controlled demo clinic](demo-appointments.md) and root HANDOFF. The text clinic workflow has its own durable task/review/approval/receipt path; live clinic, speech and reminders remain separate gaps. Earlier setup checkpoints below describe previous slices or the separate upstream platform.

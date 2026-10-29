@@ -2,6 +2,7 @@ import { createAnswer } from "./answer";
 import { createSelfHostedApp } from "./app";
 import { selfHostedConfig } from "./config";
 import { createModelCatalog } from "./models";
+import { createPlanner } from "./planner";
 import { SelfHostedStore } from "./store";
 import { attachSelfHostedWeb } from "./web";
 
@@ -9,6 +10,7 @@ import { attachSelfHostedWeb } from "./web";
 process.env.COPILOTKIT_TELEMETRY_DISABLED = "true";
 const config = selfHostedConfig(process.env);
 const answer = await createAnswer(config);
+const planner = await createPlanner(config);
 const store = new SelfHostedStore(config.path, { limits: config.dailyLimits });
 const app = attachSelfHostedWeb(
   createSelfHostedApp({
@@ -18,6 +20,7 @@ const app = attachSelfHostedWeb(
     models: createModelCatalog(config),
     publicOrigin: config.publicOrigin,
     roles: config.roles,
+    planner,
   }),
   config.webPath,
 );

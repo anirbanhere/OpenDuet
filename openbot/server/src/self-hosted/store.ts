@@ -4,6 +4,7 @@ import { chmodSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { DemoAppointments, migrateAppointments } from "./appointments";
 import { LocalError } from "./errors";
+import { migratePlans, TaskPlans } from "./plans";
 import type { SearchEvidence } from "./search";
 
 export { LocalError } from "./errors";
@@ -51,6 +52,7 @@ function ownDatabase(path: string) {
 
 export class SelfHostedStore {
   readonly appointments: DemoAppointments;
+  readonly plans: TaskPlans;
   private db: Database;
   private release: () => void;
   private closed = false;
@@ -100,7 +102,8 @@ export class SelfHostedStore {
       else if (
         version?.value !== 3 &&
         version?.value !== 4 &&
-        version?.value !== 5
+        version?.value !== 5 &&
+        version?.value !== 6
       )
         throw new LocalError("Unsupported local schema version.", 503);
       if (version && version.value <= 3)
@@ -119,6 +122,19 @@ export class SelfHostedStore {
           })
           .immediate();
       this.appointments = new DemoAppointments(this.db, options.now);
+      if (version && version.value <= 5)
+        this.db
+          .transaction(() => {
+            migratePlans(this.db);
+            this.db.exec("UPDATE version SET value=6 WHERE id=1");
+          })
+          .immediate();
+      this.plans = new TaskPlans(this.db, {
+        reserve: (owner, id) => this.reserveInference(owner, id),
+        busy: (owner) => this.inferenceRunning(owner),
+        now: options.now ?? Date.now,
+      });
+      this.plans.recover();
       // Single-process lock proves no live writer is using these runs. Never automatically replay.
       this.db.exec("UPDATE runs SET state='interrupted' WHERE state='running'");
     } catch (error) {
@@ -257,11 +273,7 @@ export class SelfHostedStore {
             );
           return { ...prior, fresh: false };
         }
-        if (
-          this.db
-            .query("SELECT 1 FROM runs WHERE owner=? AND state='running'")
-            .get(owner)
-        )
+        if (this.inferenceRunning(owner))
           throw new LocalError(
             "An answer is already running in this workspace.",
             409,
@@ -361,6 +373,15 @@ export class SelfHostedStore {
   }
   limits() {
     return this.options.limits ? { ...this.options.limits } : null;
+  }
+  private inferenceRunning(owner: string) {
+    return Boolean(
+      this.db
+        .query(
+          "SELECT 1 FROM runs WHERE owner=? AND state='running' UNION ALL SELECT 1 FROM task_plans WHERE owner=? AND pending=1 LIMIT 1",
+        )
+        .get(owner, owner),
+    );
   }
   private reserveInference(owner: string, run: string) {
     const day = new Date((this.options.now ?? Date.now)())

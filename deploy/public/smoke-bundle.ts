@@ -83,6 +83,7 @@ try {
   assert((await page.text()).includes("Reply model"));
   assert.equal((await request("/assets/app.js")).status, 200);
   assert.equal((await request("/assets/appointments.js")).status, 200);
+  assert.equal((await request("/assets/plans.js")).status, 200);
   const session = await request("/api/session", {
     method: "POST",
     body: JSON.stringify({ consent: true }),
@@ -106,6 +107,39 @@ try {
   assert.equal(roles.stt.status, "disabled");
   assert.equal(roles.liveSpeechEnabled, false);
   assert.equal(roles.publicAudioEnabled, false);
+  assert.deepEqual(
+    await (await request("/api/task-plans", { headers: auth })).json(),
+    [],
+  );
+  const draftRequest = {
+    request_id: "packed-plan",
+    goal: "Synthetic demo slot proposal",
+    locale: "en-IN",
+  };
+  assert.equal(
+    (
+      await request("/api/task-plans", {
+        method: "POST",
+        headers: auth,
+        body: JSON.stringify(draftRequest),
+      })
+    ).status,
+    502,
+  );
+  const failedPlans = await (
+    await request("/api/task-plans", { headers: auth })
+  ).json();
+  assert.equal(failedPlans[0].state, "FAILED");
+  assert.equal(
+    (
+      await request("/api/task-plans", {
+        method: "POST",
+        headers: auth,
+        body: JSON.stringify(draftRequest),
+      })
+    ).status,
+    200,
+  );
   const options = await (
     await request("/api/demo-appointments/options", { headers: auth })
   ).json();
@@ -170,6 +204,14 @@ try {
   const db = new Database(join(folder, "state.sqlite"), { readonly: true });
   try {
     assert.equal(
+      (
+        db.query("SELECT count(*) n FROM inference_usage").get() as {
+          n: number;
+        }
+      ).n,
+      1,
+    );
+    assert.equal(
       (db.query("SELECT count(*) n FROM demo_bookings").get() as { n: number })
         .n,
       1,
@@ -182,7 +224,7 @@ try {
     db.close();
   }
   console.log(
-    "Packed public service passed: boot, assets, Secure session, ownership, repeat-safe mock booking and durable database. No model calls.",
+    "Packed public service passed: boot/assets/session/ownership, durable failed-plan recovery and repeat-safe mock booking. One reserved missing-key attempt; no outbound model calls.",
   );
 } finally {
   child.kill();

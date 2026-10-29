@@ -1,5 +1,39 @@
 # Saathi on OpenDuet handoff
 
+## Structured planning slice — PR12 exact-source Linux checks passed
+
+Executable source `c2e821267b7bd0f41e1bcae5f202511a8ea32998`, draft [PR12](https://github.com/anirbanhere/OpenDuet/pull/12), base PR11. [Self-hosted CI40847746604](https://github.com/anirbanhere/OpenDuet/actions/runs/40847746604) and [tenant CI40847746579](https://github.com/anirbanhere/OpenDuet/actions/runs/40847746579) passed, including90 focused tests, server types, unchanged frozen Linux test-type gate, audited build and packed-service smoke. These are the required scoped checks, not a whole-platform-green claim. PR12 wider CI was still running; PR11 wider CI40845250795 failed the Python LangGraph provider regressions and broad Bun test job/aggregate verify, the same job/step names already failing on PR10 base CI40839381935. Do not erase that debt or describe all CI as green.
+
+PR11 executable d121540 and latest documentation head a585c44 both have passing scoped checks. PR11/12 and prior stacked PRs remain draft/unmerged. No cloud deployment or private/public migration happened. Public executable stays9123f2f/schema v5; new code uses schema v6 only in synthetic test databases. Local fixture8791 stopped, original private8790 untouched. Goal/heartbeat remain active, no reset credit used.
+
+Next concrete work: add a bounded native read-only plan-step executor for the existing demo-clinic lookup and manual draft only, with persisted step observations, ownership, duplicate/cancel/restart tests and no inferred booking authority. Keep inference planning separate from execution; no hidden extra model calls. Then review/live-synthetic model acceptance and a consistent retained-disk backup before any public v6 update. Permissioned media/real speech, reminders and wider identity/provider integrations remain subsequent PRD gaps. Check fresh account usage on continuation and resume from this branch/checkpoint instead of starting over.
+
+
+## Structured planning — review panel and local acceptance
+
+29 October 2026. Branch `codex/structured-planning`, base PR11. Added a dedicated plans.js review module with goal/exact-date/locale, reasoning-model disclosure, saved draft/clarification/unavailable/failed/interrupted/cancelled states, refresh, activity and cancellation. Unknown responses retain the request identity for reconciliation. The module's asset is included in server/build/deployment allowlists. Health reports draft planning availability separately from general execution. Model output is textContent only and never creates execution authority.
+
+Verification: 90 focused tests pass/748 assertions; server types pass; new JavaScript and deployment Python syntax checks pass. New/modified files pass Biome. Windows frozen test types have only the eight known gallery path-text mismatches, baseline unchanged; exact-source Linux gate is next. Audited build reports zero matching shipped advisories (28 wider upstream advisory packages). Actual packed no-key service confirms saved failed-plan/duplicate recovery with one reserved missing-key attempt and no outbound model calls, plus repeat-safe mock booking and prior asset/session/ownership behavior. This validation build was dirty, not a deployed release.
+
+Actual isolated synthetic browser: saved ready proposal and Tamil clarification state persist after reload; payment request displays unavailable; slow in-flight proposal is cancelled, its late output is discarded and reload preserves cancellation. Mobile viewport390/scroll390, focused status list and no console errors/warnings. Fixture tone/model text is not language-quality or live-inference evidence. Local fixture8791 is stopped. Original private8790/profile/database and public VM remain untouched; public executable stays9123f2f/schema v5. No actual plan step/tool, live booking, speech, model call or cloud change happened. New schema v6 exists only in synthetic test databases.
+
+Next: publish draft PR12 and exact-source scoped CI, then add permitted read-only step execution with durable observations/recovery before updating the public demo. Goal/heartbeat remain active and reset credits were not used. Read tasks/structured-planning.md and docs/saathi/structured-planning.md; don't claim the full PRD or general autonomous execution is complete.
+
+
+## Structured planning — typed planner/API checkpoint
+
+The reasoning adapter now requests strict JSON with the task's saved role snapshot and current provider/cost policy; it disables native lookup in planning calls. Server-owned schemas reject arbitrary tools, writes, unconfirmed dates, extra fields and invalid dependencies. Session/CSRF-protected task routes create/list/read/cancel saved draft-only proposals. No plan step is executed and no appointment/receipt is created by this path.
+
+Evidence: 89 focused tests/742 assertions pass, server types pass. Added deferred-provider concurrency/cancellation, malformed proposal, exact role/key separation and once-only attempt tests. New test-type errors were fixed; Windows gate now retains only the known gallery path-text mismatches, baseline unchanged. UI/browser/final packed/Linux CI are next. Local/public private state remains untouched; v6 only in synthetic test DBs. Public executable remains9123f2f/v5.
+
+
+## Structured planning — durable storage checkpoint
+
+29 October 2026. Branch `codex/structured-planning`, stacked on PR11, scope in tasks/structured-planning.md. Added local schema v6 owned planning tasks/events, credential-free role snapshots, strict bounded draft-plan contracts, request identity, cancellation/late-result suppression and restart interruption. Planning reserves attempts in the existing inference_usage ledger and shares chat's running/owner/global guard. Cancelling an in-flight plan keeps its inference slot until completion/failure settles; restart clears interrupted work without replay.
+
+Three new storage tests were red before implementation; full focused suite now84 pass/692 assertions and server TypeScript passes. One extra cancellation regression was red before the pending-slot fix. No planning HTTP/provider/UI path yet; no external action/tool execution, live inference, public deployment, production/private DB migration or profile edit occurred. Schema v6 is only used in synthetic test databases. Public remains9123f2f/v5. Next: typed planner/API tests and implementation, then dedicated review UI, browser validation and final exact-source CI. Goal remains active; do not call this an autonomous executor or finished PRD.
+
+
 ## Provider-role slice — PR11 scoped Linux checks passed
 
 Exact executable source `d12154092d2bbcd3fec1bb4a03e4341725c73f3d`, draft [PR11](https://github.com/anirbanhere/OpenDuet/pull/11), base PR10. [Self-hosted Linux CI 40845012022](https://github.com/anirbanhere/OpenDuet/actions/runs/40845012022) and [tenant CI 40845011896](https://github.com/anirbanhere/OpenDuet/actions/runs/40845011896) passed, including focused tests, server types, unchanged frozen Linux test-type baseline, audited build and packed no-key service smoke. Wider inherited CI is separate and was still running at this checkpoint. No merge/deployment occurred; public executable remains `9123f2f`. Next bounded slice: durable read-only structured planning with pinned roles and shared inference quota, then media/speech integration. Goal remains active.

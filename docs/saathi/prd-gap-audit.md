@@ -25,9 +25,9 @@ The separate Python repository has tested mock task/approval/audio fixtures. The
 | FR-010 Indic/code-switching | Prompt language targets; no measured evaluation | en/hi/ta demo receipt text; actual speech/fluency evaluation and ml/kn work pending |
 | FR-011 uncertainty/critical fields | Prompt guidance only | Demo date/slot/amount exact review; transcript confidence/critical-field evaluation pending |
 | FR-012 independent reasoning/reply/STT/TTS | Independent immutable roles and actual internal model routing on provider-role branch | Default/selected chat routing, synthetic speech swaps and redacted diagnostics tested; durable generic-task pins, genuine speech and consent/media integration pending |
-| FR-013 typed task plans | Absent | Typed deterministic appointment plan; generic model-generated plans pending |
+| FR-013 typed task plans | Deterministic appointment plan; structured model proposals on planning branch | Up to three schema-checked read/draft steps, dependencies, risk, expected output, timeout and compensation; general execution/observe loop pending |
 | FR-014 bounded agent loop/state | Native Meta read-only tool loop capped at three calls | Durable mock appointment state; general observe/plan/tool/resume loop pending |
-| FR-015 clarification | Model instruction; material fields not enforced generically | Appointment form requires exact date/slot; natural-language extraction/clarification pending |
+| FR-015 clarification | Exact appointment date/slot; structured planning clarification state | Planning lookup dates must match a separate user-confirmed field; other material fields/natural-language extraction and live actions remain pending |
 | FR-016 side-effect serialization/idempotency | Inference duplicate IDs and one pending run per owner | SQL mock reservation/decision idempotency; real provider reconciliation pending |
 | FR-017 policy outside model | Provider/model/cost limits, read-only tool selection | Explicit server-owned mock approval, no model authorization; general tool/grant engine pending |
 | FR-018 typed tool outcomes | Basic inference failed/interrupted/completed | Mock selection/approval/expired/unavailable/terminal states; normalized live-provider outcomes pending |
