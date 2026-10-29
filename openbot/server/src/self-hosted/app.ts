@@ -166,7 +166,7 @@ export function createSelfHostedApp(options: {
       throw new LocalError("Invalid or unsupported request fields.");
     return parsed.data;
   };
-  attachPlanRoutes(app, options);
+  attachPlanRoutes(app, { ...options, models: getModels });
   app.get("/health", (c) =>
     c.json({
       storage: "self-hosted-sqlite",

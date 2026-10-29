@@ -1,0 +1,7 @@
+# Independent reasoning selection for new plans
+
+Add an optional reasoning_model catalogue ID to new planning requests and a separate eligible-model picker beside the goal form. Only models returned by the existing key/policy-filtered catalogue may be selected. The reply picker does not change this selection. The operator role's timeout/token budget and all other model/speech roles stay unchanged; recompute the credential-free frozen snapshot revision.
+
+The selected ID is part of task request identity. Duplicate requests return their original role snapshot before refreshing a catalogue; changed reuse conflicts. Existing requests without the field remain compatible and pin their configured default. No client role bundle, purpose, tool grant, provider key or paid fallback is accepted. Current provider enable/allowlist/cost policy still governs actual inference. A catalogue entry is not successful inference/JSON/language proof.
+
+TDD: permitted selection and immutable independent pins; unknown model before reservation; duplicate recovery despite later catalogue change/unavailability; changed-model conflict; reasoning transport uses pinned selection. UI labels distinguish planning (no native web calls) from chat. Verify in an isolated browser and with one fresh synthetic planning task per permitted live provider only when appropriate. No private profile edits or household data. Final CI/packaging/backup precede the authorized public release.

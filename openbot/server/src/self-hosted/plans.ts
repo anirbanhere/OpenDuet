@@ -90,6 +90,14 @@ export class TaskPlans {
       .all(owner)
       .map((row) => this.view(row));
   }
+  previous(owner: string, request: string) {
+    const row = this.db
+      .query<Row, [string, string]>(
+        "SELECT * FROM task_plans WHERE owner=? AND request=?",
+      )
+      .get(owner, request);
+    return row ? this.view(row) : null;
+  }
   begin(owner: string, raw: unknown, roles: ProviderRoles) {
     const parsed = planInput.safeParse(raw);
     if (!parsed.success)

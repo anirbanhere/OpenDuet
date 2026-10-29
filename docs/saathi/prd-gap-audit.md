@@ -1,6 +1,8 @@
 # PRD implementation audit — 29 October 2026
 **Shipped after this audit:** the controlled demo clinic text workflow is now live at https://35.208.235.27.sslip.io/. Choose **Try a demo appointment**. It adds owned tasks, exact expiring approval, slot contention protection, saved mock receipts, reject/cancel and reload recovery. No inference key is needed for this flow. It remains a simulation; real appointments, voice, reminders and general autonomous planning are not complete. Core PR9 and UI PR10 remain draft/unmerged. Deployed executable source: `9123f2f`; exact evidence is in HANDOFF.md.
 
+**Later verified public release:** source `27de098` now adds independent reasoning-model selection, durable structured proposals and explicit saved native read-only results (PR11–15, still draft/unmerged). Schema v7 preserves prior data/usage after a consistent snapshot. One approved local synthetic Meta plan/read succeeded; no second paid probe ran on public. These are bounded draft/read workflows; real providers, voice/media, generic observe/replan and the remaining ledger below are still incomplete. See latest HANDOFF for exact hashes/acceptance.
+
 Source: root `PRD.md`, copied unchanged from the human's replacement PRD in the Python repository. Later human decisions select this OpenDuet fork, fully self-hosted threads/memory and the existing GCP VM. Those decisions replace the PRD's suggested Python runtime stack, not its workflow requirements. No document authorizes live transactions or clears a provider/channel gate.
 
 ## Baseline before this continuation
@@ -24,7 +26,7 @@ The separate Python repository has tested mock task/approval/audio fixtures. The
 | FR-009 two TTS adapters/policies | Independent configuration and synthetic contracts on provider-role branch | Two generated-tone fixture selections; genuine voice adapters/policies and quality evaluation pending |
 | FR-010 Indic/code-switching | Prompt language targets; no measured evaluation | en/hi/ta demo receipt text; actual speech/fluency evaluation and ml/kn work pending |
 | FR-011 uncertainty/critical fields | Prompt guidance only | Demo date/slot/amount exact review; transcript confidence/critical-field evaluation pending |
-| FR-012 independent reasoning/reply/STT/TTS | Independent immutable roles and actual internal model routing on provider-role branch | Default/selected chat routing, synthetic speech swaps and redacted diagnostics tested; durable generic-task pins, genuine speech and consent/media integration pending |
+| FR-012 independent reasoning/reply/STT/TTS | Immutable roles, independent chat/new-task model choice and durable draft-task pins | Synthetic speech swaps and redacted diagnostics tested; genuine speech/media and generic remote task execution remain incomplete |
 | FR-013 typed task plans | Deterministic appointment plan; structured model proposals on planning branch | Up to three schema-checked read/draft steps, dependencies, risk, expected output, timeout and compensation; general execution/observe loop pending |
 | FR-014 bounded agent loop/state | Native Meta tool cap; durable plans and native read-step branch | At most three local read/draft steps, saved observations and duplicate recovery; model-led observe/replan, remote tool steps and general resume loop pending |
 | FR-015 clarification | Exact appointment date/slot; structured planning clarification state | Planning lookup dates must match a separate user-confirmed field; other material fields/natural-language extraction and live actions remain pending |

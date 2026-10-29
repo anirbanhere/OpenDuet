@@ -16,11 +16,18 @@ export function createPlanConsole({ api, run, el, button }) {
   };
   function controls() {
     $("#plan-fields").disabled = globallyBusy || sending;
-    for (const id of ["plan-goal", "plan-date", "plan-locale"])
+    for (const id of [
+      "plan-goal",
+      "plan-date",
+      "plan-locale",
+      "plan-model-select",
+    ])
       $(`#${id}`).disabled = globallyBusy || sending || Boolean(pending);
     $("#plan-create").textContent = pending
       ? "Check previous request"
       : "Draft a plan";
+    $("#plan-create").disabled =
+      globallyBusy || sending || (!pending && !$("#plan-model-select").value);
   }
   function evidence(result) {
     const section = el("div");
@@ -120,8 +127,10 @@ export function createPlanConsole({ api, run, el, button }) {
         card.append(steps);
       }
       if (task.read_result) card.append(evidence(task.read_result));
+      const actions = el("div");
+      actions.className = "appointment-actions";
       if (task.state === "DRAFT_READY" && !task.read_result)
-        card.append(
+        actions.append(
           button("Run read-only checks", async () => {
             try {
               await api(`/api/task-plans/${task.id}/run-readonly`, {});
@@ -134,7 +143,7 @@ export function createPlanConsole({ api, run, el, button }) {
           }),
         );
       if (!["CANCELLED", "FAILED", "INTERRUPTED"].includes(task.state))
-        card.append(
+        actions.append(
           button("Cancel this draft", async () => {
             await api(`/api/task-plans/${task.id}/cancel`, {});
             $("#plan-status").textContent = states.CANCELLED;
@@ -142,6 +151,7 @@ export function createPlanConsole({ api, run, el, button }) {
             list.focus();
           }),
         );
+      if (actions.childElementCount) card.append(actions);
       const history = el("details"),
         summary = el("summary", "Plan activity");
       history.append(summary);
@@ -167,11 +177,17 @@ export function createPlanConsole({ api, run, el, button }) {
   $("#plan-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     if (globallyBusy || sending) return;
+    if (!pending && !$("#plan-model-select").value) {
+      $("#plan-status").textContent =
+        "Choose a permitted reasoning model first.";
+      return;
+    }
     if (!pending)
       pending = {
         request_id: crypto.randomUUID(),
         goal: $("#plan-goal").value.trim(),
         locale: $("#plan-locale").value,
+        reasoning_model: $("#plan-model-select").value,
         ...($("#plan-date").value ? { date: $("#plan-date").value } : {}),
       };
     sending = true;
@@ -201,6 +217,7 @@ export function createPlanConsole({ api, run, el, button }) {
   $("#plan-refresh").addEventListener("click", () =>
     run(refresh, $("#plan-tasks")),
   );
+  $("#plan-model-select").addEventListener("change", controls);
   return {
     refresh,
     setBusy(value) {
@@ -209,8 +226,20 @@ export function createPlanConsole({ api, run, el, button }) {
     },
     async initialize() {
       const roles = await api("/api/provider-roles");
+      const catalog = await api("/api/models"),
+        picker = $("#plan-model-select");
+      picker.replaceChildren(new Option("Choose a reasoning model", ""));
+      for (const model of catalog.models)
+        picker.append(
+          new Option(
+            `${model.name} · ${model.provider === "meta" ? "Meta (separately enabled)" : model.inputPerMillion === 0 && model.outputPerMillion === 0 ? "Free" : `$${model.inputPerMillion} input / $${model.outputPerMillion} output per 1M tokens`} · Text planning`,
+            model.id,
+          ),
+        );
+      if (catalog.models.some((model) => model.id === roles.reasoning?.id))
+        picker.value = roles.reasoning.id;
       $("#plan-model").textContent = roles.reasoning
-        ? `Planner: ${roles.reasoning.id}. One attempt per new goal, shared with the chat allowance. Changing the reply picker does not change saved plans.`
+        ? `Default: ${roles.reasoning.id}. Choose independently from the reply model. One attempt per new goal, shared with chat. Selected provider receives this goal; planning has no web tools or paid fallback. Saved plans keep their original model.`
         : "Planner not configured.";
       await refresh();
     },

@@ -220,3 +220,29 @@ export function roleDiagnostics(roles: ProviderRoles) {
     generalTaskRolePinning: false,
   };
 }
+
+/** Call only after catalogue policy validates this new-task choice. No other role/budget changes. */
+export function chooseReasoningModel(
+  roles: ProviderRoles,
+  choice: { id: string; provider: "meta" | "openrouter"; model: string },
+): ProviderRoles {
+  if (
+    !modelId.test(choice.model) ||
+    choice.id !== `${choice.provider}:${choice.model}`
+  )
+    throw new LocalError("Invalid reasoning model reference.", 403);
+  const { revision: _prior, ...current } = roles;
+  const selected = {
+    ...current,
+    reasoning: {
+      ...roles.reasoning,
+      id: choice.id,
+      provider: choice.provider,
+      model: choice.model,
+    },
+  };
+  const revision = createHash("sha256")
+    .update(JSON.stringify(selected))
+    .digest("hex");
+  return freeze({ ...selected, revision });
+}

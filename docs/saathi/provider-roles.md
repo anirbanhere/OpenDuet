@@ -16,7 +16,7 @@ ROLE is REASONING, CONVERSATION or EXTRACTION. References have the form `openrou
 
 Normal conversation output retains its previous 1024-token cap, further limited by the conversation role cap. Native lookup can use the conversation role cap (default 2048). Internal reasoning/extraction use their respective caps. Config changes affect new requests. User-selected eligible chat models override the conversation default, while reasoning stays independent. A duplicate request without a repeated model field uses its original saved model rather than the current default; changed text/explicit model still conflicts.
 
-Role profiles are deeply immutable credential-free configuration snapshots with a SHA256 revision. This is not yet durable role pinning for generic multi-step tasks. Existing chat run IDs pin their selected model and do not replay interrupted work. Every additional future planner inference must integrate with the durable usage ledger before exposure to public users; an internal adapter is not a budget bypass.
+Role profiles are deeply immutable credential-free configuration snapshots with a SHA256 revision. Structured draft tasks now persist these snapshots and share the durable chat inference ledger. A new task can explicitly choose an eligible reasoning model without changing other roles/budgets; its revised snapshot and choice are pinned in request identity. Existing chat run IDs also pin their selected model and do not replay interrupted work. Generic multi-step remote execution is still incomplete; future model calls must use the ledger rather than bypass it through an internal adapter.
 
 ## Diagnostics and authority
 
