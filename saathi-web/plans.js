@@ -22,6 +22,48 @@ export function createPlanConsole({ api, run, el, button }) {
       ? "Check previous request"
       : "Draft a plan";
   }
+  function evidence(result) {
+    const section = el("div");
+    section.className = "notice";
+    section.append(
+      el("h4", "Saved read-only checks"),
+      el(
+        "p",
+        `Recorded ${new Date(result.at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} IST. This evidence is cached; refreshing does not run checks again.`,
+      ),
+      el(
+        "p",
+        "No booking, payment or message was created. Mock availability can change; review the separate appointment panel before a simulated booking.",
+      ),
+    );
+    const labels = {
+      completed: "Read completed",
+      unavailable: "Unavailable",
+      requires_user_action: "Needs manual action",
+      retryable: "Check failed · no automatic retry",
+      permanently_failed: "Invalid result rejected",
+    };
+    for (const row of result.results) {
+      section.append(
+        el(
+          "p",
+          `${labels[row.status] || "Saved outcome"} · ${row.evidence_mode === "mock" ? "controlled simulation" : row.evidence_mode === "draft" ? "unverified draft" : "no source evidence"}${row.skipped ? " · step skipped" : ""}`,
+        ),
+      );
+      if (row.output.reason) section.append(el("p", row.output.reason));
+      if (row.output.instructions)
+        section.append(el("p", row.output.instructions));
+      if (row.output.slots) {
+        section.append(
+          el("p", `${row.output.clinic} · ${row.output.date} · MOCK`),
+        );
+        const list = el("ul");
+        for (const slot of row.output.slots) list.append(el("li", slot.label));
+        section.append(list);
+      }
+    }
+    return section;
+  }
   async function refresh() {
     const records = await api("/api/task-plans"),
       list = $("#plan-tasks");
@@ -40,7 +82,12 @@ export function createPlanConsole({ api, run, el, button }) {
       card.className = "appointment-task";
       card.append(
         el("h3", task.input.goal),
-        el("p", states[task.state] || "Saved draft state"),
+        el(
+          "p",
+          task.read_result && task.state === "DRAFT_READY"
+            ? "Saved proposal · read-only checks recorded"
+            : states[task.state] || "Saved draft state",
+        ),
         el("p", `Reasoning: ${task.roles.reasoning.id} · ${task.input.locale}`),
       );
       if (task.input.date)
@@ -72,6 +119,20 @@ export function createPlanConsole({ api, run, el, button }) {
         }
         card.append(steps);
       }
+      if (task.read_result) card.append(evidence(task.read_result));
+      if (task.state === "DRAFT_READY" && !task.read_result)
+        card.append(
+          button("Run read-only checks", async () => {
+            try {
+              await api(`/api/task-plans/${task.id}/run-readonly`, {});
+              $("#plan-status").textContent =
+                "Read-only results saved. No booking or external action was performed.";
+            } finally {
+              await refresh();
+              list.focus();
+            }
+          }),
+        );
       if (!["CANCELLED", "FAILED", "INTERRUPTED"].includes(task.state))
         card.append(
           button("Cancel this draft", async () => {
