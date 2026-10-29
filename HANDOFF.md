@@ -1,5 +1,10 @@
 # Saathi on OpenDuet handoff
 
+## Provider-role slice — PR11 scoped Linux checks passed
+
+Exact executable source `d12154092d2bbcd3fec1bb4a03e4341725c73f3d`, draft [PR11](https://github.com/anirbanhere/OpenDuet/pull/11), base PR10. [Self-hosted Linux CI 40845012022](https://github.com/anirbanhere/OpenDuet/actions/runs/40845012022) and [tenant CI 40845011896](https://github.com/anirbanhere/OpenDuet/actions/runs/40845011896) passed, including focused tests, server types, unchanged frozen Linux test-type baseline, audited build and packed no-key service smoke. Wider inherited CI is separate and was still running at this checkpoint. No merge/deployment occurred; public executable remains `9123f2f`. Next bounded slice: durable read-only structured planning with pinned roles and shared inference quota, then media/speech integration. Goal remains active.
+
+
 ## Provider-role continuation — synthetic contracts ready for review
 
 29 October 2026. Branch `codex/provider-role-contracts`, stacked on PR10. Independent model-role routing/configuration is followed by STT/TTS interfaces and two explicitly synthetic selections, bounded consent/schema/deadline checks, a keyless six-case en/hi/ta command and session-protected redacted diagnostics. Default conversation metadata now follows the configured conversation role. Unsupported Whisper-as-TTS is rejected. Operator scripts are explicitly included in both server/test type gates. No genuine ASR/TTS, public upload or durable generic-task role pinning is claimed.

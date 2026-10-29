@@ -27,5 +27,5 @@ Keep the existing public demo usable, preserve v5 data and quotas, publish small
 - [x] Session-protected diagnostic route and original-model duplicate recovery.
 - [x] Synthetic STT/TTS contracts, independent swaps, consent/input/output/deadline guards.
 - [x] Actual keyless CLI evaluation and explicit operator-script type checking.
-- [ ] Final scoped Linux CI, packed-service audit/smoke and unmerged review PR.
+- [x] Final scoped Linux CI, packed-service audit/smoke and unmerged draft PR11; public deployment unchanged.
 - [ ] Follow-on: durable general-task role pins, structured planning, owner-scoped media and genuine speech adapters/evaluation.
