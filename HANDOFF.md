@@ -1,5 +1,12 @@
 # Saathi on OpenDuet handoff
 
+## Native read-step core — PR13 scoped Linux checks passed
+
+Exact source `38837e03d1f39271af4edff3575451e97d65060a`, draft [PR13](https://github.com/anirbanhere/OpenDuet/pull/13), base PR12. [Self-hosted CI40849248421](https://github.com/anirbanhere/OpenDuet/actions/runs/40849248421) and [tenant CI40849248781](https://github.com/anirbanhere/OpenDuet/actions/runs/40849248781) passed, including96 focused tests, server types, unchanged frozen Linux test types, audited bundle and existing packed-service smoke. Wider inherited CI40849248533 was still running; do not claim whole-platform green. No merge/deployment occurred. Public remains9123f2f/schema v5, original private8790 untouched.
+
+Previous goal turn made concrete progress (PR11/12 model/speech contracts and durable planning); this turn added/verified the bounded native read core. Goal/heartbeat remain active. Next exact increment: browser Run read-only checks control and saved mock/draft evidence/time display on the existing plan cards, without extra inference, then actual browser and packed read acceptance. Use an isolated synthetic DB/fixture; no live/private inputs. Only after review/live-synthetic acceptance and consistent retained-disk backup should public v7 be updated. Do not treat core CI as UI/live-fulfillment evidence. Check fresh usage on continuation; never redeem reset credits without explicit permission.
+
+
 ## Native read-step core — local verification checkpoint
 
 29 October 2026. Branch `codex/read-only-plan-steps`, stacked on PR12 documentation head d113413. Read tasks/read-only-plan-steps.md and docs/saathi/read-only-plan-steps.md. Added schema v7 read-result storage and an explicit owner/CSRF POST `/api/task-plans/:id/run-readonly` with an empty body. At most three validated local read/draft steps save typed observations/evidence mode/time atomically. Duplicates return original cached results across reopen; manual prerequisites stop dependent work. Non-ready/cancelled drafts cannot start reads, and cancellation after a read does not erase/re-run it. The clinic port exposes only options(date), with strict result validation and no booking methods.
