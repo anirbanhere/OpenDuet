@@ -128,15 +128,19 @@ Verified locally:
 
 PGlite does **not** establish native PostgreSQL multi-connection locking behavior.
 The wider upstream tenant integration suite timed out on that single-connection
-test fixture and remains unverified on native PostgreSQL. Run native PostgreSQL
-concurrency, supervisor isolation, and a real Intelligence → LLM → WhatsApp round
+local fixture. Subsequent GitHub CI ran the Saathi integration tests successfully
+against native PostgreSQL 17 with pgvector. Explicit multi-connection concurrency,
+supervisor isolation, and a real Intelligence → LLM → WhatsApp round
 trip before accepting a pilot. Docker Desktop's engine could not start on this
 machine; no live isolated computer or credentialed provider test was completed.
 
-The inherited lockfile's `bun audit` reported **122 vulnerabilities: 3 critical,
-47 high, 54 moderate, and 18 low**. No application dependency was added for Saathi.
-Triage reachability and upgrade affected upstream dependencies before production;
-do not treat the passing focused tests as a security clearance.
+The inherited lockfile initially reported 122 dependency advisories, including
+three critical findings. A targeted patch upgraded Better Auth and its installed
+integrations together and pinned patched DOMPurify and proxy-addr versions.
+The resulting audit reports **112 advisories: zero critical, 45 high, 54 moderate,
+and 13 low**. See [security status](Saathi-Security.md) for scope and advisory links.
+Remaining findings require triage before production; passing tests do not constitute
+a security clearance.
 
 Additional release work: native concurrency/load testing, operator alerting and
 queue reconciliation UI, transport retention/deletion policy, bounded retry and
@@ -160,8 +164,9 @@ Never point tests at the application database. The upstream
 `bun run typecheck:tests` gate compares against inherited test type debt; do not
 update its baseline to hide new errors.
 The Windows run reported eight inherited JSX diagnostics whose absolute paths do
-not match the baseline's relative paths. Saathi test diagnostics were corrected;
-the inherited baseline was left untouched.
+not match the baseline's relative paths. The baseline parser now normalizes its
+Windows checkout prefix to match TypeScript's forward slashes. The test-type gate
+passes against its unchanged baseline of 239 known upstream diagnostics.
 
 ## Source map
 
