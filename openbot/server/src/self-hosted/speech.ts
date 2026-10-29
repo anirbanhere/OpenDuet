@@ -80,6 +80,21 @@ export function parseSttInput(input: unknown) {
   }
   return parsed.data;
 }
+export function parseTtsInput(input: unknown) {
+  const parsed = ttsRequest.safeParse(input);
+  if (!parsed.success) {
+    const needsConsent = parsed.error.issues.some(
+      (issue) => issue.path[0] === "consentToProcess",
+    );
+    throw new LocalError(
+      needsConsent
+        ? "Explicit consent is required for speech processing."
+        : "Speech output requires bounded valid text and language fields.",
+      needsConsent ? 403 : 422,
+    );
+  }
+  return parsed.data;
+}
 type FixtureId = "fixture-a" | "fixture-b";
 type Adapters = {
   stt?: ReadonlyMap<FixtureId, SpeechToTextProvider>;
@@ -272,24 +287,13 @@ export function createSpeech(roles: ProviderRoles, adapters: Adapters = {}) {
       return result.data;
     },
     async synthesize(input: unknown): Promise<SpeechAudio> {
-      const parsed = ttsRequest.safeParse(input);
-      if (!parsed.success) {
-        const needsConsent = parsed.error.issues.some(
-          (issue) => issue.path[0] === "consentToProcess",
-        );
-        throw new LocalError(
-          needsConsent
-            ? "Explicit consent is required for speech processing."
-            : "Speech output requires bounded valid text and language fields.",
-          needsConsent ? 403 : 422,
-        );
-      }
-      const provider = selected(roles.tts, parsed.data.language),
+      const parsed = parseTtsInput(input);
+      const provider = selected(roles.tts, parsed.language),
         adapter = (adapters.tts ?? defaultTts).get(provider);
       if (!adapter)
         throw new LocalError("Selected TTS adapter unavailable.", 503);
       const raw = await deadline(roles.tts.timeoutMs, (signal) =>
-          adapter.synthesize({ ...parsed.data, signal }),
+          adapter.synthesize({ ...parsed, signal }),
         ),
         result = audioSchema.safeParse(raw);
       if (!result.success)
@@ -299,7 +303,7 @@ export function createSpeech(roles: ProviderRoles, adapters: Adapters = {}) {
         result.data.source.model !== roles.tts.model ||
         result.data.source.mode !== "fixture" ||
         result.data.isSpeech ||
-        result.data.language !== parsed.data.language
+        result.data.language !== parsed.language
       )
         throw new LocalError(
           "TTS fixture identity or evidence mode is invalid.",

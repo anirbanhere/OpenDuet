@@ -1,5 +1,56 @@
 # Saathi on OpenDuet handoff
 
+## Vendor TTS foundation — PR17 scoped Linux checks passed
+
+Exact executable source `0656da361e2adeb85747a190784a000bbf252a42`, draft [PR17](https://github.com/anirbanhere/saathi/pull/17), base PR16. [Self-hosted CI40913422184](https://github.com/anirbanhere/saathi/actions/runs/40913422184) and [tenant CI40913422159](https://github.com/anirbanhere/saathi/actions/runs/40913422159) passed, including114 focused tests, server types, unchanged frozen Linux test baseline, audited bundle and packed HTTP regression. Local focused tests have970 assertions. Final Windows test types contain only the eight known gallery path-text mismatches; the new backing-buffer type issue was fixed. Wider upstream CI40913422585 was queued, so no whole-repository-green claim.
+
+Clean validation build dirty=false/source0656da3 has the unchanged website bundle955c8f2 and runtimeIntegrity=null; internal TTS factories are not imported by the public entry. Four shipped dependencies have zero observed advisory matches,28 wider upstream packages. This was validation, not a deployment. Public remains27de098/schema v7, private8790/profile and legacy Python deployment unchanged. No paid/live speech/model test, new key, schema migration, upload or message was performed; reset credits untouched.
+
+GitHub reported the existing fork moved from anirbanhere/OpenDuet to [anirbanhere/saathi](https://github.com/anirbanhere/saathi). gh repo view verifies it remains a fork of CopilotKit/OpenDuet; old URL redirects. PR17 is attached using the returned new URL. Local directory and origin URL were preserved, not replaced. Use the canonical name for future GitHub CLI operations; do not create a duplicate repository.
+
+Next bounded slice: pure text_only/voice_only/text_and_voice response composition, with text-only making no TTS request, voice-only never silently becoming text, explicit consent/unavailable/fixture states, output validation and no actual delivery. Then owner-scoped media/durable consent/retention, speech admission/spend ledger and real consented evaluation before public registration. Full PRD/recurring continuation remain incomplete; native usageLimited tracker status is not overridden.
+
+## Vendor TTS foundation — ready for scoped CI
+
+29 October2026. Branch codex/vendor-tts-adapters stacks on PR16. Added internal disabled-by-default Sarvam bulbul:v3 / ElevenLabs eleven_v3 synthesis factories with explicit operator voice/model/key, literal consent and fixed endpoint/header isolation. Shared bounded HTTP now supports binary output while preserving the128KB STT default; Sarvam canonical base64 WAV and ElevenLabs24kHz little-endian PCM normalize to inspected WAV. Text500, WAV2MB/60s, no redirect/retry/provider or retention fallback. Response locale/isSpeech describe requested vendor generation, not independently verified speaking/language/voice rights.
+
+Evidence: missing module/PCM export tests were red before implementation;114 focused tests/970 assertions now pass, server types pass after fixing the new Uint8Array backing-buffer annotation, changed-file Biome passes. Tests cover malformed/base64/PCM/WAV/size/MIME/provider error redaction, cancellation/reader cleanup/deadline and disabled/consent/model/voice/language guards. Initial Windows test types included that fixed annotation plus the eight known gallery path-text mismatches; final scoped Linux CI is pending and baseline unchanged. Audited dirty validation build and packed owned-read/duplicate/owner/failed-plan/mock-booking checks pass, with zero observed shipped advisories/28 wider upstream packages. Bundle remains955c8f2 because factories are unwired; runtimeIntegrity=null is not a deployable runtime release.
+
+No live/paid speech/model call, new key, public/private migration, upload/channel route or cloud change. Public remains27de098/schema v7; private8790/profile untouched. The single approved Meta planning probe remains consumed. Full goal is incomplete; native tracker usageLimited bookkeeping below still applies. Fresh account usage permits ordinary scheduled work; reset credits untouched.
+
+Next: draft stacked PR/scoped Linux CI, then a separate pure response-composition increment for text_only/voice_only/text_and_voice with explicit unavailable/fixture states and no message delivery. Owner-scoped media/durable consent/retention, speech admission/spend ledger and actual consented language evaluation remain prerequisites to public voice. Read tasks/vendor-tts-adapters.md and docs/saathi/vendor-tts.md; preserve the current changes rather than restarting them.
+
+## Continuation bookkeeping clarification
+
+Latest native get_goal returned status usageLimited from the earlier exhausted window; it was not automatically resumed by the later account reset. Fresh account checks did permit ordinary work, and the standing human request plus existing hourly heartbeat authorized the resumed implementation/release. No goal-status override, duplicate goal or reset credit was used. The objective remains ongoing/incomplete and recurring continuation remains configured; do not describe the native tracker itself as active while it reports usageLimited. Only the human/system can resume that tracker. Continue permitted scheduled work using fresh account limits and this handoff.
+
+Public release27de098 is verified below, with the one approved Meta test consumed. Current TTS progress is recorded in the latest checkpoint above.
+
+
+## Shipped — independent task planning and cached read-only checks
+
+29 October2026. Public URL remains https://35.208.235.27.sslip.io/. Deployed executable source `27de0986f21098a5173061000ba97a02ab01a3a5` (PR15 documentation head; code source58f9219), [PR15](https://github.com/anirbanhere/OpenDuet/pull/15), all stacked PRs unmerged. New panel: independently choose an eligible reasoning model, enter a synthetic goal/exact India date, draft a persisted typed plan, then explicitly run its bounded native read checks. Results are cached mock/draft evidence, not a fulfilled errand. Conversation Meta web lookup and controlled exact-approval mock appointments remain available. Speech/live providers/WhatsApp/payments remain off.
+
+The human explicitly approved ONE capped synthetic Meta planning test. It executed exactly once locally (calls1,max completion tokens2048,no web/private context/fallback), produced DRAFT_READY and demo.clinic.options, readStatus completed, bookings0. That approval is CONSUMED. The ignored helper/receipt guard prevents a rerun; no new paid/public model probe was made. The public preservation helper made model_calls0. A previous free-only OpenRouter probe failed without retry, so default free-provider availability is not promised; users can explicitly select enabled Meta for their own task.
+
+Release checks: exact-source scoped self-hosted CI40877237409 and tenant CI40877237342 passed for27de098 (code58f9219 previously passed40876553739/40876553868);97 local focused tests/server types/frozen Linux baseline/audited bundle/packed read-duplicate-owner-mock-booking smoke passed. Wider upstream CI debt remains separate. Clean manifest/environment inlining disabled, pinned Linux Bun1.4.3 integrity and actual20-file gcloud upload allowlist passed. Server bundle SHA256 `955c8f2a48e5bd06e3879a48be97ef3d9fc5048a3be86d0cbed9103b60ad688e`; archive SHA256 `08b34bbbe378fac6d13fc4a222f125fc1a8618f070c4c39e0a80c439fd828b9a`; private object `releases/27de0986f21098a5173061000ba97a02ab01a3a5-08b34bbbe378fac6d13fc4a222f125fc1a8618f070c4c39e0a80c439fd828b9a.tgz`. Four shipped packages have zero observed advisory matches;28 wider upstream advisory packages.
+
+Same existing VM/address/retained data disk/identity/secrets/network were reused. The VM was stopped before snapshot `saathi-demo-data-pre-web-20261029-145320`, observed READY, then restarted with additive v5->v7 migrations. An authenticated IAP aggregate read observed inference_usage17/schema5 before and17/schema7 after; post-upgrade served server hash matched955c8f2. No prompt/credential content was read for that check. Do not restore an old snapshot over later user data or run v5 code against v7.
+
+Actual public HTTPS preservation helper kept session/nonce in process memory only, seeded a synthetic thread/preference/MOCK receipt, and proved each survived. Duplicate decision returns the same receipt; nonce is absent from saved task; another visitor gets404. New owned plan route/diagnostics/module asset work, an unpermitted model is rejected403 before task creation, speech is off, Meta lookup choice and20/5 limits remain. This did not repeat paid inference on public. Actual isolated public browser: planner picker chooses Meta while reply remains free; no task was submitted, mobile viewport390/scroll390 and post-reload console clean. Local synthetic browser/packed tests cover plan creation, manual prerequisites, cached results and cancel/reload; the one local approved Meta test covers genuine inference. Do not widen those evidence scopes.
+
+Next: return to codex/vendor-tts-adapters (saved plan9360abb plus approval-consumed checkpoint98ae602, no TTS implementation yet), continue gated TTS/media work. PR16 STT factories remain internal/unwired and were not deployed. Full PRD goal/heartbeat active; no reset credits used. Legacy Python Cloud Run unchanged. Public deployment state is in ignored artifacts/public-deploy-state.json. No further paid smoke is authorized by the consumed approval.
+
+
+
+
+## One Meta test explicitly approved and consumed — release resumes
+
+29 October2026. Human explicitly approved exactly one bounded synthetic Meta planning test. The prepared helper executed once with modelmuse-spark-1.3, max2048 completion tokens, no web tools/private context/fallback. Observed calls=1, DRAFT_READY, plan step demo.clinic.options, readStatus=completed, bookings=0. This verifies the planning/read path on synthetic data, not speech quality or real booking. Approval is now CONSUMED; do not run another paid test without a new direct grant. The ignored helper has a consumed-receipt guard at artifacts/meta-plan-approval-consumed.json.
+
+TTS branch codex/vendor-tts-adapters currently contains its committed plan9360abb only, no TTS implementation yet. Next immediate action is the already authorized public planner/read release from the checked planner branch, with consistent stopped-VM snapshot and data-preservation acceptance. Keep STT factories unwired. Return here for TTS/media work after release. Current public remains9123f2f/v5 until observed deployment success; goal remains active.
+
+
 ## Vendor STT foundation — PR16 scoped Linux checks passed
 
 Exact source `73216795871d2eafe276fc81a9008cce4b8215cc`, draft [PR16](https://github.com/anirbanhere/OpenDuet/pull/16), base PR15. [Self-hosted CI40886844651](https://github.com/anirbanhere/OpenDuet/actions/runs/40886844651) and [tenant CI40886844729](https://github.com/anirbanhere/OpenDuet/actions/runs/40886844729) passed. Local evidence106 focused tests/883 assertions, server types, changed-file Biome and packed-service smoke; Linux frozen test-type baseline is unchanged and passed. Wider CI40886845049 was still running; no whole-platform-green claim. No merge/public deployment.

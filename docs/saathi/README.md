@@ -1,5 +1,7 @@
 # Saathi customization guide
 
+[Vendor TTS transport foundation](vendor-tts.md) adds disabled/unregistered Sarvam/ElevenLabs factories with bounded WAV output and cancellation. Response policies, owned media, consent/spend integration and actual voice evaluation remain separate; mocked tones are not voice-quality proof.
+
 [Vendor STT transport foundation](vendor-stt.md) implements internal disabled-by-default Sarvam/ElevenLabs factories and strict WAV inspection. They are not registered with public speech/media routes; tests use synthetic bytes and mocked HTTP only.
 
 [Native read-step core](read-only-plan-steps.md) adds explicit local read/draft execution and persisted observations. It has no booking authority or public/UI deployment implied by its presence in the repository.

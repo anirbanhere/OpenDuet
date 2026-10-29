@@ -1,4 +1,6 @@
 # PRD implementation audit — 29 October 2026
+
+**Latest public release:** source27de098 now runs independent planner selection, saved typed proposals and cached read-only evidence on schema v7, after a consistent snapshot and preservation checks. One approved local Meta plan/read succeeded; approval consumed. Public speech/live actions remain off. See current HANDOFF and public-deployment.md for exact evidence.
 **Shipped after this audit:** the controlled demo clinic text workflow is now live at https://35.208.235.27.sslip.io/. Choose **Try a demo appointment**. It adds owned tasks, exact expiring approval, slot contention protection, saved mock receipts, reject/cancel and reload recovery. No inference key is needed for this flow. It remains a simulation; real appointments, voice, reminders and general autonomous planning are not complete. Core PR9 and UI PR10 remain draft/unmerged. Deployed executable source: `9123f2f`; exact evidence is in HANDOFF.md.
 
 Source: root `PRD.md`, copied unchanged from the human's replacement PRD in the Python repository. Later human decisions select this OpenDuet fork, fully self-hosted threads/memory and the existing GCP VM. Those decisions replace the PRD's suggested Python runtime stack, not its workflow requirements. No document authorizes live transactions or clears a provider/channel gate.
@@ -21,7 +23,7 @@ The separate Python repository has tested mock task/approval/audio fixtures. The
 | FR-006 help/status/cancel/stop/forget/disconnect | Thread/memory deletion and saved inference state | Demo task status/cancel/reject; multilingual intents, reminder stop and provider disconnect pending |
 | FR-007 secured voice media/transcoding | Absent | Upload lifecycle, formats/size/duration, consent/retention and ASR integration pending |
 | FR-008 two STT adapters | Fixture contracts plus internal Sarvam/ElevenLabs wire adapters on vendor-STT branch | Disabled/unregistered factories with mocked HTTP/WAV tests; owned media, budgets, real provider setup and consented evaluation remain pending |
-| FR-009 two TTS adapters/policies | Independent configuration and synthetic contracts on provider-role branch | Two generated-tone fixture selections; genuine voice adapters/policies and quality evaluation pending |
+| FR-009 two TTS adapters/policies | Fixture contracts plus internal Sarvam/ElevenLabs TTS wire adapters on vendor-TTS branch | Disabled/unregistered factories with mocked PCM/WAV/HTTP checks; response policies, owned media/consent/budgets and genuine provider/quality evaluation remain pending |
 | FR-010 Indic/code-switching | Prompt language targets; no measured evaluation | en/hi/ta demo receipt text; actual speech/fluency evaluation and ml/kn work pending |
 | FR-011 uncertainty/critical fields | Prompt guidance only | Demo date/slot/amount exact review; transcript confidence/critical-field evaluation pending |
 | FR-012 independent reasoning/reply/STT/TTS | Immutable roles, independent chat/new-task model choice and durable draft-task pins | Synthetic speech swaps and redacted diagnostics tested; genuine speech/media and generic remote task execution remain incomplete |
