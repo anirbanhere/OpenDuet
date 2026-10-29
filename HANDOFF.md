@@ -1,5 +1,12 @@
 # Saathi on OpenDuet handoff
 
+## One Meta test explicitly approved and consumed — release resumes
+
+29 October2026. Human explicitly approved exactly one bounded synthetic Meta planning test. The prepared helper executed once with modelmuse-spark-1.3, max2048 completion tokens, no web tools/private context/fallback. Observed calls=1, DRAFT_READY, plan step demo.clinic.options, readStatus=completed, bookings=0. This verifies the planning/read path on synthetic data, not speech quality or real booking. Approval is now CONSUMED; do not run another paid test without a new direct grant. The ignored helper has a consumed-receipt guard at artifacts/meta-plan-approval-consumed.json.
+
+TTS branch codex/vendor-tts-adapters currently contains its committed plan9360abb only, no TTS implementation yet. Next immediate action is the already authorized public planner/read release from the checked planner branch, with consistent stopped-VM snapshot and data-preservation acceptance. Keep STT factories unwired. Return here for TTS/media work after release. Current public remains9123f2f/v5 until observed deployment success; goal remains active.
+
+
 ## Vendor STT foundation — PR16 scoped Linux checks passed
 
 Exact source `73216795871d2eafe276fc81a9008cce4b8215cc`, draft [PR16](https://github.com/anirbanhere/OpenDuet/pull/16), base PR15. [Self-hosted CI40886844651](https://github.com/anirbanhere/OpenDuet/actions/runs/40886844651) and [tenant CI40886844729](https://github.com/anirbanhere/OpenDuet/actions/runs/40886844729) passed. Local evidence106 focused tests/883 assertions, server types, changed-file Biome and packed-service smoke; Linux frozen test-type baseline is unchanged and passed. Wider CI40886845049 was still running; no whole-platform-green claim. No merge/public deployment.
