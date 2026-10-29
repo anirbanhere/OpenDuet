@@ -1,5 +1,7 @@
 # Saathi customization guide
 
+[Vendor STT transport foundation](vendor-stt.md) implements internal disabled-by-default Sarvam/ElevenLabs factories and strict WAV inspection. They are not registered with public speech/media routes; tests use synthetic bytes and mocked HTTP only.
+
 [Native read-step core](read-only-plan-steps.md) adds explicit local read/draft execution and persisted observations. It has no booking authority or public/UI deployment implied by its presence in the repository.
 
 [Structured planning](structured-planning.md) adds saved draft proposals with pinned roles, strict tool/date contracts and shared inference budgets. It does not execute the proposed steps. Check HANDOFF for branch/CI status; a checked-in UI is not evidence of public deployment.

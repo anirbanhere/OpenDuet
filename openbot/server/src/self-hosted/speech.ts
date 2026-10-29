@@ -65,6 +65,21 @@ export interface SpeechToTextProvider {
 export interface TextToSpeechProvider {
   synthesize(input: TtsRequest): Promise<SpeechAudio>;
 }
+export function parseSttInput(input: unknown) {
+  const parsed = sttRequest.safeParse(input);
+  if (!parsed.success) {
+    const needsConsent = parsed.error.issues.some(
+      (issue) => issue.path[0] === "consentToProcess",
+    );
+    throw new LocalError(
+      needsConsent
+        ? "Explicit consent is required for speech processing."
+        : "Speech input requires bounded audio and valid language fields.",
+      needsConsent ? 403 : 422,
+    );
+  }
+  return parsed.data;
+}
 type FixtureId = "fixture-a" | "fixture-b";
 type Adapters = {
   stt?: ReadonlyMap<FixtureId, SpeechToTextProvider>;
@@ -225,26 +240,15 @@ function selected(
 export function createSpeech(roles: ProviderRoles, adapters: Adapters = {}) {
   return {
     async transcribe(input: unknown): Promise<Transcript> {
-      const parsed = sttRequest.safeParse(input);
-      if (!parsed.success) {
-        const needsConsent = parsed.error.issues.some(
-          (issue) => issue.path[0] === "consentToProcess",
-        );
-        throw new LocalError(
-          needsConsent
-            ? "Explicit consent is required for speech processing."
-            : "Speech input requires bounded valid WAV audio and language fields.",
-          needsConsent ? 403 : 422,
-        );
-      }
-      const provider = selected(roles.stt, parsed.data.languageHint),
+      const parsed = parseSttInput(input);
+      const provider = selected(roles.stt, parsed.languageHint),
         adapter = (adapters.stt ?? defaultStt).get(provider);
       if (!adapter)
         throw new LocalError("Selected STT adapter unavailable.", 503);
       const raw = await deadline(roles.stt.timeoutMs, (signal) =>
           adapter.transcribe({
-            ...parsed.data,
-            audio: parsed.data.audio.slice(),
+            ...parsed,
+            audio: parsed.audio.slice(),
             signal,
           }),
         ),

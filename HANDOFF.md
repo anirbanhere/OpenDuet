@@ -1,5 +1,16 @@
 # Saathi on OpenDuet handoff
 
+## Vendor STT foundation — implementation checkpoint
+
+29 October2026. Branch codex/vendor-stt-adapters, based on PR15 handoff27de098. Continued independent voice work while the one-Meta planning-test approval remains pending. Added disabled-by-default Sarvam(saaras:v3/v4)/ElevenLabs(scribe_v2) STT factories, fixed header/endpoint isolation, bounded multipart/JSON and strict PCM16 WAV inspection. Shared STT input validation still preserves fixture behavior. Returned confidence stays null; language probability is not transcript confidence. Unsupported/unknown language never silently becomes the hint. ElevenLabs requests logging-deny by default and never retries with logging enabled; no Sarvam retention-control claim.
+
+Evidence: WAV/vendor modules were red before implementation; now106 focused tests/883 assertions pass, server types pass. Tests cover request bodies, header isolation, mixed-script normalization, enabled ml/kn mappings without quality claims, consent/invalid WAV/duration/source-URL rejection, error redaction, byte budgets, deadline/pre/in-flight/immediate cancellation and streamed reader cancellation. The webhook/multichannel-disabled regression was red before its explicit request flags were added. Changed files pass Biome. Windows frozen test types retain known gallery path-text mismatches (baseline unchanged); final Linux CI/build/packed gates are next.
+
+All vendor transport tests are injected mocks with generated tones. No live/paid STT/TTS/Meta call, key request, public/private DB migration, raw household audio, public route, registry wiring or cloud change occurred. Existing public speech remains off; public executable stays9123f2f/v5, private8790 untouched. source.mode=live describes the vendor request contract, not real-service evidence from these tests. The full PRD still needs owned media/durable consent/retention, speech budgets, real TTS, actual language evaluation and broader task/provider work.
+
+Next: final scoped gates and unmerged PR16 for this internal foundation, then TTS/owner-media increments. Do not execute artifacts/meta-plan-smoke.ts while its explicit approval is pending. The prior prepared release source58f9219 can be rebuilt for a backed-up public update after adequate authorized live acceptance; a new dirty validation manifest is not a release. Goal/heartbeat remain active; no reset credits redeemed. Read docs/saathi/vendor-stt.md and tasks/vendor-stt-adapters.md for sources/limits.
+
+
 ## Planner picker — PR15 verified and clean release prepared
 
 Exact source `58f92193516042d91736b97e7f41a0e6d7afb579`, draft [PR15](https://github.com/anirbanhere/OpenDuet/pull/15), base PR14. [Self-hosted CI40876553739](https://github.com/anirbanhere/OpenDuet/actions/runs/40876553739) and [tenant CI40876553868](https://github.com/anirbanhere/OpenDuet/actions/runs/40876553868) passed:97 focused tests, server types, unchanged frozen Linux test types, audited bundle and actual packed read/duplicate/owner/failed-plan/mock-booking smoke. No whole-platform CI-green claim.
