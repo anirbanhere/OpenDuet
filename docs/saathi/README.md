@@ -1,5 +1,7 @@
 # Saathi customization guide
 
+[Speech response policies](speech-replies.md) compose text/voice internally with explicit consent/failure/fixture states and no delivery. They do not enable public voice; owned media, durable consent/spend and actual evaluation remain pending.
+
 [Vendor TTS transport foundation](vendor-tts.md) adds disabled/unregistered Sarvam/ElevenLabs factories with bounded WAV output and cancellation. Response policies, owned media, consent/spend integration and actual voice evaluation remain separate; mocked tones are not voice-quality proof.
 
 [Vendor STT transport foundation](vendor-stt.md) implements internal disabled-by-default Sarvam/ElevenLabs factories and strict WAV inspection. They are not registered with public speech/media routes; tests use synthetic bytes and mocked HTTP only.

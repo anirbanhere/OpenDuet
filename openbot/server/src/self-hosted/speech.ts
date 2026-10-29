@@ -7,6 +7,7 @@ import {
   type SpeechLanguage,
   speechLanguages,
 } from "./roles";
+import { inspectPcmWav } from "./wav";
 
 const language = z.enum(speechLanguages),
   audioBytes = z
@@ -64,6 +65,20 @@ export interface SpeechToTextProvider {
 }
 export interface TextToSpeechProvider {
   synthesize(input: TtsRequest): Promise<SpeechAudio>;
+}
+/** Validate transport output and detach bytes before another layer can retain it. */
+export function parseSpeechAudio(input: unknown): SpeechAudio {
+  const parsed = audioSchema.safeParse(input);
+  if (!parsed.success)
+    throw new LocalError("The TTS adapter returned invalid audio.", 502);
+  const bytes = Uint8Array.from(parsed.data.bytes);
+  try {
+    if (Math.ceil(inspectPcmWav(bytes).durationMs) !== parsed.data.durationMs)
+      throw new Error("Duration mismatch");
+  } catch {
+    throw new LocalError("The TTS adapter returned invalid audio.", 502);
+  }
+  return { ...parsed.data, bytes };
 }
 export function parseSttInput(input: unknown) {
   const parsed = sttRequest.safeParse(input);
@@ -203,25 +218,36 @@ const defaultStt = new Map<FixtureId, SpeechToTextProvider>([
     ["fixture-a", fixtureTts("fixture-a")],
     ["fixture-b", fixtureTts("fixture-b")],
   ]);
-async function deadline<T>(
+export async function withSpeechDeadline<T>(
   milliseconds: number,
   invoke: (signal: AbortSignal) => Promise<T>,
+  parent?: AbortSignal,
 ): Promise<T> {
+  if (parent?.aborted) throw new LocalError("Speech request was aborted.", 408);
   const controller = new AbortController();
   let timer: ReturnType<typeof setTimeout> | undefined;
+  let rejectStopped: (error: LocalError) => void = () => {};
+  const stopped = new Promise<never>((_resolve, reject) => {
+    rejectStopped = reject;
+  });
+  const abort = () => {
+    rejectStopped(new LocalError("Speech request was aborted.", 408));
+    controller.abort();
+  };
+  parent?.addEventListener("abort", abort, { once: true });
+  timer = setTimeout(() => {
+    rejectStopped(
+      new LocalError("Speech adapter timed out; no retry or fallback.", 504),
+    );
+    controller.abort();
+  }, milliseconds);
   try {
     return await Promise.race([
-      Promise.resolve().then(() => invoke(controller.signal)),
-      new Promise<never>((_resolve, reject) => {
-        timer = setTimeout(() => {
-          controller.abort();
-          reject(
-            new LocalError(
-              "Speech adapter timed out; no retry or fallback.",
-              504,
-            ),
-          );
-        }, milliseconds);
+      stopped,
+      Promise.resolve().then(() => {
+        if (controller.signal.aborted)
+          throw new LocalError("Speech request was aborted.", 408);
+        return invoke(controller.signal);
       }),
     ]);
   } catch (error) {
@@ -229,6 +255,7 @@ async function deadline<T>(
     throw new LocalError("Speech adapter failed; no retry or fallback.", 502);
   } finally {
     if (timer) clearTimeout(timer);
+    parent?.removeEventListener("abort", abort);
   }
 }
 function selected(
@@ -260,7 +287,7 @@ export function createSpeech(roles: ProviderRoles, adapters: Adapters = {}) {
         adapter = (adapters.stt ?? defaultStt).get(provider);
       if (!adapter)
         throw new LocalError("Selected STT adapter unavailable.", 503);
-      const raw = await deadline(roles.stt.timeoutMs, (signal) =>
+      const raw = await withSpeechDeadline(roles.stt.timeoutMs, (signal) =>
           adapter.transcribe({
             ...parsed,
             audio: parsed.audio.slice(),
@@ -292,24 +319,22 @@ export function createSpeech(roles: ProviderRoles, adapters: Adapters = {}) {
         adapter = (adapters.tts ?? defaultTts).get(provider);
       if (!adapter)
         throw new LocalError("Selected TTS adapter unavailable.", 503);
-      const raw = await deadline(roles.tts.timeoutMs, (signal) =>
+      const raw = await withSpeechDeadline(roles.tts.timeoutMs, (signal) =>
           adapter.synthesize({ ...parsed, signal }),
         ),
-        result = audioSchema.safeParse(raw);
-      if (!result.success)
-        throw new LocalError("The TTS adapter returned invalid audio.", 502);
+        result = parseSpeechAudio(raw);
       if (
-        result.data.source.provider !== provider ||
-        result.data.source.model !== roles.tts.model ||
-        result.data.source.mode !== "fixture" ||
-        result.data.isSpeech ||
-        result.data.language !== parsed.language
+        result.source.provider !== provider ||
+        result.source.model !== roles.tts.model ||
+        result.source.mode !== "fixture" ||
+        result.isSpeech ||
+        result.language !== parsed.language
       )
         throw new LocalError(
           "TTS fixture identity or evidence mode is invalid.",
           502,
         );
-      return result.data;
+      return result;
     },
   };
 }

@@ -1,5 +1,15 @@
 # Saathi on OpenDuet handoff
 
+## Speech response composition — implementation checkpoint
+
+30 October2026 (India). Branch codex/speech-response-policy stacks on PR17 documentation headb5692c0. Added internal text_only/voice_only/text_and_voice composition with copied server TTS identity/languages/deadline, consent/availability/short-text gates, one injected adapter attempt, sanitized fixed outcomes and cancellation that suppresses late audio. Text-only never invokes TTS; voice-only keeps text null even on failure. Fixture tones are nondeliverable fixture_only. Shared audio parsing now validates actual PCM WAV and declared duration, detaches bytes and is reused by fixture synthesis.
+
+Evidence: missing-module regression was red before implementation;123 focused tests/1089 assertions pass. Server types and changed-file Biome pass. Windows frozen test types show only the eight known gallery path-text mismatches; baseline unchanged, scoped Linux CI next. Tests cover consent/missing role/adapter/locale/caps, raw error redaction, invalid WAV/duration/identity/locale/fixture claims, pre/immediate/in-flight cancellation, timeout, pinned role mutation and both actual vendor transports through mocked HTTP. Audited dirty validation build and packed owner/read/cache/duplicate/mock-booking checks pass; website bundle remains955c8f2 because speech remains unregistered. RuntimeIntegrity=null is not a deployable release; four shipped packages have zero observed advisory matches,28 wider upstream packages.
+
+No live/paid speech/model request, key setup, new route/schema migration, private/public data access or deployment. Public remains27de098/schema v7; private8790/profile and legacy service untouched. The one approved Meta test remains consumed; reset credits untouched. Full PRD and recurring continuation remain incomplete; use fresh account limits and the standing request without overriding the native goal tracker.
+
+Next: stacked draft PR and exact-source scoped Linux gates, then design the smallest internal owner-scoped media/consent/retention store with quotas, expiry/read denial, explicit deletion/revocation and race/restart tests. Use fresh synthetic DB/audio only; no public upload or live speech registration until durable consent, admission/spend and consented evaluation are ready. Read tasks/speech-response-policy.md and docs/saathi/speech-replies.md.
+
 ## Vendor TTS foundation — PR17 scoped Linux checks passed
 
 Exact executable source `0656da361e2adeb85747a190784a000bbf252a42`, draft [PR17](https://github.com/anirbanhere/saathi/pull/17), base PR16. [Self-hosted CI40913422184](https://github.com/anirbanhere/saathi/actions/runs/40913422184) and [tenant CI40913422159](https://github.com/anirbanhere/saathi/actions/runs/40913422159) passed, including114 focused tests, server types, unchanged frozen Linux test baseline, audited bundle and packed HTTP regression. Local focused tests have970 assertions. Final Windows test types contain only the eight known gallery path-text mismatches; the new backing-buffer type issue was fixed. Wider upstream CI40913422585 was queued, so no whole-repository-green claim.
