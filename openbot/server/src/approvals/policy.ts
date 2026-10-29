@@ -175,6 +175,7 @@ export type ReviewVerdict = NonNullable<ApprovalPolicyOutcome["review"]>;
 export type ReviewModel = (
   prompt: string,
   signal?: AbortSignal,
+  actorId?: string,
 ) => Promise<string>;
 
 /** The safety categories the reviewer can name, beyond what the keyword floor already caught. */
@@ -259,6 +260,7 @@ export async function reviewAction(input: {
     const text = await input.model(
       prompt,
       AbortSignal.timeout(input.timeoutMs ?? 15_000),
+      input.candidate.actorId,
     );
     const json = text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1);
     const parsed = verdictSchema.safeParse(JSON.parse(json));

@@ -1,5 +1,15 @@
 // First, before anything that imports the CopilotKit runtime: see telemetry.ts.
 import "./telemetry";
+import { createSaathiService } from "./saathi/service";
+import { createSaathiWorkers } from "./saathi/workers";
+import {
+  assertSaathiProviderOrigins,
+  assertSaathiComputerIsolation,
+  ownerRuntimeModel,
+  completeForOwner,
+} from "./saathi/runtime-model";
+import { SaathiConfigurationError } from "./saathi/models";
+import { createTranscriptionProvider } from "./dictation/provider";
 import type { AbstractAgent } from "@ag-ui/client";
 import {
   CopilotKitIntelligence,
@@ -355,6 +365,10 @@ const identifyActor: IdentifyActor = async (request) => {
 };
 
 const config = loadConfig();
+if (process.env.SAATHI_ENABLED === "true") {
+  assertSaathiComputerIsolation(config.computer);
+  assertSaathiProviderOrigins(process.env);
+}
 // The environment seeds local policy once. The SDK fallback must not reapply an old revision
 // after an administrator clears a pin to follow the latest published Skills.
 clearLearningRevisionFallback();
@@ -704,6 +718,17 @@ const storedApprovals = createApprovalStore(database);
 // Before anything reads the model environment: blank base URLs removed, Anthropic given its `/v1`.
 normalizeModelBaseUrls();
 const runtimeModel = runtimeModelForEnvironment(tenantPackage.model);
+const saathi =
+  process.env.SAATHI_ENABLED === "true"
+    ? createSaathiService({
+        database,
+        encryptionKey: config.keyEncryptionKey,
+        profiles: agentProfileStore,
+        channels: channelStore,
+        enableApprovals: (owner) => storedApprovals.setEnabled(owner, true),
+      })
+    : undefined;
+if (saathi) assertSaathiProviderOrigins(process.env);
 
 /**
  * Pass one of tool selection: which skills a message needs, on the deployment's own model.
@@ -711,7 +736,7 @@ const runtimeModel = runtimeModelForEnvironment(tenantPackage.model);
  * Built once rather than per request, because it holds nothing about a person: the key is resolved
  * on every call, so a credential rotated a moment ago is used by the next run.
  */
-const chooseSkills = createModelCompleter({
+const deploymentChooseSkills = createModelCompleter({
   model: runtimeModel,
   resolveApiKey: () =>
     resolveModelApiKey({
@@ -722,6 +747,14 @@ const chooseSkills = createModelCompleter({
       environment: process.env,
     }),
 });
+// No deployment-model fallback is allowed to process a Saathi owner's private context.
+const chooseSkills: typeof deploymentChooseSkills = saathi
+  ? async () => {
+      throw new SaathiConfigurationError(
+        "A Saathi model call requires an authenticated owner.",
+      );
+    }
+  : deploymentChooseSkills;
 
 /*
  * The pair a headless turn is driven through, built ONCE.
@@ -755,7 +788,7 @@ const approvalComputerTools = async (
   if (!profile)
     throw new ApprovalRefusedError("That Bot is no longer available to you.");
   // A Team Bot's teammate uses the Bot, not its owner's signed-in computer.
-  return computerGateway && canUseComputer(profile, actor)
+  return computerGateway && canUseComputer(profile, actor, Boolean(saathi))
     ? createHeadlessComputerTools({
         gateway: computerGateway,
         botId: agentId,
@@ -776,7 +809,14 @@ const approvalService = createServerApprovalService({
   authoriseQuestion,
   routineIntelligence,
   approvalComputerTools,
-  review: (prompt, signal) => chooseSkills(prompt, signal),
+  review: (prompt, signal, actorId) =>
+    saathi
+      ? actorId
+        ? completeForOwner(saathi.models, actorId, prompt, signal)
+        : Promise.reject(
+            new SaathiConfigurationError("A reviewer requires an owner."),
+          )
+      : chooseSkills(prompt, signal),
   // Assigned further down, once delivery is wired.
   notify: (scope, input) => deliveryNotifications(scope, input),
 });
@@ -1239,17 +1279,19 @@ const stallGuard = createStallGuard({
 });
 
 const intentRouter = createIntentRouter({
-  complete: createModelCompleter({
-    model: runtimeModel,
-    resolveApiKey: () =>
-      resolveModelApiKey({
-        encryptionKey: config.keyEncryptionKey,
-        reader: credentialStore,
-        provider: runtimeModel.provider,
-        keyId: tenantPackage.model.credentialSecretRef,
-        environment: process.env,
+  complete: saathi
+    ? chooseSkills
+    : createModelCompleter({
+        model: runtimeModel,
+        resolveApiKey: () =>
+          resolveModelApiKey({
+            encryptionKey: config.keyEncryptionKey,
+            reader: credentialStore,
+            provider: runtimeModel.provider,
+            keyId: tenantPackage.model.credentialSecretRef,
+            environment: process.env,
+          }),
       }),
-  }),
 });
 
 // Said once at boot: whether the key can call the model the Bots run on. A key without access to it
@@ -1285,13 +1327,15 @@ const modelCheckAtBoot = (async () => {
 
 /** The deployment's model key, resolved per call so a credential rotated a moment ago is used next. */
 const resolveRuntimeModelApiKey = () =>
-  resolveModelApiKey({
-    encryptionKey: config.keyEncryptionKey,
-    reader: credentialStore,
-    provider: runtimeModel.provider,
-    keyId: tenantPackage.model.credentialSecretRef,
-    environment: process.env,
-  });
+  saathi
+    ? Promise.resolve(null)
+    : resolveModelApiKey({
+        encryptionKey: config.keyEncryptionKey,
+        reader: credentialStore,
+        provider: runtimeModel.provider,
+        keyId: tenantPackage.model.credentialSecretRef,
+        environment: process.env,
+      });
 
 const hostAccessBroker = createHostAccessBroker(Date.now, {
   approvalGate: approvalService.gate,
@@ -1646,7 +1690,10 @@ const selectionForActor = (actorId: string): ToolSelection => ({
   // The deployment's own model and key, the same pair the intent router uses, so selection is
   // never a second thing to configure. It throws on a missing key, which reads as "could not
   // choose" and leaves the whole catalogue offered.
-  choose: chooseSkills,
+  choose: saathi
+    ? (prompt, signal) =>
+        completeForOwner(saathi.models, actorId, prompt, signal)
+    : chooseSkills,
   record: async (botId, selection) => {
     await recordAuditEvent(bootAuditStore, {
       eventType: "mcp.tools_discovered",
@@ -1772,7 +1819,7 @@ const routineRunner = createRoutineRunner({
       const profile = await agentProfileStore.get(actor, agentId);
       if (!profile) throw new Error("That Bot is not available to this owner.");
       // A Team Bot's teammate uses the Bot, not its owner's signed-in computer.
-      if (!canUseComputer(profile, actor)) return [];
+      if (!canUseComputer(profile, actor, Boolean(saathi))) return [];
       return createHeadlessComputerTools({
         gateway: computerGateway,
         botId: agentId,
@@ -1800,6 +1847,25 @@ const baseAgentResolver = createActorAgentResolver({
   loadAgents: loadAgentsForActor,
   model: runtimeModel,
   resolveModelApiKey: resolveRuntimeModelApiKey,
+  ...(saathi
+    ? {
+        resolveModelForActor: async (actor: AgentActor) => {
+          const selected = await ownerRuntimeModel(saathi.models, actor.id);
+          const allowlist =
+            enterpriseControls()?.snapshot()?.settings.modelAllowlist;
+          if (
+            allowlist?.enabled &&
+            !allowlist.models.includes(
+              `${selected.model.provider}/${selected.model.defaultModel}`,
+            )
+          )
+            throw new SaathiConfigurationError(
+              "This model is not permitted by the deployment's model policy.",
+            );
+          return selected;
+        },
+      }
+    : {}),
   stallGuard,
   loadToolsForActor: (actorId, initiator) =>
     restrictToolsForRun(
@@ -2016,7 +2082,7 @@ const groupConversations = createGroupConversations({
       const profile = await agentProfileStore.get(actor, agentId);
       if (!profile) throw new Error("That Bot is not available to this owner.");
       // A Team Bot's teammate uses the Bot, not its owner's signed-in computer.
-      if (!canUseComputer(profile, actor)) return [];
+      if (!canUseComputer(profile, actor, Boolean(saathi))) return [];
       return createHeadlessComputerTools({
         gateway: computerGateway,
         botId: agentId,
@@ -2157,7 +2223,73 @@ const deliveryRouter = createDeliveryRouter({
       payload: { deliveryId: event.id, kind: event.kind, state: event.state },
     }),
 });
-deliveryNotifications = (scope, input) => deliveryRouter.notify(scope, input);
+deliveryNotifications = async (scope, input) => {
+  await saathi?.connections.notify(
+    scope.ownerUserId,
+    scope.channelId,
+    input.text,
+    input.id,
+  );
+  await deliveryRouter.notify(scope, input);
+};
+
+const saathiWorkers = saathi
+  ? createSaathiWorkers({
+      store: saathi.connections,
+      models: saathi.models,
+      queue: createWorkQueue(database),
+      encryptionKey: config.keyEncryptionKey,
+      approvals: approvalService,
+      transcription: config.transcription
+        ? createTranscriptionProvider(config.transcription)
+        : undefined,
+      authorise: async (connection) => {
+        const actor = await actorFor(connection.ownerUserId);
+        const profile = await agentProfileStore.get(actor, connection.agentId);
+        return Boolean(
+          profile &&
+            profile.ownerUserId === actor.id &&
+            profile.visibility === "private" &&
+            (await authoriseDeliveryScope(connection)),
+        );
+      },
+      runTurn: async (input) => {
+        const connection = await saathi.connections.get(input.ownerUserId);
+        if (
+          !connection ||
+          connection.status !== "connected" ||
+          connection.threadId !== input.threadId ||
+          connection.agentId !== input.agentId
+        )
+          throw new Error("This WhatsApp conversation is not available.");
+        const actor = await actorFor(input.ownerUserId);
+        await channelStore.recordActivity(
+          actor,
+          connection.channelId,
+          { text: input.instruction, agentId: null, at: new Date() },
+          { id: `saathi-input:${input.runId}` },
+        );
+        await channelStore.signalBusy(input.threadId, true, input.runId!);
+        try {
+          const result = await approvalContinuationRunner(input);
+          if (result.replyText)
+            await channelStore.recordActivity(
+              actor,
+              connection.channelId,
+              {
+                text: result.replyText,
+                agentId: input.agentId,
+                at: new Date(),
+              },
+              { id: `saathi-reply:${input.runId}` },
+            );
+          return result;
+        } finally {
+          await channelStore.signalBusy(input.threadId, false, input.runId!);
+        }
+      },
+    }).start()
+  : undefined;
 
 /*
  * Proactive research: an opted-in Bot reading its owner's apps in the background, restricted to
@@ -2305,7 +2437,7 @@ const wakeUpRunner = createWakeUpRunner({
       const profile = await agentProfileStore.get(actor, agentId);
       if (!profile) throw new Error("That Bot is not available to this owner.");
       // A Team Bot's teammate uses the Bot, not its owner's signed-in computer.
-      if (!canUseComputer(profile, actor)) return [];
+      if (!canUseComputer(profile, actor, Boolean(saathi))) return [];
       return createHeadlessComputerTools({
         gateway: computerGateway,
         botId: agentId,
@@ -2688,6 +2820,14 @@ const app = createApp(
   {
     approvals: approvalService,
     shared: { modes: accountModes, use: sharedUseStore },
+    ...(saathi
+      ? {
+          saathi: {
+            ...saathi,
+            speechConfigured: Boolean(config.transcription),
+          },
+        }
+      : {}),
     ...(signInService ? { passwords: signInService } : {}),
     demonstrations: {
       store: demonstrationStore,
@@ -2792,6 +2932,7 @@ const app = createApp(
 );
 
 const { addresses: listening } = startHttpServer({
+  ownerOnlyComputers: Boolean(saathi),
   port,
   config,
   resolveRequestActor,
@@ -2824,6 +2965,7 @@ if (config.singleUser) {
 for (const signal of ["SIGINT", "SIGTERM"] as const) {
   process.on(signal, () => {
     channelBusySweep.stop();
+    saathiWorkers?.stop();
     responsibilitySweep.stop();
     wakeUpSweep.stop();
     wakeUpReaper.stop();
