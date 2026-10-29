@@ -1,5 +1,12 @@
 # Saathi on OpenDuet handoff
 
+## Structured planning — typed planner/API checkpoint
+
+The reasoning adapter now requests strict JSON with the task's saved role snapshot and current provider/cost policy; it disables native lookup in planning calls. Server-owned schemas reject arbitrary tools, writes, unconfirmed dates, extra fields and invalid dependencies. Session/CSRF-protected task routes create/list/read/cancel saved draft-only proposals. No plan step is executed and no appointment/receipt is created by this path.
+
+Evidence: 89 focused tests/742 assertions pass, server types pass. Added deferred-provider concurrency/cancellation, malformed proposal, exact role/key separation and once-only attempt tests. New test-type errors were fixed; Windows gate now retains only the known gallery path-text mismatches, baseline unchanged. UI/browser/final packed/Linux CI are next. Local/public private state remains untouched; v6 only in synthetic test DBs. Public executable remains9123f2f/v5.
+
+
 ## Structured planning — durable storage checkpoint
 
 29 October 2026. Branch `codex/structured-planning`, stacked on PR11, scope in tasks/structured-planning.md. Added local schema v6 owned planning tasks/events, credential-free role snapshots, strict bounded draft-plan contracts, request identity, cancellation/late-result suppression and restart interruption. Planning reserves attempts in the existing inference_usage ledger and shares chat's running/owner/global guard. Cancelling an in-flight plan keeps its inference slot until completion/failure settles; restart clears interrupted work without replay.

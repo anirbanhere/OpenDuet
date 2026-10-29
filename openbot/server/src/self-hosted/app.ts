@@ -4,6 +4,7 @@ import { getCookie, setCookie } from "hono/cookie";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { z } from "zod";
 import type { ModelCatalog, ModelChoice } from "./models";
+import { attachPlanRoutes, type Planner } from "./planner";
 import {
   type ModelPurpose,
   type ProviderRoles,
@@ -20,8 +21,10 @@ export type AnswerInput = {
   threadId: string;
   model?: ModelChoice;
   purpose?: ModelPurpose;
+  directive?: string;
 };
 type Session = { owner: string; csrf: string };
+export type AppVariables = { session: Session; body: unknown };
 const securityHeaders = {
   "Cache-Control": "no-store",
   "X-Content-Type-Options": "nosniff",
@@ -43,6 +46,7 @@ export function createSelfHostedApp(options: {
   models?: () => Promise<ModelCatalog>;
   publicOrigin?: string | null;
   roles?: ProviderRoles;
+  planner?: Planner;
 }) {
   const { store, answer, model } = options;
   const getModels =
@@ -66,7 +70,7 @@ export function createSelfHostedApp(options: {
       checkedAt: Date.now(),
       issues: [],
     }));
-  const app = new Hono<{ Variables: { session: Session; body: unknown } }>();
+  const app = new Hono<{ Variables: AppVariables }>();
   const writes: number[] = [];
   app.onError((error, c) =>
     c.json(
@@ -162,6 +166,7 @@ export function createSelfHostedApp(options: {
       throw new LocalError("Invalid or unsupported request fields.");
     return parsed.data;
   };
+  attachPlanRoutes(app, options);
   app.get("/health", (c) =>
     c.json({
       storage: "self-hosted-sqlite",
