@@ -17,6 +17,7 @@ const app = attachSelfHostedWeb(
     model: config.model,
     models: createModelCatalog(config),
     publicOrigin: config.publicOrigin,
+    roles: config.roles,
   }),
   config.webPath,
 );

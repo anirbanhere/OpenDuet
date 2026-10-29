@@ -4,6 +4,11 @@ import { getCookie, setCookie } from "hono/cookie";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { z } from "zod";
 import type { ModelCatalog, ModelChoice } from "./models";
+import {
+  type ModelPurpose,
+  type ProviderRoles,
+  roleDiagnostics,
+} from "./roles";
 import type { GroundedAnswer } from "./search";
 import { LocalError, type SelfHostedStore, type StoredMessage } from "./store";
 
@@ -14,6 +19,7 @@ export type AnswerInput = {
   runId: string;
   threadId: string;
   model?: ModelChoice;
+  purpose?: ModelPurpose;
 };
 type Session = { owner: string; csrf: string };
 const securityHeaders = {
@@ -36,6 +42,7 @@ export function createSelfHostedApp(options: {
   model: string;
   models?: () => Promise<ModelCatalog>;
   publicOrigin?: string | null;
+  roles?: ProviderRoles;
 }) {
   const { store, answer, model } = options;
   const getModels =
@@ -202,6 +209,17 @@ export function createSelfHostedApp(options: {
     ),
   );
   app.get("/api/models", async (c) => c.json(await getModels()));
+  app.get("/api/provider-roles", (c) =>
+    c.json(
+      options.roles
+        ? roleDiagnostics(options.roles)
+        : {
+            configured: false,
+            liveSpeechEnabled: false,
+            publicAudioEnabled: false,
+          },
+    ),
+  );
   app.get("/api/demo-appointments/options", (c) =>
     c.json(store.appointments.options(c.req.query("date"))),
   );
@@ -289,7 +307,7 @@ export function createSelfHostedApp(options: {
         threadId,
         body.request_id,
         body.text,
-        body.model ?? (prior.model === null ? null : `openrouter:${model}`),
+        body.model ?? prior.model,
       );
       return c.json(
         {

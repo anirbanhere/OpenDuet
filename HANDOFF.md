@@ -1,5 +1,14 @@
 # Saathi on OpenDuet handoff
 
+## Provider-role continuation — model routing/configuration checkpoint
+
+29 October 2026. Branch `codex/provider-role-contracts`. Implemented independent immutable reasoning/conversation/extraction/STT/TTS configuration with credential-free revision; configured conversation default drives the eligible model catalogue, explicit browser selection still wins, internal reasoning/extraction route through their own provider/budget. Existing free/paid/Meta guardrails and one-attempt behavior remain. The session-protected role diagnostic endpoint distinguishes configuration from tested inference/live speech. Duplicate chat requests with an omitted model now retain the saved original selection.
+
+Evidence: 28 focused role/config/HTTP tests pass; initial full focused run 79 passed and server types passed. Windows frozen test-type gate has only its eight known gallery path-text mismatches, with no new diagnostics and baseline unchanged. Synthetic speech module/CLI work is still in the working tree for the next increment; do not discard it. No live inference/audio, private DB/profile edit, migration, cloud change or public deployment occurred. Deployed executable remains 9123f2f.
+
+Read docs/saathi/provider-roles.md and tasks/provider-roles.md. Next: finish the synthetic adapter/CLI contract checks and publish the tested slice; generic task role pinning, real speech and media lifecycle remain incomplete. Goal/heartbeat remain active; no reset credit was used.
+
+
 ## Ongoing goal — next role/speech contract slice
 
 29 October 2026. The human requested continued PRD development as an active goal and continuation after usage reset. Goal is active in this chat; app heartbeat `continue-saathi-prd-development` is ACTIVE hourly. Resumed work must check fresh usage, inspect current branch/worktree and resume the saved slice. Do not redeem reset credits or purchase credits. Local scheduled work needs the computer/app available; no guaranteed execution while the host is off is claimed.
