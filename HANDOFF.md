@@ -1,5 +1,12 @@
 # Saathi on OpenDuet handoff
 
+## Continuation bookkeeping clarification
+
+Latest native get_goal returned status usageLimited from the earlier exhausted window; it was not automatically resumed by the later account reset. Fresh account checks did permit ordinary work, and the standing human request plus existing hourly heartbeat authorized the resumed implementation/release. No goal-status override, duplicate goal or reset credit was used. The objective remains ongoing/incomplete and recurring continuation remains configured; do not describe the native tracker itself as active while it reports usageLimited. Only the human/system can resume that tracker. Continue permitted scheduled work using fresh account limits and this handoff.
+
+Public release27de098 is verified above, with the one approved Meta test consumed. TTS branch is clean and ready for its saved implementation plan.
+
+
 ## Shipped — independent task planning and cached read-only checks
 
 29 October2026. Public URL remains https://35.208.235.27.sslip.io/. Deployed executable source `27de0986f21098a5173061000ba97a02ab01a3a5` (PR15 documentation head; code source58f9219), [PR15](https://github.com/anirbanhere/OpenDuet/pull/15), all stacked PRs unmerged. New panel: independently choose an eligible reasoning model, enter a synthetic goal/exact India date, draft a persisted typed plan, then explicitly run its bounded native read checks. Results are cached mock/draft evidence, not a fulfilled errand. Conversation Meta web lookup and controlled exact-approval mock appointments remain available. Speech/live providers/WhatsApp/payments remain off.
