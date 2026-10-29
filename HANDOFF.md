@@ -1,5 +1,16 @@
 # Saathi on OpenDuet handoff
 
+## UI continuation — controlled demo appointments
+
+29 October 2026. `codex/appointment-console` stacks on [PR9](https://github.com/anirbanhere/OpenDuet/pull/9), core source `7af2a86`. [Core scoped CI40835747848](https://github.com/anirbanhere/OpenDuet/actions/runs/40835747848) and tenant CI40835747718 passed. Root PRD and docs/saathi/prd-gap-audit.md separate all missing requirements from current-runtime evidence.
+
+The UI adds a dedicated appointments ES module: exact India date/language, slots, canonical review, approve/reject/pre-commit cancel, receipt and activity; reload retains tasks but requires re-review without the raw nonce. Unknown response keeps the request ID for explicit reconciliation; known stale/error state allows re-review. No arbitrary model tool authority, real clinic, speech or reminder. Asset server/build/archive allowlists explicitly include the new module.
+
+Local: 70 focused tests, server types and both JS syntax checks pass. Packed smoke confirms a mock booking and duplicate receipt without keys, plus persisted reservation and the module asset. Audit matches zero advisories in shipped packages; current full upstream audit has 28 non-bundled advisory packages. CSS lint shows existing specificity-order warnings; no broad platform-green claim.
+
+Actual synthetic browser: pending review reload hides approval, changed slot re-review then explicit approval yields a saved Tamil MOCK receipt, independent reject/cancel tasks persist after reload, focus returns to task status, viewport width/scroll390/390 with clean console. The old local8790/private database and public VM have not been migrated at this checkpoint. Final source CI, clean packaging, consistent retained-disk backup and public acceptance are next. The public update must preserve prior v4 state/usage; no schema downgrade or automatic data restore. Core/UI PRs remain draft/unmerged.
+
+
 ## Active PRD continuation — durable demo clinic core
 
 29 October 2026. Human asked for PRD gap audit and missing functionality. Branch `codex/demo-appointments`, stacked on PR8, preserves the current OpenDuet/self-hosted choices. Root `PRD.md` copies the supplied PRD unchanged; [gap audit](docs/saathi/prd-gap-audit.md) maps all 34 requirements and separates this runtime from Python/upstream evidence. Read tasks/plan.md and tasks/todo.md for the contract.

@@ -32,6 +32,7 @@ const files = [
   ...run(["git", "ls-files", "openbot/examples/saathi"]).split(/\r?\n/),
   "saathi-web/index.html",
   "saathi-web/app.js",
+  "saathi-web/appointments.js",
   "saathi-web/style.css",
 ];
 for (const name of ["hono", "zod", "yaml"]) {
@@ -50,7 +51,7 @@ for (const file of files) {
   if (
     !file ||
     file.includes("..") ||
-    !/^(LICENSE|openbot\/examples\/saathi\/.*\.(yaml|md)|saathi-web\/(index\.html|app\.js|style\.css))$/.test(
+    !/^(LICENSE|openbot\/examples\/saathi\/.*\.(yaml|md)|saathi-web\/(index\.html|app\.js|appointments\.js|style\.css))$/.test(
       file,
     )
   )

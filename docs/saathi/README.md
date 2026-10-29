@@ -1,5 +1,7 @@
 # Saathi customization guide
 
+Current requirements: [root PRD](../../PRD.md), [requirement gap audit](prd-gap-audit.md), [controlled demo clinic](demo-appointments.md) and root HANDOFF. The text clinic workflow has its own durable task/review/approval/receipt path; live clinic, speech and reminders remain separate gaps. Earlier setup checkpoints below describe previous slices or the separate upstream platform.
+
 Current inference continuation: [Meta keys and model selection](model-selection.md). This extends the local starter, not the full upstream worker/action platform or older Python deployment.
 
 **Latest direction:** the human chose fully self-hosted threads/memory. Read [the runnable self-hosted guide](self-hosted.md) and HANDOFF first. Root `start`/`saathi:start` now select that local SQLite mode; no Intelligence project or Docker is needed. The guide below records the earlier full-upstream profile and remains applicable only to its explicitly named upstream/cloud commands.

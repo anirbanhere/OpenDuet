@@ -31,7 +31,7 @@ console.log(
   `Saathi self-hosted threads/memory: http://${config.host}:${config.port}`,
 );
 console.log(
-  `Storage: SQLite on this server. Chat keys: OpenRouter ${config.apiKey ? "configured" : "missing"}; Meta ${config.metaEnabled ? "enabled, availability unverified" : "disabled"}. Actions/speech/background jobs unavailable.`,
+  `Storage: SQLite on this server. Chat keys: OpenRouter ${config.apiKey ? "configured" : "missing"}; Meta ${config.metaEnabled ? "enabled, availability unverified" : "disabled"}. Controlled mock appointments available; live actions/speech/notifications unavailable.`,
 );
 const stop = () => {
   server.stop(true);
