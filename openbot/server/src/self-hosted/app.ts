@@ -160,6 +160,7 @@ export function createSelfHostedApp(options: {
       storage: "self-hosted-sqlite",
       actions: false,
       speech: false,
+      demo_appointments: true,
       model,
       public_demo: Boolean(options.publicOrigin),
       daily_limits: store.limits(),
@@ -201,6 +202,49 @@ export function createSelfHostedApp(options: {
     ),
   );
   app.get("/api/models", async (c) => c.json(await getModels()));
+  app.get("/api/demo-appointments/options", (c) =>
+    c.json(store.appointments.options(c.req.query("date"))),
+  );
+  app.get("/api/demo-appointments", (c) =>
+    c.json(store.appointments.list(c.var.session.owner)),
+  );
+  app.post("/api/demo-appointments", (c) =>
+    c.json(store.appointments.create(c.var.session.owner, c.var.body), 201),
+  );
+  app.get("/api/demo-appointments/:id", (c) =>
+    c.json(store.appointments.get(c.var.session.owner, c.req.param("id"))),
+  );
+  app.post("/api/demo-appointments/:id/preview", (c) =>
+    c.json(
+      store.appointments.preview(
+        c.var.session.owner,
+        c.req.param("id"),
+        c.var.body,
+      ),
+    ),
+  );
+  app.post("/api/demo-appointments/:id/decision", (c) =>
+    c.json(
+      store.appointments.decide(
+        c.var.session.owner,
+        c.req.param("id"),
+        c.var.body,
+      ),
+    ),
+  );
+  app.post("/api/demo-appointments/:id/cancel", (c) => {
+    const body = input(
+      z.object({ version: z.number().int().min(1).max(100) }).strict(),
+      c.var.body,
+    );
+    return c.json(
+      store.appointments.cancel(
+        c.var.session.owner,
+        c.req.param("id"),
+        body.version,
+      ),
+    );
+  });
   app.post("/api/threads", (c) => {
     const body = input(
       z.object({ agent: z.enum(["saathi", "kitchen", "inventory"]) }).strict(),
