@@ -24,6 +24,7 @@
       <p class="notice">Send a goal to the reasoning model to draft a saved proposal. You can then run its read-only demo-clinic checks or view manual guidance. This does not book, pay or send messages. Draft text is unverified model output. For a simulated booking, use the appointment panel below.</p>
       <p id="plan-model" class="muted"></p>
       <form id="plan-form"><fieldset id="plan-fields"><legend class="visually-hidden">Task plan details</legend>
+        <label for="plan-model-select">Reasoning model for this new task</label><select id="plan-model-select" aria-describedby="plan-model"><option value="">Loading permitted models…</option></select>
         <label for="plan-goal">Your goal</label><textarea id="plan-goal" rows="3" maxlength="2000" required placeholder="Help me find demo dental slots in Chennai."></textarea>
         <div class="appointment-form"><div><label for="plan-date">Exact date (India, optional)</label><input id="plan-date" type="date" aria-describedby="plan-date-help"></div><div><label for="plan-locale">Plan language</label><select id="plan-locale"><option value="en-IN">English</option><option value="hi-IN">हिन्दी</option><option value="ta-IN">தமிழ்</option></select></div><button id="plan-create" type="submit">Draft a plan</button></div>
         <p id="plan-date-help" class="muted">Confirm the exact date here for demo-clinic steps. Without it, the planner should ask a question.</p>

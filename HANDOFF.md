@@ -1,5 +1,16 @@
 # Saathi on OpenDuet handoff
 
+## Independent planner selection — ready for scoped CI
+
+29 October 2026. Branch codex/planner-model-selection, stacked on PR14 acceptance04665e8. Added a separate eligible-model picker for new task reasoning. Optional reasoning_model is part of request identity, validated before reservation against the existing key/policy-filtered catalogue. Only the new reasoning model changes; other roles and server budgets remain. Credential-free snapshot revision is recomputed/frozen. Duplicates retain their saved selection without catalogue IO, even after a catalogue outage; changed-model reuse conflicts. Added spacing for plan action buttons.
+
+Evidence: new selection regression was red before implementation; now97 focused tests/794 assertions pass, server types and changed-file Biome pass, Windows frozen type gate retains its known gallery path-text mismatches (baseline unchanged). Audited dirty bundle and enhanced packed native-read/duplicate/owner/missing-key/mock-booking smoke pass; zero matching shipped advisories,28 wider upstream packages. Synthetic browser: alternate reasoner leaves reply model at default, new task pins alternate, reload preserves it,390px layout has no overflow and console is clean. Fixture8791 is stopped; private8790/profile/database unchanged.
+
+A single free-only OpenRouter planning probe used a fresh synthetic DB and selected openrouter:openrouter/free. It failed with the adapter's sanitized provider failure, saved FAILED, and did not retry/fall back or call Meta. No private context was sent. This is provider-availability failure, not a passing live planner test. Explicit human permission for exactly one Meta synthetic planning smoke (2048 output tokens, no private data/fallback) was requested through the app because AGENTS forbids inferring automatic paid-smoke permission; it is PENDING and elapsed time is not approval. Do not run that paid probe without a direct human grant. Independent tests/packaging and later PRD work can continue.
+
+Next: draft PR15/scoped Linux CI, then final clean runtime packaging and backed-up public release after adequate live acceptance. Public stays9123f2f/schema v5; no public/private migration or cloud change has occurred. Goal/heartbeat active, natural usage reset verified, reset credits untouched. Remaining full PRD includes genuine consent/media/speech, model observe/replan and remote tools, reminders, identity/lifecycle and gated partner integrations.
+
+
 ## Read console acceptance resumed after natural usage reset
 
 29 October 2026. Fresh usage check showed0% five-hour used; reset credits untouched. On codex/read-step-console, completed synthetic browser acceptance for manual guidance plus a skipped dependent lookup, and an out-of-window date returning Unavailable/no-source evidence. Read results remain explicitly mock/draft and create no booking.390px layout has no overflow. Browser console showed only the expected initial401 from the expired/unrecognized workspace probe; no runtime exception was observed. Fixture8791 stopped; original private8790/public unchanged.

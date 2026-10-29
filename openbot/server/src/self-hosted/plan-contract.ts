@@ -17,6 +17,7 @@ export const planInput = z
     goal: z.string().trim().min(1).max(2000),
     locale: z.enum(["en-IN", "hi-IN", "ta-IN"]),
     date: exactDate.optional(),
+    reasoning_model: z.string().trim().min(1).max(200).optional(),
   })
   .strict();
 export type PlanInput = z.infer<typeof planInput>;

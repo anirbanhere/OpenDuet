@@ -1,6 +1,6 @@
 # Saved structured task proposals
 
-The self-hosted console can request one structured proposal from the configured reasoning model. Conversation model selection stays independent. A task saves its original role bundle without credentials, goal, locale and optional exact date; later operator changes do not replace those settings on a duplicate request. Current provider enable/allowlist/cost guards still apply when calling a pinned role. No secret or provider consent is inferred from the snapshot.
+The self-hosted console can request one structured proposal from the independently selected reasoning model. The new-task picker uses the same key/policy-filtered catalogue as chat, with separate selection. A task saves its original role bundle without credentials, goal, locale and optional exact date; later operator changes do not replace those settings on a duplicate request. Current provider enable/allowlist/cost guards still apply when calling a pinned role. No secret or provider consent is inferred from the snapshot.
 
 This is a draft workflow, not a general autonomous executor. The only represented capabilities are a controlled demo-clinic availability lookup and manual guidance. No steps run here. For an actual SQL simulation, the separate demo appointment panel still requires its own exact review and approval. A draft never becomes a receipt, grant, genuine appointment, payment or notification.
 
@@ -25,12 +25,12 @@ Clarification/unavailable proposals have no steps. No claim in manual text autho
 
 | Method/path | Behavior |
 | --- | --- |
-| `POST /api/task-plans` | Strict `{request_id, goal, locale, date?}`; save/pin, reserve one attempt, call planner once, validate and save proposal |
+| `POST /api/task-plans` | Strict `{request_id, goal, locale, date?, reasoning_model?}`; permit only an eligible explicit model ID, save/pin, reserve one attempt, call planner once, validate and save proposal |
 | `GET /api/task-plans` | Up to 30 owned saved tasks |
 | `GET /api/task-plans/:id` | Owned proposal, settings and compact activity |
 | `POST /api/task-plans/:id/cancel` | Strict empty object; cancel without executing a step |
 
-All use the existing same-origin/session boundary; writes require CSRF. Clients cannot provide role bundles, purpose, tool grants, model overrides or credentials. Another visitor receives404 for an individual task. Changed reuse of a request ID conflicts; identical reuse returns the original state and role snapshot, including failed/interrupted/cancelled states. Unknown client responses can be reconciled with the same request ID or saved list. No automatic poll or background inference worker exists.
+All use the existing same-origin/session boundary; writes require CSRF. Clients may select only the new task's eligible `reasoning_model` ID, not role bundles, budgets, purpose, tool grants or credentials. Other roles remain unchanged. Omitted selection preserves the operator default for API compatibility. Another visitor receives404 for an individual task. Changed reuse of a request ID (including model) conflicts; identical reuse returns the original state and role snapshot before catalogue IO, including failed/interrupted/cancelled states. Unknown client responses can be reconciled with the same request ID or saved list. No automatic poll or background inference worker exists.
 
 Schema v6 adds `task_plans` and `plan_events`, preserving v5 chat, evidence, memory, bookings and inference usage. In-flight work becomes `INTERRUPTED` on process reopen under the existing single-process database lock. It never replays automatically. Public update requires the retained-disk backup/release procedure; old v5 binaries cannot open v6, and the schema version must never be falsified or downgraded to force startup.
 

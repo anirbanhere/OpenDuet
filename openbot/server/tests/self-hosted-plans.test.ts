@@ -431,3 +431,79 @@ test("actual planner adapter refuses fenced or malformed JSON without retry or t
   }
   expect(store.appointments.list(a.owner)).toEqual([]);
 });
+
+test("new tasks choose only eligible reasoning models, pin independent roles and recover duplicates without catalogue IO", async () => {
+  const { store, a, path } = world();
+  let checks = 0,
+    calls = 0,
+    offline = false;
+  const app = createSelfHostedApp({
+    store,
+    roles,
+    model: "openrouter/free",
+    answer: async () => "unused",
+    models: async () => {
+      checks++;
+      if (offline) throw new Error("Catalogue offline");
+      return {
+        models: [
+          {
+            id: "meta:muse-spark-1.3",
+            provider: "meta",
+            model: "muse-spark-1.3",
+            name: "Meta",
+            inputPerMillion: 0,
+            outputPerMillion: 0,
+          },
+        ],
+        defaultModel: "meta:muse-spark-1.3",
+        allowPaid: false,
+        metaEnabled: true,
+        maxInputPrice: 0,
+        maxOutputPrice: 0,
+        checkedAt: 0,
+        issues: [],
+      };
+    },
+    planner: async (task) => {
+      calls++;
+      expect(task.roles.reasoning.id).toBe("meta:muse-spark-1.3");
+      expect(task.roles.conversation).toEqual(roles.conversation);
+      expect(task.roles.stt).toEqual(roles.stt);
+      expect(task.roles.revision).not.toBe(roles.revision);
+      return proposed();
+    },
+  });
+  const request = (body: unknown) =>
+    app.request("http://localhost/api/task-plans", {
+      method: "POST",
+      headers: {
+        origin: "http://localhost",
+        "content-type": "application/json",
+        cookie: `saathi_self_hosted=${a.token}`,
+        "x-saathi-csrf": a.csrf,
+      },
+      body: JSON.stringify(body),
+    });
+  expect(
+    (await request({ ...input, reasoning_model: "openrouter:paid/unknown" }))
+      .status,
+  ).toBe(403);
+  const body = { ...input, reasoning_model: "meta:muse-spark-1.3" };
+  expect((await request(body)).status).toBe(201);
+  offline = true;
+  expect((await request(body)).status).toBe(200);
+  expect(
+    (await request({ ...body, reasoning_model: "openrouter:openrouter/free" }))
+      .status,
+  ).toBe(409);
+  expect(checks).toBe(2);
+  expect(calls).toBe(1);
+  expect(roles.reasoning.id).toBe("openrouter:openrouter/free");
+  const db = new Database(path);
+  expect(
+    db.query<{ n: number }, []>("SELECT count(*) n FROM inference_usage").get()
+      ?.n,
+  ).toBe(1);
+  db.close();
+});
