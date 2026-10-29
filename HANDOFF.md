@@ -1,5 +1,12 @@
 # Saathi on OpenDuet handoff
 
+## Ongoing goal — next role/speech contract slice
+
+29 October 2026. The human requested continued PRD development as an active goal and continuation after usage reset. Goal is active in this chat; app heartbeat `continue-saathi-prd-development` is ACTIVE hourly. Resumed work must check fresh usage, inspect current branch/worktree and resume the saved slice. Do not redeem reset credits or purchase credits. Local scheduled work needs the computer/app available; no guaranteed execution while the host is off is claimed.
+
+Current branch `codex/provider-role-contracts`, based on PR10 handoff head `812a6f8`. Read `tasks/provider-roles.md`. Next increment is independently validated reasoning/conversation/extraction/STT/TTS contracts, explicitly synthetic speech adapters and keyless swap/evaluation diagnostics; live audio/media and durable generic-task role pins follow separately. No new implementation or verification is claimed at this planning checkpoint. Deployed executable remains `9123f2f`, existing PRs remain unmerged, private local databases/config and public service are unchanged.
+
+
 ## Shipped PRD continuation — controlled demo clinic
 
 29 October 2026, Asia/Kolkata. **Public URL: https://35.208.235.27.sslip.io/**. Click **Try a demo appointment**. Root PRD.md is the copied user-selected PRD; docs/saathi/prd-gap-audit.md maps all 34 functional requirements and remaining work. This completes the controlled text demo task/approval slice, not the voice/live-provider MVP. See docs/saathi/demo-appointments.md for setup, API and recovery boundaries.
