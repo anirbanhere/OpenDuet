@@ -1,5 +1,15 @@
 # Saathi on OpenDuet handoff
 
+## Vendor TTS foundation — PR17 scoped Linux checks passed
+
+Exact executable source `0656da361e2adeb85747a190784a000bbf252a42`, draft [PR17](https://github.com/anirbanhere/saathi/pull/17), base PR16. [Self-hosted CI40913422184](https://github.com/anirbanhere/saathi/actions/runs/40913422184) and [tenant CI40913422159](https://github.com/anirbanhere/saathi/actions/runs/40913422159) passed, including114 focused tests, server types, unchanged frozen Linux test baseline, audited bundle and packed HTTP regression. Local focused tests have970 assertions. Final Windows test types contain only the eight known gallery path-text mismatches; the new backing-buffer type issue was fixed. Wider upstream CI40913422585 was queued, so no whole-repository-green claim.
+
+Clean validation build dirty=false/source0656da3 has the unchanged website bundle955c8f2 and runtimeIntegrity=null; internal TTS factories are not imported by the public entry. Four shipped dependencies have zero observed advisory matches,28 wider upstream packages. This was validation, not a deployment. Public remains27de098/schema v7, private8790/profile and legacy Python deployment unchanged. No paid/live speech/model test, new key, schema migration, upload or message was performed; reset credits untouched.
+
+GitHub reported the existing fork moved from anirbanhere/OpenDuet to [anirbanhere/saathi](https://github.com/anirbanhere/saathi). gh repo view verifies it remains a fork of CopilotKit/OpenDuet; old URL redirects. PR17 is attached using the returned new URL. Local directory and origin URL were preserved, not replaced. Use the canonical name for future GitHub CLI operations; do not create a duplicate repository.
+
+Next bounded slice: pure text_only/voice_only/text_and_voice response composition, with text-only making no TTS request, voice-only never silently becoming text, explicit consent/unavailable/fixture states, output validation and no actual delivery. Then owner-scoped media/durable consent/retention, speech admission/spend ledger and real consented evaluation before public registration. Full PRD/recurring continuation remain incomplete; native usageLimited tracker status is not overridden.
+
 ## Vendor TTS foundation — ready for scoped CI
 
 29 October2026. Branch codex/vendor-tts-adapters stacks on PR16. Added internal disabled-by-default Sarvam bulbul:v3 / ElevenLabs eleven_v3 synthesis factories with explicit operator voice/model/key, literal consent and fixed endpoint/header isolation. Shared bounded HTTP now supports binary output while preserving the128KB STT default; Sarvam canonical base64 WAV and ElevenLabs24kHz little-endian PCM normalize to inspected WAV. Text500, WAV2MB/60s, no redirect/retry/provider or retention fallback. Response locale/isSpeech describe requested vendor generation, not independently verified speaking/language/voice rights.
