@@ -11,3 +11,5 @@
 - Public WhatsApp, real account actions, purchases/payments and production hosting require their own access, policy, identity and operational decisions. No upstream feature claim proves Saathi-specific readiness.
 
 - Explicit current-information requests can use native Meta read-only search/page opens with the existing key. OpenRouter remains free/text-only and never switches silently. Local SQLite still owns threads/memory; stateless Meta requests use store=false. Source links distinguish search hits, completed page opens and citations; provider evidence is not independent freshness or accuracy proof.
+
+- The human requested missing-PRD development in the active OpenDuet fork. Keep the PRD's workflow requirements with the later self-hosted runtime decisions. The first action path is a controlled SQL demo clinic with explicit user review/approval and MOCK receipts; the chat model cannot authorize bookings. Voice, real providers, reminders and generic task planning remain separate work, not features implied by this simulation.
