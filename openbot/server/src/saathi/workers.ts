@@ -76,8 +76,7 @@ export function createSaathiWorkers(deps: {
     }
     const connection = await deps.store.byId(saved.connectionId);
     if (
-      !connection ||
-      connection.status !== "connected" ||
+      connection?.status !== "connected" ||
       !(await deps.authorise(connection))
     ) {
       await deps.queue.finish(claim);
@@ -122,8 +121,7 @@ export function createSaathiWorkers(deps: {
       try {
         const current = await deps.store.byId(connection.id);
         if (
-          !current ||
-          current.status !== "connected" ||
+          current?.status !== "connected" ||
           current.cancelVersion !== connection.cancelVersion ||
           !(await deps.queue.renew({ ...claim, leaseMs: 60_000 }))
         )
@@ -205,8 +203,7 @@ export function createSaathiWorkers(deps: {
     try {
       const current = await deps.store.byId(item.connection.id);
       if (
-        !current ||
-        current.status !== "connected" ||
+        current?.status !== "connected" ||
         !current.participantId ||
         !(await deps.authorise(current))
       ) {

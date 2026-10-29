@@ -240,7 +240,7 @@ test("durable worker executes once, delivers ordered parts, and recovers interru
       expect(input.ownerUserId).toBe(owner);
       expect(input.agentId).toBe("bot");
       runs++;
-      return { replyText: "a".repeat(4096) + "b" };
+      return { replyText: `${"a".repeat(4096)}b` };
     },
     clientFor: () => ({
       poll: async () => ({ nextOffset: 1, messages: [] }),

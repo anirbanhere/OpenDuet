@@ -1,5 +1,10 @@
 import type { ApprovalService } from "../approvals/service";
-import { SaathiConfigurationError, type SaathiModels } from "./models";
+import {
+  SaathiConfigurationError,
+  type SaathiModels,
+  modelName,
+  modelProvider,
+} from "./models";
 import type { Connection } from "./connection-store";
 
 export async function whatsappCommand(input: {
@@ -29,8 +34,8 @@ export async function whatsappCommand(input: {
   if (select) {
     await models.select(
       connection.ownerUserId,
-      select[1] as "openai" | "anthropic",
-      select[2]!,
+      modelProvider.parse(select[1]),
+      modelName.parse(select[2]),
     );
     return `The next run will use ${select[1]} ${select[2]}. Existing work keeps its current model.`;
   }
@@ -73,12 +78,14 @@ export async function whatsappCommand(input: {
       : "Your decision is recorded. Saathi will continue through the approval gateway.";
   }
   const answer = command.match(/^\/answer\s+(\S+)\s+([\s\S]+)$/);
-  if (answer) {
+  const questionId = answer?.[1];
+  const response = answer?.[2];
+  if (questionId && response) {
     const inbox = await approvals.inbox(connection.ownerUserId);
     if (
       !inbox.questions.some(
         (question) =>
-          question.id === answer[1] &&
+          question.id === questionId &&
           question.conversationBotId === connection.agentId &&
           question.threadId === connection.threadId,
       )
@@ -88,8 +95,8 @@ export async function whatsappCommand(input: {
       );
     await approvals.answerQuestion(
       connection.ownerUserId,
-      answer[1]!,
-      answer[2]!,
+      questionId,
+      response,
     );
     return "Your answer is recorded. Saathi will continue the task.";
   }

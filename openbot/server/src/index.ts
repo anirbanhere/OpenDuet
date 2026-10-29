@@ -2254,10 +2254,10 @@ const saathiWorkers = saathi
         );
       },
       runTurn: async (input) => {
+        const runId = input.runId ?? input.routineId;
         const connection = await saathi.connections.get(input.ownerUserId);
         if (
-          !connection ||
-          connection.status !== "connected" ||
+          connection?.status !== "connected" ||
           connection.threadId !== input.threadId ||
           connection.agentId !== input.agentId
         )
@@ -2267,9 +2267,9 @@ const saathiWorkers = saathi
           actor,
           connection.channelId,
           { text: input.instruction, agentId: null, at: new Date() },
-          { id: `saathi-input:${input.runId}` },
+          { id: `saathi-input:${runId}` },
         );
-        await channelStore.signalBusy(input.threadId, true, input.runId!);
+        await channelStore.signalBusy(input.threadId, true, runId);
         try {
           const result = await approvalContinuationRunner(input);
           if (result.replyText)
@@ -2281,11 +2281,11 @@ const saathiWorkers = saathi
                 agentId: input.agentId,
                 at: new Date(),
               },
-              { id: `saathi-reply:${input.runId}` },
+              { id: `saathi-reply:${runId}` },
             );
           return result;
         } finally {
-          await channelStore.signalBusy(input.threadId, false, input.runId!);
+          await channelStore.signalBusy(input.threadId, false, runId);
         }
       },
     }).start()

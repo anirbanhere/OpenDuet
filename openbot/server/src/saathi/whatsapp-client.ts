@@ -128,8 +128,11 @@ export function createWhatsAppClient(
       const parsed = z
         .object({ messages: z.array(z.object({ id: z.string() })).min(1) })
         .safeParse(await response.json().catch(() => null));
-      if (!parsed.success) throw new WhatsAppError(502, false, true);
-      return parsed.data.messages[0]!.id;
+      const messageId = parsed.success
+        ? parsed.data.messages[0]?.id
+        : undefined;
+      if (!messageId) throw new WhatsAppError(502, false, true);
+      return messageId;
     },
     async audio(mediaId: string, signal?: AbortSignal): Promise<File> {
       const response = await request(`/media/${encodeURIComponent(mediaId)}`, {
@@ -193,7 +196,7 @@ export function splitReply(text: string): string[] {
   const parts: string[] = [];
   let remaining = text;
   while (remaining.length > 4096) {
-    const end = /[\uD800-\uDBFF]/.test(remaining[4095]!) ? 4095 : 4096;
+    const end = /[\uD800-\uDBFF]/.test(remaining.charAt(4095)) ? 4095 : 4096;
     parts.push(remaining.slice(0, end));
     remaining = remaining.slice(end);
   }
