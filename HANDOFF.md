@@ -1,5 +1,14 @@
 # Saathi on OpenDuet handoff
 
+## Structured planning slice — PR12 exact-source Linux checks passed
+
+Executable source `c2e821267b7bd0f41e1bcae5f202511a8ea32998`, draft [PR12](https://github.com/anirbanhere/OpenDuet/pull/12), base PR11. [Self-hosted CI40847746604](https://github.com/anirbanhere/OpenDuet/actions/runs/40847746604) and [tenant CI40847746579](https://github.com/anirbanhere/OpenDuet/actions/runs/40847746579) passed, including90 focused tests, server types, unchanged frozen Linux test-type gate, audited build and packed-service smoke. These are the required scoped checks, not a whole-platform-green claim. PR12 wider CI was still running; PR11 wider CI40845250795 failed the Python LangGraph provider regressions and broad Bun test job/aggregate verify, the same job/step names already failing on PR10 base CI40839381935. Do not erase that debt or describe all CI as green.
+
+PR11 executable d121540 and latest documentation head a585c44 both have passing scoped checks. PR11/12 and prior stacked PRs remain draft/unmerged. No cloud deployment or private/public migration happened. Public executable stays9123f2f/schema v5; new code uses schema v6 only in synthetic test databases. Local fixture8791 stopped, original private8790 untouched. Goal/heartbeat remain active, no reset credit used.
+
+Next concrete work: add a bounded native read-only plan-step executor for the existing demo-clinic lookup and manual draft only, with persisted step observations, ownership, duplicate/cancel/restart tests and no inferred booking authority. Keep inference planning separate from execution; no hidden extra model calls. Then review/live-synthetic model acceptance and a consistent retained-disk backup before any public v6 update. Permissioned media/real speech, reminders and wider identity/provider integrations remain subsequent PRD gaps. Check fresh account usage on continuation and resume from this branch/checkpoint instead of starting over.
+
+
 ## Structured planning — review panel and local acceptance
 
 29 October 2026. Branch `codex/structured-planning`, base PR11. Added a dedicated plans.js review module with goal/exact-date/locale, reasoning-model disclosure, saved draft/clarification/unavailable/failed/interrupted/cancelled states, refresh, activity and cancellation. Unknown responses retain the request identity for reconciliation. The module's asset is included in server/build/deployment allowlists. Health reports draft planning availability separately from general execution. Model output is textContent only and never creates execution authority.

@@ -13,3 +13,5 @@
 - Explicit current-information requests can use native Meta read-only search/page opens with the existing key. OpenRouter remains free/text-only and never switches silently. Local SQLite still owns threads/memory; stateless Meta requests use store=false. Source links distinguish search hits, completed page opens and citations; provider evidence is not independent freshness or accuracy proof.
 
 - The human requested missing-PRD development in the active OpenDuet fork. Keep the PRD's workflow requirements with the later self-hosted runtime decisions. The first action path is a controlled SQL demo clinic with explicit user review/approval and MOCK receipts; the chat model cannot authorize bookings. Voice, real providers, reminders and generic task planning remain separate work, not features implied by this simulation.
+
+- Task planning pins credential-free independent role settings at creation and shares the chat inference ledger. A schema-valid proposal is still an unverified draft: it cannot authorize execution, approve a booking or become a receipt. Cancellation suppresses late output, and restart never silently replays an interrupted planner.
