@@ -67,6 +67,117 @@ async function fixture(
   return { app, request, headers, start };
 }
 
+test("demo API requires exact approved fields, owner and CSRF; no model call is needed", async () => {
+  let calls = 0;
+  const { app, request } = await fixture(async () => {
+    calls++;
+    throw Error("No inference should run");
+  });
+  const options = await (
+    await request("/api/demo-appointments/options")
+  ).json();
+  const date = new Date(Date.parse(`${options.min_date}T00:00:00Z`) + 86400000)
+    .toISOString()
+    .slice(0, 10);
+  expect(
+    (
+      await request(
+        "/api/demo-appointments",
+        { request_id: "mock", date, locale: "hi-IN" },
+        "POST",
+        { "x-saathi-csrf": "forged" },
+      )
+    ).status,
+  ).toBe(403);
+  expect(
+    (
+      await request("/api/demo-appointments", {
+        request_id: "mock",
+        date,
+        locale: "hi-IN",
+        owner: "forged",
+      })
+    ).status,
+  ).toBe(422);
+  const created = await request("/api/demo-appointments", {
+    request_id: "mock",
+    date,
+    locale: "hi-IN",
+  });
+  expect(created.status).toBe(201);
+  const task = await created.json();
+  const quote = await (
+    await request(`/api/demo-appointments/${task.id}/preview`, {
+      version: task.version,
+      slot_id: "10:00",
+    })
+  ).json();
+  const body = {
+    request_id: "book",
+    version: quote.task.version,
+    nonce: quote.nonce,
+    decision: "approve",
+  };
+  expect(
+    (
+      await request(`/api/demo-appointments/${task.id}/decision`, {
+        ...body,
+        amount: 1,
+      })
+    ).status,
+  ).toBe(422);
+  const first = await (
+    await request(`/api/demo-appointments/${task.id}/decision`, body)
+  ).json();
+  const duplicate = await (
+    await request(`/api/demo-appointments/${task.id}/decision`, body)
+  ).json();
+  expect(first.state).toBe("COMPLETED");
+  expect(first.receipt.reference).toStartWith("MOCK-");
+  expect(duplicate).toEqual(first);
+  expect(calls).toBe(0);
+  const other = await app.request("http://localhost:8790/api/session", {
+    method: "POST",
+    headers: {
+      Origin: "http://localhost:8790",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ consent: true }),
+  });
+  const session = await other.json();
+  const headers = {
+    Origin: "http://localhost:8790",
+    "Content-Type": "application/json",
+    Cookie: other.headers.get("set-cookie")!.split(";")[0]!,
+    "X-Saathi-CSRF": session.csrf,
+  };
+  expect(
+    (
+      await app.request(
+        `http://localhost:8790/api/demo-appointments/${task.id}`,
+        { headers },
+      )
+    ).status,
+  ).toBe(404);
+  expect(
+    (
+      await app.request(
+        `http://localhost:8790/api/demo-appointments/${task.id}/decision`,
+        { method: "POST", headers, body: JSON.stringify(body) },
+      )
+    ).status,
+  ).toBe(404);
+  const saved = await (
+    await request(`/api/demo-appointments/${task.id}`)
+  ).json();
+  expect(JSON.stringify(saved)).not.toContain(quote.nonce);
+  expect(
+    saved.audit.some(
+      (event: { event: string }) => event.event === "approval.granted",
+    ),
+  ).toBe(true);
+});
+
 test("source evidence survives API history and duplicate receipts without a second lookup", async () => {
   let calls = 0;
   const evidence = {

@@ -1,5 +1,14 @@
 # Saathi on OpenDuet handoff
 
+## Active PRD continuation — durable demo clinic core
+
+29 October 2026. Human asked for PRD gap audit and missing functionality. Branch `codex/demo-appointments`, stacked on PR8, preserves the current OpenDuet/self-hosted choices. Root `PRD.md` copies the supplied PRD unchanged; [gap audit](docs/saathi/prd-gap-audit.md) maps all 34 requirements and separates this runtime from Python/upstream evidence. Read tasks/plan.md and tasks/todo.md for the contract.
+
+Implemented core/API: schema v5 additive owned tasks, pinned deterministic plan, exact mock quote/hash/expiry, hashed one-time nonce, version invalidation, approve/reject/pre-commit cancel, SQL reservation uniqueness, duplicate decision receipts and compact audit. No network IO/inference is involved. MOCK receipt is not a real appointment/payment/notification. Only date/locale are collected; no patient contact/health-history fields. The local/public deployed processes have not been migrated or updated at this checkpoint.
+
+Evidence: five storage/workflow tests were red before implementation, then passed; the API boundary regression passes for owner/CSRF/forged quote fields, duplicate decisions and zero inference calls. Initial full focused run was 69 pass; server types pass. UI/browser and final scoped CI/deployment checks are next. Existing v4 chat/source/memory/usage migration is tested without erasure. Do not downgrade schema version or point old binaries at v5 state.
+
+
 ## Shipped fix — public weather / IMD lookup
 
 29 October 2026, Asia/Kolkata. Same share URL: **https://35.208.235.27.sslip.io/**. Deployed executable source `52821a4773b5ddc427d2bd6e2a6e685faef34e7c` from `codex/live-web-lookup`; [PR8](https://github.com/anirbanhere/OpenDuet/pull/8) remains draft/unmerged, base `codex/public-demo`. This documentation checkpoint does not change the executable bundle. Earlier text-only limitations below are historical: Meta Muse Spark 1.3 now has explicitly enabled native read-only search/page opens. Free OpenRouter remains text-only. Select **Meta / Web lookup** in the picker; no automatic paid switch.

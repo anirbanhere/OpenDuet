@@ -2,16 +2,11 @@ import { Database } from "bun:sqlite";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { chmodSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
+import { DemoAppointments, migrateAppointments } from "./appointments";
+import { LocalError } from "./errors";
 import type { SearchEvidence } from "./search";
 
-export class LocalError extends Error {
-  constructor(
-    message: string,
-    public readonly status = 422,
-  ) {
-    super(message);
-  }
-}
+export { LocalError } from "./errors";
 export type StoredMessage = {
   id: string;
   role: "user" | "assistant";
@@ -55,6 +50,7 @@ function ownDatabase(path: string) {
 }
 
 export class SelfHostedStore {
+  readonly appointments: DemoAppointments;
   private db: Database;
   private release: () => void;
   private closed = false;
@@ -101,7 +97,11 @@ export class SelfHostedStore {
             );
           })
           .immediate();
-      else if (version?.value !== 3 && version?.value !== 4)
+      else if (
+        version?.value !== 3 &&
+        version?.value !== 4 &&
+        version?.value !== 5
+      )
         throw new LocalError("Unsupported local schema version.", 503);
       if (version && version.value <= 3)
         this.db
@@ -111,6 +111,14 @@ export class SelfHostedStore {
             ),
           )
           .immediate();
+      if (version && version.value <= 4)
+        this.db
+          .transaction(() => {
+            migrateAppointments(this.db);
+            this.db.exec("UPDATE version SET value=5 WHERE id=1");
+          })
+          .immediate();
+      this.appointments = new DemoAppointments(this.db, options.now);
       // Single-process lock proves no live writer is using these runs. Never automatically replay.
       this.db.exec("UPDATE runs SET state='interrupted' WHERE state='running'");
     } catch (error) {

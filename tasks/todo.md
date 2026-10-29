@@ -1,0 +1,10 @@
+# PRD continuation checklist
+
+- [ ] Audit current runtime against all 34 functional requirements.
+- [ ] Red tests for owned mock tasks, canonical approval, duplicate decisions, expiry, contention, restart and v4 upgrade.
+- [ ] Implement minimal transactional demo booking and additive schema migration.
+- [ ] Expose owned API endpoints with strict validation and existing CSRF/origin policy.
+- [ ] Verify browser selection/review/approve/reject/cancel, reload and mobile layout.
+- [ ] Update documentation/handoff and publish feature PR without merging.
+- [ ] Pass scoped Linux CI, shipped dependency audit and packed-service smoke.
+- [ ] Back up/update existing demo and verify public acceptance, preserving old workspace/quota state.
