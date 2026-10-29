@@ -3,6 +3,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { type AnswerInput, createSelfHostedApp } from "../src/self-hosted/app";
+import { selfHostedConfig } from "../src/self-hosted/config";
 import type { ModelCatalog } from "../src/self-hosted/models";
 import type { GroundedAnswer } from "../src/self-hosted/search";
 import { SelfHostedStore } from "../src/self-hosted/store";
@@ -18,6 +19,7 @@ async function fixture(
   ) => `Remembered: ${input.memories.join(";") || "nothing"}`,
   models?: () => Promise<ModelCatalog>,
   publicOrigin?: string,
+  roles?: ReturnType<typeof selfHostedConfig>["roles"],
 ) {
   const dir = mkdtempSync(join(tmpdir(), "saathi-http-"));
   const store = new SelfHostedStore(join(dir, "db.sqlite"));
@@ -38,6 +40,7 @@ async function fixture(
     model: "synthetic:free",
     models,
     publicOrigin,
+    roles,
   });
   if (publicOrigin) attachSelfHostedWeb(app);
   const base = publicOrigin
@@ -66,6 +69,77 @@ async function fixture(
     });
   return { app, request, headers, start };
 }
+
+test("role diagnostics are owned and secret-free; omitted-model duplicates retain their original selection", async () => {
+  const config = selfHostedConfig({
+    OPENROUTER_API_KEY: "synthetic-private-diagnostic-key",
+    SAATHI_STT_PROVIDER: "fixture-a",
+  });
+  const catalog: ModelCatalog = {
+    models: [
+      {
+        id: "meta:muse-spark-1.3",
+        provider: "meta",
+        model: "muse-spark-1.3",
+        name: "Synthetic",
+        inputPerMillion: null,
+        outputPerMillion: null,
+      },
+    ],
+    defaultModel: "meta:muse-spark-1.3",
+    allowPaid: false,
+    metaEnabled: true,
+    maxInputPrice: 0,
+    maxOutputPrice: 0,
+    checkedAt: 0,
+    issues: [],
+  };
+  const { app, request } = await fixture(
+    undefined,
+    async () => catalog,
+    undefined,
+    config.roles,
+  );
+  expect(
+    (await app.request("http://localhost:8790/api/provider-roles")).status,
+  ).toBe(401);
+  const response = await request("/api/provider-roles");
+  expect(response.status).toBe(200);
+  const diagnostic = await response.json();
+  expect(diagnostic.stt.status).toBe("fixture_only");
+  expect(diagnostic.liveSpeechEnabled).toBe(false);
+  expect(JSON.stringify(diagnostic)).not.toContain(
+    "synthetic-private-diagnostic-key",
+  );
+  const thread = await (
+    await request("/api/threads", { agent: "saathi" })
+  ).json();
+  expect(
+    (
+      await request(`/api/threads/${thread.id}/messages`, {
+        request_id: "client-role",
+        text: "Synthetic",
+        purpose: "reasoning",
+      })
+    ).status,
+  ).toBe(422);
+  const first = await (
+    await request(`/api/threads/${thread.id}/messages`, {
+      request_id: "original-role",
+      text: "Synthetic",
+      model: "meta:muse-spark-1.3",
+    })
+  ).json();
+  expect(
+    (
+      await request(`/api/threads/${thread.id}/messages`, {
+        request_id: "original-role",
+        text: "Synthetic",
+      })
+    ).status,
+  ).toBe(200);
+  expect(first.model).toBe("meta:muse-spark-1.3");
+});
 
 test("demo API requires exact approved fields, owner and CSRF; no model call is needed", async () => {
   let calls = 0;

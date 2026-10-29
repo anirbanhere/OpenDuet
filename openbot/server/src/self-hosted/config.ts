@@ -1,4 +1,5 @@
 import { resolve } from "node:path";
+import { configureRoles } from "./roles";
 import { LocalError } from "./store";
 
 export function selfHostedConfig(
@@ -112,6 +113,7 @@ export function selfHostedConfig(
       "Workspace allowance cannot exceed the server allowance.",
     );
   return {
+    roles: configureRoles(env, { model, allowPaid, metaEnabled, metaModels }),
     host: "127.0.0.1" as const,
     port,
     path: resolve(

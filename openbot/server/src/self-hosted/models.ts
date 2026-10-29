@@ -157,7 +157,7 @@ export function createModelCatalog(
     );
     return {
       models: unique,
-      defaultModel: `openrouter:${config.model}`,
+      defaultModel: config.roles.conversation.id,
       allowPaid: config.allowPaid,
       metaEnabled: config.metaEnabled,
       maxInputPrice: config.maxInputPrice,

@@ -22,12 +22,16 @@ assert(port);
 probe.stop(true);
 const base = `http://127.0.0.1:${port}`,
   origin = "https://demo.example.test";
+const inheritedEnv = { ...process.env };
+for (const name of Object.keys(inheritedEnv))
+  if (/^SAATHI_(REASONING|CONVERSATION|EXTRACTION|STT|TTS)_/.test(name))
+    delete inheritedEnv[name];
 const child = Bun.spawn([process.execPath, join(build, "app.js")], {
   cwd: build,
   stdout: "ignore",
   stderr: "pipe",
   env: {
-    ...process.env,
+    ...inheritedEnv,
     META_API_KEY: "",
     MODEL_API_KEY: "",
     OPENROUTER_API_KEY: "",
@@ -35,6 +39,8 @@ const child = Bun.spawn([process.execPath, join(build, "app.js")], {
     INTELLIGENCE_API_KEY: "",
     CPK_INTELLIGENCE_API_KEY: "",
     SAATHI_ENABLE_META: "false",
+    SAATHI_ALLOW_PAID_MODELS: "false",
+    BOT_MODEL: "openrouter/free",
     SAATHI_PUBLIC_ORIGIN: origin,
     SAATHI_DATABASE_PATH: join(folder, "state.sqlite"),
     SAATHI_TENANT_PATH: join(build, "examples/saathi"),
@@ -93,6 +99,13 @@ try {
   assert.equal(thread.status, 201);
   const { id } = await thread.json();
   const auth = { Cookie: cookie, "X-Saathi-CSRF": data.csrf };
+  const roles = await (
+    await request("/api/provider-roles", { headers: auth })
+  ).json();
+  assert.equal(roles.conversation.id, "openrouter:openrouter/free");
+  assert.equal(roles.stt.status, "disabled");
+  assert.equal(roles.liveSpeechEnabled, false);
+  assert.equal(roles.publicAudioEnabled, false);
   const options = await (
     await request("/api/demo-appointments/options", { headers: auth })
   ).json();

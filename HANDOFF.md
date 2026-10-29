@@ -1,5 +1,35 @@
 # Saathi on OpenDuet handoff
 
+## Provider-role slice — PR11 scoped Linux checks passed
+
+Exact executable source `d12154092d2bbcd3fec1bb4a03e4341725c73f3d`, draft [PR11](https://github.com/anirbanhere/OpenDuet/pull/11), base PR10. [Self-hosted Linux CI 40845012022](https://github.com/anirbanhere/OpenDuet/actions/runs/40845012022) and [tenant CI 40845011896](https://github.com/anirbanhere/OpenDuet/actions/runs/40845011896) passed, including focused tests, server types, unchanged frozen Linux test-type baseline, audited build and packed no-key service smoke. Wider inherited CI is separate and was still running at this checkpoint. No merge/deployment occurred; public executable remains `9123f2f`. Next bounded slice: durable read-only structured planning with pinned roles and shared inference quota, then media/speech integration. Goal remains active.
+
+
+## Provider-role continuation — synthetic contracts ready for review
+
+29 October 2026. Branch `codex/provider-role-contracts`, stacked on PR10. Independent model-role routing/configuration is followed by STT/TTS interfaces and two explicitly synthetic selections, bounded consent/schema/deadline checks, a keyless six-case en/hi/ta command and session-protected redacted diagnostics. Default conversation metadata now follows the configured conversation role. Unsupported Whisper-as-TTS is rejected. Operator scripts are explicitly included in both server/test type gates. No genuine ASR/TTS, public upload or durable generic-task role pinning is claimed.
+
+Verified locally: 81 focused tests pass, 664 assertions; server TypeScript passes; audited bundle reports zero matching advisories in the four shipped packages, while the full upstream repository has 28 advisory packages. Actual packed service passes boot/assets/session/ownership, disabled speech diagnostics and repeat-safe durable mock booking with zero model calls. Windows frozen test-type output still has its eight known gallery path-text mismatches; no baseline edit. Exact-source Linux CI and review PR are next. Build at this checkpoint was intentionally dirty validation, not a deployable exact-source release.
+
+No production/local private profile, database, migration, live inference/audio, cloud resource or public deployment changed. Public executable stays `9123f2f`; goal/heartbeat stay active. Follow-on is durable role-pinned planning integrated with the existing inference attempt ledger, then owner-scoped media/consent and real speech evaluation. Read tasks/provider-roles.md and docs/saathi/provider-roles.md.
+
+
+## Provider-role continuation — model routing/configuration checkpoint
+
+29 October 2026. Branch `codex/provider-role-contracts`. Implemented independent immutable reasoning/conversation/extraction/STT/TTS configuration with credential-free revision; configured conversation default drives the eligible model catalogue, explicit browser selection still wins, internal reasoning/extraction route through their own provider/budget. Existing free/paid/Meta guardrails and one-attempt behavior remain. The session-protected role diagnostic endpoint distinguishes configuration from tested inference/live speech. Duplicate chat requests with an omitted model now retain the saved original selection.
+
+Evidence: 28 focused role/config/HTTP tests pass; initial full focused run 79 passed and server types passed. Windows frozen test-type gate has only its eight known gallery path-text mismatches, with no new diagnostics and baseline unchanged. Synthetic speech module/CLI work is still in the working tree for the next increment; do not discard it. No live inference/audio, private DB/profile edit, migration, cloud change or public deployment occurred. Deployed executable remains 9123f2f.
+
+Read docs/saathi/provider-roles.md and tasks/provider-roles.md. Next: finish the synthetic adapter/CLI contract checks and publish the tested slice; generic task role pinning, real speech and media lifecycle remain incomplete. Goal/heartbeat remain active; no reset credit was used.
+
+
+## Ongoing goal — next role/speech contract slice
+
+29 October 2026. The human requested continued PRD development as an active goal and continuation after usage reset. Goal is active in this chat; app heartbeat `continue-saathi-prd-development` is ACTIVE hourly. Resumed work must check fresh usage, inspect current branch/worktree and resume the saved slice. Do not redeem reset credits or purchase credits. Local scheduled work needs the computer/app available; no guaranteed execution while the host is off is claimed.
+
+Current branch `codex/provider-role-contracts`, based on PR10 handoff head `812a6f8`. Read `tasks/provider-roles.md`. Next increment is independently validated reasoning/conversation/extraction/STT/TTS contracts, explicitly synthetic speech adapters and keyless swap/evaluation diagnostics; live audio/media and durable generic-task role pins follow separately. No new implementation or verification is claimed at this planning checkpoint. Deployed executable remains `9123f2f`, existing PRs remain unmerged, private local databases/config and public service are unchanged.
+
+
 ## Shipped PRD continuation — controlled demo clinic
 
 29 October 2026, Asia/Kolkata. **Public URL: https://35.208.235.27.sslip.io/**. Click **Try a demo appointment**. Root PRD.md is the copied user-selected PRD; docs/saathi/prd-gap-audit.md maps all 34 functional requirements and remaining work. This completes the controlled text demo task/approval slice, not the voice/live-provider MVP. See docs/saathi/demo-appointments.md for setup, API and recovery boundaries.

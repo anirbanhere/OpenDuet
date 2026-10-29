@@ -20,11 +20,11 @@ The separate Python repository has tested mock task/approval/audio fixtures. The
 | FR-005 WhatsApp window/templates | Absent | Eligibility, test number, templates and delivery access needed |
 | FR-006 help/status/cancel/stop/forget/disconnect | Thread/memory deletion and saved inference state | Demo task status/cancel/reject; multilingual intents, reminder stop and provider disconnect pending |
 | FR-007 secured voice media/transcoding | Absent | Upload lifecycle, formats/size/duration, consent/retention and ASR integration pending |
-| FR-008 two STT adapters | Absent | Sarvam/ElevenLabs/local adapters and consented sample evaluation pending |
-| FR-009 two TTS adapters/policies | Absent | Independent voice provider/voice/language configuration and evaluation pending |
+| FR-008 two STT adapters | Synthetic contract foundation on provider-role branch | Two tone-checksum fixture selections; genuine Sarvam/ElevenLabs/local adapters and consented sample evaluation pending |
+| FR-009 two TTS adapters/policies | Independent configuration and synthetic contracts on provider-role branch | Two generated-tone fixture selections; genuine voice adapters/policies and quality evaluation pending |
 | FR-010 Indic/code-switching | Prompt language targets; no measured evaluation | en/hi/ta demo receipt text; actual speech/fluency evaluation and ml/kn work pending |
 | FR-011 uncertainty/critical fields | Prompt guidance only | Demo date/slot/amount exact review; transcript confidence/critical-field evaluation pending |
-| FR-012 independent reasoning/reply/STT/TTS | One selected inference model per chat run | Separate role routing/pins/provider contracts still required |
+| FR-012 independent reasoning/reply/STT/TTS | Independent immutable roles and actual internal model routing on provider-role branch | Default/selected chat routing, synthetic speech swaps and redacted diagnostics tested; durable generic-task pins, genuine speech and consent/media integration pending |
 | FR-013 typed task plans | Absent | Typed deterministic appointment plan; generic model-generated plans pending |
 | FR-014 bounded agent loop/state | Native Meta read-only tool loop capped at three calls | Durable mock appointment state; general observe/plan/tool/resume loop pending |
 | FR-015 clarification | Model instruction; material fields not enforced generically | Appointment form requires exact date/slot; natural-language extraction/clarification pending |
