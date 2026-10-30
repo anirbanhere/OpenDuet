@@ -1,5 +1,11 @@
 # Saathi on OpenDuet handoff
 
+## Media admission — PR20 scoped Linux checks passed
+
+Exact executable source efb54a2b9dc3e7c39b69f2b012bffba6744d678a, draft [PR20](https://github.com/anirbanhere/saathi/pull/20), base PR19. Scoped self-hosted40942329523 and tenant40942329258 Linux CI passed, including126 focused tests, server types, frozen test baseline, audited bundle and packed smoke. Wider upstream CI40942329377 failed; no whole-platform-green claim. Clean validation build sourceefb54a2/dirty=false retains website955c8f2, runtimeIntegrity=null, zero observed shipped dependency advisory matches/28 wider upstream packages. No deployment/live provider call. Public/private state unchanged.
+
+Fresh scheduled check after the natural account-window reset permits ordinary work (1% five-hour used); no reset credit was redeemed. Next is the proposed durable internal media store in tasks/owned-media.md, using fresh synthetic DB and preserving v7 state. PR18's separate upstream/WhatsApp work stays untouched. Native goal tracker is not overridden, full PRD remains incomplete.
+
 ## Media admission boundary — tested checkpoint before durable storage
 
 30 October2026 (India). Branch codex/media-admission starts from PR19 handoffa2dd5cc. At92% five-hour usage, advanced the smallest independent slice instead of starting the larger migration: internal pure prepareMedia contract, separate literal storage consent/default-false processing consent, strict WAV-only/no URL/path/client owner-or-expiry fields, detached bytes and measured metadata, content/request digests and a15-minute/session-expiry clamp. Caller-supplied server context must already be authenticated; the helper does not verify identity, persist consent/audio, enforce quotas or send data.
