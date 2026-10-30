@@ -1,5 +1,5 @@
 import type { Database } from "bun:sqlite";
-import { createHash, randomUUID } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { z } from "zod";
 import { LocalError } from "./errors";
 import type { OwnedMedia } from "./media-store";
@@ -47,10 +47,27 @@ type Row = {
   role: string;
   duration_ms: number;
   language_hint: string | null;
-  state: "reserved" | "cancelled" | "interrupted";
+  state:
+    | "reserved"
+    | "claimed"
+    | "completed"
+    | "failed"
+    | "cancelled"
+    | "interrupted"
+    | "blocked"
+    | "revoked"
+    | "expired";
   created: number;
   updated: number;
   expires: number;
+  pending: number;
+  claim_hash: string | null;
+  claimed_at: number | null;
+  claim_deadline: number | null;
+  settlement_digest: string | null;
+  outcome: string | null;
+  settled_at: number | null;
+  failure_code: string | null;
 };
 
 export function migrateSttAdmissions(db: Database) {
@@ -66,7 +83,7 @@ export function migrateSttAdmissions(db: Database) {
   CREATE INDEX IF NOT EXISTS stt_usage_day_owner ON stt_admission_usage(day,owner);`);
 }
 
-/** Fixture reservations only. No audio, execution lease, transcript or provider call is returned. */
+/** Internal fixture admission/claims only. No adapter or network invocation is performed here. */
 export class SttAdmissions {
   private limits: SttAdmissionLimits;
   constructor(
@@ -85,15 +102,17 @@ export class SttAdmissions {
         throw new LocalError("Invalid STT admission budget.");
   }
   private session(owner: string, now: number) {
-    if (
-      !this.db
-        .query("SELECT 1 FROM sessions WHERE owner=? AND expires>? LIMIT 1")
-        .get(owner, now)
-    )
+    const result = this.db
+      .query<{ expiry: number | null }, [string, number]>(
+        "SELECT max(expires) expiry FROM sessions WHERE owner=? AND expires>?",
+      )
+      .get(owner, now);
+    if (!result?.expiry)
       throw new LocalError(
         "STT admission requires an active owner session.",
         403,
       );
+    return result.expiry;
   }
   private row(owner: string, id: string) {
     const row = this.db
@@ -127,6 +146,10 @@ export class SttAdmissions {
       createdAt: row.created,
       updatedAt: row.updated,
       expiresAt: row.expires,
+      pending: row.pending === 1,
+      claimedAt: row.claimed_at,
+      claimDeadline: row.claim_deadline,
+      failureCode: row.failure_code,
     };
   }
   begin(owner: string, input: unknown, currentRole: ProviderRoles["stt"]) {
@@ -180,9 +203,7 @@ export class SttAdmissions {
           );
         if (
           this.db
-            .query(
-              "SELECT 1 FROM stt_admissions WHERE owner=? AND state='reserved'",
-            )
+            .query("SELECT 1 FROM stt_admissions WHERE owner=? AND pending=1")
             .get(owner)
         )
           throw new LocalError(
@@ -244,16 +265,71 @@ export class SttAdmissions {
     this.session(owner, this.now());
     return this.view(row);
   }
+  claim(owner: string, id: string, currentRole: ProviderRoles["stt"]) {
+    return this.db
+      .transaction(() => {
+        const row = this.row(owner, id),
+          now = this.now(),
+          sessionExpires = this.session(owner, now);
+        if (row.state !== "reserved" || !row.pending)
+          return { fresh: false as const, admission: this.view(row) };
+        const blocked = (code: string) => {
+          this.db
+            .query(
+              "UPDATE stt_admissions SET state='blocked',pending=0,failure_code=?,updated=? WHERE id=?",
+            )
+            .run(code, now, id);
+          return {
+            fresh: false as const,
+            admission: this.view(this.row(owner, id)),
+          };
+        };
+        const selected = roleSchema.safeParse(currentRole);
+        if (!selected.success || JSON.stringify(selected.data) !== row.role)
+          return blocked("policy_unavailable");
+        let snapshot: ReturnType<OwnedMedia["readConsentedSnapshot"]>;
+        try {
+          snapshot = this.media.readConsentedSnapshot(
+            owner,
+            row.media,
+            row.consent_revision,
+            row.content_hash,
+          );
+        } catch {
+          return blocked("media_unavailable");
+        }
+        const deadline = Math.min(
+          now + selected.data.timeoutMs,
+          snapshot.expiresAt,
+          sessionExpires,
+        );
+        if (deadline <= now) return blocked("media_unavailable");
+        const token = randomBytes(32).toString("base64url"),
+          digest = createHash("sha256").update(token).digest("hex");
+        this.db
+          .query(
+            "UPDATE stt_admissions SET state='claimed',claim_hash=?,claimed_at=?,claim_deadline=?,updated=? WHERE id=?",
+          )
+          .run(digest, now, deadline, now, id);
+        return {
+          fresh: true as const,
+          admission: this.view(this.row(owner, id)),
+          audio: snapshot.audio,
+          executorToken: token,
+        };
+      })
+      .immediate();
+  }
   cancel(owner: string, id: string) {
     return this.db
       .transaction(() => {
         const row = this.row(owner, id),
           now = this.now();
         this.session(owner, now);
-        if (row.state === "reserved")
+        if (row.state === "reserved" || row.state === "claimed")
           this.db
             .query(
-              "UPDATE stt_admissions SET state='cancelled',updated=? WHERE owner=? AND id=?",
+              "UPDATE stt_admissions SET state='cancelled',pending=CASE WHEN claimed_at IS NULL THEN 0 ELSE pending END,updated=? WHERE owner=? AND id=?",
             )
             .run(now, owner, id);
         return this.view(this.row(owner, id));
@@ -264,7 +340,7 @@ export class SttAdmissions {
   recoverOnExclusiveStartup() {
     this.db
       .query(
-        "UPDATE stt_admissions SET state='interrupted',updated=? WHERE state='reserved'",
+        "UPDATE stt_admissions SET state=CASE WHEN state IN('reserved','claimed') THEN 'interrupted' ELSE state END,pending=0,claim_hash=NULL,outcome=NULL,updated=? WHERE pending=1",
       )
       .run(this.now());
   }

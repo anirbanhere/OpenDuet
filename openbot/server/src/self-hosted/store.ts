@@ -14,6 +14,7 @@ import {
   type SttAdmissionLimits,
   SttAdmissions,
 } from "./stt-admission";
+import { migrateSttExecution } from "./stt-execution-schema";
 
 export { LocalError } from "./errors";
 export type StoredMessage = {
@@ -120,7 +121,8 @@ export class SelfHostedStore {
         version?.value !== 7 &&
         version?.value !== 8 &&
         version?.value !== 9 &&
-        version?.value !== 10
+        version?.value !== 10 &&
+        version?.value !== 11
       )
         throw new LocalError("Unsupported local schema version.", 503);
       if (version && version.value <= 3)
@@ -173,6 +175,13 @@ export class SelfHostedStore {
           .transaction(() => {
             migrateSttAdmissions(this.db);
             this.db.exec("UPDATE version SET value=10 WHERE id=1");
+          })
+          .immediate();
+      if (version && version.value <= 10)
+        this.db
+          .transaction(() => {
+            migrateSttExecution(this.db);
+            this.db.exec("UPDATE version SET value=11 WHERE id=1");
           })
           .immediate();
       this.sttAdmissions = new SttAdmissions(

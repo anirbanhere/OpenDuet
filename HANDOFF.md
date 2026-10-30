@@ -1,5 +1,11 @@
 # Saathi on OpenDuet handoff
 
+## One-shot fixture claims — first tested increment
+
+31 October2026 (India). Fresh account limits permit ordinary work; no reset was redeemed by this agent. Branch codex/fixture-stt-claims starts from PR26 handoff340636e. Schema11 atomically rebuilds admission states with explicit pending, hashed private claim/deadline fields and future settlement storage. Claim rechecks current fixture role policy and exact consent/content/audio snapshot under the write lock, returns copied audio/random executor token once only, stores only its hash and clamps deadline to role/media/current-session expiry. Duplicate/terminal claims return metadata only. Cancellation/revocation after claim retain the owner slot; exclusive restart invalidates in-flight tokens and frees slots without replay. Media consent transitions trigger atomic output clearing/invalidation.
+
+First increment evidence:5 claim tests were red before implementation; now157 focused tests/1347 assertions and server types pass. Covers owner/token/audio isolation, policy/consent/expiry/corruption gates, in-flight cancellation/restart, session-deadline clamp and genuine v10 migration preserving unit ledger/media. Legacy migration target assertions now11 retain their data checks. Only fresh synthetic state/tone bytes; no provider/executor/route, profile access, deployment or reset credit. No transcript is persisted/returned yet: settlement and retention gates are the next increment on this same branch, before PR/CI. Existing public/private data were not migrated; older binaries refuse11.
+
 ## Fixture outcome contract — PR26 scoped Linux checks passed
 
 Exact checked source `fdfb95b0e7c94ba7a031d9185300d503c15aad0b`, draft [PR26](https://github.com/anirbanhere/saathi/pull/26), base PR25. Scoped self-hosted41115675853 and tenant41115675847 passed, including152 focused tests, server types, unchanged frozen Linux baseline, audit and packed smoke. Wider CI41115675872 was in progress; no whole-platform-green claim. Local full tests1307 assertions. Initial scoped retry exposed TS2769 in the failure-code test tuple; as-const typing fixed it without changing runtime/assertions or the baseline. Exactly one prior diagnostic retry was used; the new source's normal CI passed.
