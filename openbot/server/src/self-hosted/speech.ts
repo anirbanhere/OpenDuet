@@ -171,7 +171,10 @@ const fixtures = new Map(
     return [digest(fixture.audio), fixture] as const;
   }),
 );
-const fixtureStt = (provider: FixtureId): SpeechToTextProvider => ({
+/** Keyless synthetic registry only. This factory cannot select a live provider. */
+export const createFixtureSttProvider = (
+  provider: FixtureId,
+): SpeechToTextProvider => ({
   transcribe: async (input) => {
     const fixture = fixtures.get(digest(input.audio));
     if (!fixture)
@@ -211,8 +214,8 @@ const fixtureTts = (provider: FixtureId): TextToSpeechProvider => ({
   }),
 });
 const defaultStt = new Map<FixtureId, SpeechToTextProvider>([
-    ["fixture-a", fixtureStt("fixture-a")],
-    ["fixture-b", fixtureStt("fixture-b")],
+    ["fixture-a", createFixtureSttProvider("fixture-a")],
+    ["fixture-b", createFixtureSttProvider("fixture-b")],
   ]),
   defaultTts = new Map<FixtureId, TextToSpeechProvider>([
     ["fixture-a", fixtureTts("fixture-a")],
