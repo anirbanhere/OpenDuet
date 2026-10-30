@@ -1,6 +1,18 @@
 import { expect, test } from "bun:test";
 import { demoPathAllowed, isModelRun } from "./policy";
 test("shared demo exposes conversations, streaming, and generated pages", () => {
+  expect(demoPathAllowed("POST", "/api/computers/demo/navigate")).toBe(true);
+  expect(demoPathAllowed("POST", "/api/computers/demo/snapshot")).toBe(true);
+  expect(demoPathAllowed("GET", "/api/voice/sessions?channelId=demo")).toBe(
+    true,
+  );
+  expect(demoPathAllowed("GET", "/api/settings/preferences")).toBe(true);
+  expect(demoPathAllowed("GET", "/api/admin/enterprise/me")).toBe(false);
+  expect(demoPathAllowed("PUT", "/api/components/catalogue")).toBe(false);
+  expect(demoPathAllowed("PATCH", "/api/settings/preferences")).toBe(false);
+  expect(demoPathAllowed("POST", "/api/plugins/for/demo")).toBe(false);
+  expect(demoPathAllowed("POST", "/api/channels/first-day")).toBe(true);
+  expect(demoPathAllowed("POST", "/api/channels/morning-brief")).toBe(true);
   expect(
     demoPathAllowed(
       "GET",

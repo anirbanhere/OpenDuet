@@ -30,6 +30,12 @@ export function demoPathAllowed(method: string, target: string): boolean {
   }
   if (method === "GET" || method === "HEAD") {
     return (
+      [
+        "/api/settings/preferences",
+        "/api/sandboxed/published",
+        "/api/voice/sessions",
+      ].includes(path) ||
+      /^\/api\/plugins\/for\/[^/]+(?:\/apps(?:\/[^/]+)?)?$/.test(path) ||
       /^\/api\/(?:me$|capabilities$|agents(?:\/|$)|channels(?:\/|$)|threads(?:\/|$)|copilotkit\/info$|openduet\/(?:tasks|pages|channels)(?:\/|$)|components(?:\/|$)|approvals$|bots(?:\/|$)|proactive(?:\/|$)|user-preferences$)/.test(
         path,
       ) ||
@@ -42,8 +48,11 @@ export function demoPathAllowed(method: string, target: string): boolean {
   if (method === "POST")
     return (
       path === "/api/channels" ||
+      path === "/api/channels/first-day" ||
+      path === "/api/channels/morning-brief" ||
       path === "/api/threads/mint" ||
       path === "/api/route" ||
+      /^\/api\/computers\/[^/]+\/(?:navigate|snapshot)$/.test(path) ||
       /^\/api\/channels\/[^/]+\/(?:activity|busy)$/.test(path) ||
       /^\/api\/copilotkit\/agent\/[^/]+\/(?:run|connect|stop)$/.test(path) ||
       /^\/api\/openduet\/(?:pages|tasks)(?:\/[^/]+(?:\/(?:run|cancel))?)?$/.test(

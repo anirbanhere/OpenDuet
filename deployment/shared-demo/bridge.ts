@@ -43,9 +43,14 @@ function error(
       headers: { "content-type": "application/json" },
     }),
   );
-  ws.send(new TextEncoder().encode(JSON.stringify({ error: message })));
+  ws.send(
+    JSON.stringify({
+      type: "body",
+      data: Buffer.from(JSON.stringify({ error: message })).toString("base64"),
+    }),
+  );
   ws.send(JSON.stringify({ type: "end" }));
-  ws.close(1000);
+  // The receiver closes only after processing every frame, including this end marker.
 }
 Bun.serve<State>({
   port: 8800,
@@ -60,6 +65,7 @@ Bun.serve<State>({
       !timingSafeEqual(receivedBytes, expectedBytes)
     )
       return new Response("Unauthorized", { status: 401 });
+
     if (
       new URL(request.url).pathname !== "/bridge" ||
       request.headers.get("upgrade") !== "websocket"
@@ -194,13 +200,20 @@ Bun.serve<State>({
               )
                 await Bun.sleep(10);
               if (!state.abort.signal.aborted)
-                ws.send(chunk.subarray(i, i + 64 * 1024));
+                ws.send(
+                  JSON.stringify({
+                    type: "body",
+                    data: Buffer.from(
+                      chunk.subarray(i, i + 64 * 1024),
+                    ).toString("base64"),
+                  }),
+                );
             }
           }
         }
         if (!state.abort.signal.aborted) {
           ws.send(JSON.stringify({ type: "end" }));
-          ws.close(1000);
+          // Let the receiver finish consuming queued frames before closing the socket.
         }
       } catch {
         if (!state.abort.signal.aborted)
