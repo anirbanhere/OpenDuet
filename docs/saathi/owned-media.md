@@ -1,5 +1,7 @@
 # Internal owned-media store
 
+The separate [local control boundary](local-media-controls.md) now exposes metadata, processing revocation and deletion only under explicit loopback opt-in. The store methods below remain internal, no upload/playback/execution route is enabled, and public/private data have not been migrated by this work.
+
 The schema8 foundation adds `owned_media`; schema9 records [consent history](media-consent.md) and current schema11 adds [private fixture claims/settlement](stt-claims.md). `SelfHostedStore.media` is internal: no HTTP upload/playback endpoint, channel, provider registration or background cleanup is added. Tests use fresh synthetic state/generated tones only. Last verified public deployment is schema7; do not start this branch against a private profile or deploy without a separate backed-up upgrade. Older binaries refuse11; never fake the version row or restore an old snapshot over later data.
 
 The caller authenticates the owner through the existing server session boundary. Owner IDs are not authentication credentials and cannot be accepted from request bodies. Admission separately resolves an active session expiry from SQLite and invokes the strict WAV contract. Clip expiry is at most15 minutes and never extends beyond that session. Storage consent must be literal true; processing consent is independently recorded and defaults false. A stored processing-consent flag is not provider access, a processing lease, cost admission or permission to perform a task.

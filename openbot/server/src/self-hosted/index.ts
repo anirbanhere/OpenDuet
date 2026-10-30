@@ -21,6 +21,7 @@ const app = attachSelfHostedWeb(
     publicOrigin: config.publicOrigin,
     roles: config.roles,
     planner,
+    localMediaControls: config.localMediaControls,
   }),
   config.webPath,
 );

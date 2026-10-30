@@ -79,6 +79,7 @@ const child = Bun.spawn([process.execPath, join(build, "app.js")], {
     CPK_INTELLIGENCE_API_KEY: "",
     SAATHI_ENABLE_META: "false",
     SAATHI_ALLOW_PAID_MODELS: "false",
+    SAATHI_LOCAL_MEDIA_CONTROLS: "false",
     BOT_MODEL: "openrouter/free",
     SAATHI_PUBLIC_ORIGIN: origin,
     SAATHI_DATABASE_PATH: join(folder, "state.sqlite"),
@@ -115,11 +116,35 @@ try {
   assert(ready, "Bundle did not start");
   const health = await (await request("/health")).json();
   assert.equal(health.public_demo, true);
+  assert.equal(health.local_media_controls, false);
+  assert.equal(health.speech, false);
   const readAuth = {
     Cookie: `saathi_self_hosted=${seedSession.token}`,
     "X-Saathi-CSRF": seedSession.csrf,
   };
   const readPath = `/api/task-plans/${seedTask.id}/run-readonly`;
+  const mediaPath = "/api/media/00000000-0000-4000-8000-000000000000";
+  assert.equal((await request(mediaPath, { headers: readAuth })).status, 404);
+  assert.equal(
+    (
+      await request(`${mediaPath}/revoke-processing`, {
+        method: "POST",
+        headers: readAuth,
+        body: "{}",
+      })
+    ).status,
+    404,
+  );
+  assert.equal(
+    (
+      await request(mediaPath, {
+        method: "DELETE",
+        headers: readAuth,
+        body: "{}",
+      })
+    ).status,
+    404,
+  );
   const read = await (
     await request(readPath, { method: "POST", headers: readAuth, body: "{}" })
   ).json();

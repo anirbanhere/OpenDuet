@@ -19,6 +19,7 @@ export function selfHostedConfig(
   const allowPaid = flag("SAATHI_ALLOW_PAID_MODELS");
   const metaEnabled = flag("SAATHI_ENABLE_META");
   const metaWebSearch = flag("SAATHI_META_WEB_SEARCH");
+  const localMediaControls = flag("SAATHI_LOCAL_MEDIA_CONTROLS");
   const price = (name: string, fallback: number) => {
     const value = Number(env[name] ?? fallback);
     if (!Number.isFinite(value) || value < 0 || value > 100)
@@ -96,6 +97,8 @@ export function selfHostedConfig(
       );
     }
   }
+  if (publicOrigin && localMediaControls)
+    throw new LocalError("Public mode cannot enable local media controls.");
   const count = (name: string, fallback: number, maximum: number) => {
     const value = Number(env[name] ?? fallback);
     if (!Number.isInteger(value) || value < 1 || value > maximum)
@@ -122,6 +125,7 @@ export function selfHostedConfig(
     ),
     model,
     publicOrigin,
+    localMediaControls,
     dailyLimits,
     tenantPath: resolve(
       env.SAATHI_TENANT_PATH ||

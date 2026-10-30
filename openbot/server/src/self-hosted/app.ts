@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { z } from "zod";
+import { attachLocalMediaControls } from "./media-routes";
 import type { ModelCatalog, ModelChoice } from "./models";
 import { attachPlanRoutes, type Planner } from "./planner";
 import {
@@ -47,6 +48,7 @@ export function createSelfHostedApp(options: {
   publicOrigin?: string | null;
   roles?: ProviderRoles;
   planner?: Planner;
+  localMediaControls?: boolean;
 }) {
   const { store, answer, model } = options;
   const getModels =
@@ -167,11 +169,17 @@ export function createSelfHostedApp(options: {
     return parsed.data;
   };
   attachPlanRoutes(app, { ...options, models: getModels });
+  const localMediaControls = attachLocalMediaControls(app, {
+    media: store.media,
+    enabled: options.localMediaControls,
+    publicOrigin: options.publicOrigin,
+  });
   app.get("/health", (c) =>
     c.json({
       storage: "self-hosted-sqlite",
       actions: false,
       speech: false,
+      local_media_controls: localMediaControls,
       demo_appointments: true,
       task_planning: Boolean(options.roles && options.planner),
       general_task_execution: false,
