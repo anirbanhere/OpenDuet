@@ -1,5 +1,11 @@
 # Saathi on OpenDuet handoff
 
+## Bounded fixture settlement outcome — tested checkpoint
+
+31 October2026 (India). Branch codex/fixture-settlement-contract starts from PR25 handoffc9e063c. Added validateFixtureOutcome: normalized completed fixture evidence or failed with provider_failed/timeout/aborted only, with canonical digest for future duplicate/conflict handling. Extra fields/executor credentials and free-form failed payloads are rejected. This is not token verification, actual settlement, persistence or ASR-quality proof; private executor authentication and consent/retention gates must precede future acceptance. No schema change (still10), provider, public route or claim was added.
+
+Evidence: missing module regression was red first;152 focused tests/1307 assertions, server types and Biome pass. Covers Indic normalization, stable/different digests, bounded failure codes, credential/raw_error rejection and forged live/blank completion. Weekly usage was97% at this run's start; checkpoint this small complete contract before the larger migration. Final scoped Linux/packed gates/draft PR next. No live/paid call, reset redemption, existing-profile access/migration, deployment or message. Full PRD/recurring continuation incomplete; actual one-shot claims/settlement remain pending in tasks/stt-execution-claims.md.
+
 ## Atomic consent/content/audio snapshot — PR25 scoped Linux checks passed
 
 Exact source `acd13f913508512da5f36b6c4faaea27d809db72`, draft [PR25](https://github.com/anirbanhere/saathi/pull/25), base PR24. [Self-hosted CI41107063583](https://github.com/anirbanhere/saathi/actions/runs/41107063583) and [tenant CI41107063701](https://github.com/anirbanhere/saathi/actions/runs/41107063701) passed, including150 focused tests, server types, unchanged frozen Linux baseline, audited bundle and packed synthetic HTTP checks. Local tests1297 assertions. Wider CI41107063632 was in progress; no whole-platform-green claim. Clean validation sourceacd13f9/dirty=false has bundle683443dbdacce4e645c4e7d3b9640a14551d4c6f7f831c99e050c323b83eba9d and runtimeIntegrity=null, not a release runtime. Four shipped packages have zero observed advisory matches/28 wider upstream packages.
