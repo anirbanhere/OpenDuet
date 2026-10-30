@@ -119,20 +119,34 @@ queues; reconcile uncertain actions before reconnecting.
 
 Verified locally:
 
-- 127 focused Saathi and upstream resolver, approval, and computer-gateway tests.
-- Six SQL-backed integration tests, including pairing/deduplication, poll fencing,
-  ordered sends, and interrupted-work recovery. All migrations applied to a fresh
-  disposable PGlite database with pgvector.
-- Server and app TypeScript checks, production app build, and browser interaction
+- 148 focused Saathi and upstream runtime, authorization, and settings tests after
+  the dependency patch.
+- 166 native PostgreSQL 17/pgvector tests across Saathi persistence/concurrency,
+  tenant packages, and channel routes. All migrations applied to a fresh disposable
+  database. Three concurrency cases use a pool of four connections to verify
+  exclusive poll leases, serialized conversation turns, contiguous multipart
+  replies, and exclusive send reservations.
+- Workspace TypeScript checks, production app build, and browser interaction
   with the actual settings component against explicitly simulated services.
+- Seven real Docker supervisor lifecycle cases through the Linux Unix socket:
+  refuse foreign ownership, resume owned containers, reject failed readiness,
+  replace stale images/tokens, preserve profile/workspace volumes, and retain
+  current containers. The fixture removed its labeled test resources. Its computer
+  image is a small health-service fixture, not a live Chromium task.
 
-PGlite does **not** establish native PostgreSQL multi-connection locking behavior.
-The wider upstream tenant integration suite timed out on that single-connection
-local fixture. Subsequent GitHub CI ran the Saathi integration tests successfully
-against native PostgreSQL 17 with pgvector. Explicit multi-connection concurrency,
-supervisor isolation, and a real Intelligence → LLM → WhatsApp round
-trip before accepting a pilot. Docker Desktop's engine could not start on this
-machine; no live isolated computer or credentialed provider test was completed.
+The initial PGlite fixture could not establish multi-connection locking behavior;
+native PostgreSQL now covers those races. GitHub CI run `40940594061` passed all
+required checks for published commit `adce8fd`, including the full application
+suite and Python harnesses. Image jobs were skipped under the draft workflow's
+label rules. Later changes need a new CI run.
+
+WSL2 is installed and Docker Engine 29.6.2 responds locally. Docker Desktop has
+also hit a recurring Windows runtime-socket startup error. Recovery preserved
+the zero-byte socket-only directories and recreated them; no factory reset or
+Windows restart was performed. The direct Windows named-pipe lifecycle run timed
+out on one case; the production-path Linux run passed all seven. A live private
+browser task and a real Intelligence → LLM → WhatsApp round trip remain pilot
+gates. No credentialed provider or live personal-browser task success is claimed.
 
 The inherited lockfile initially reported 122 dependency advisories, including
 three critical findings. A targeted patch upgraded Better Auth and its installed
@@ -142,7 +156,7 @@ and 13 low**. See [security status](Saathi-Security.md) for scope and advisory l
 Remaining findings require triage before production; passing tests do not constitute
 a security clearance.
 
-Additional release work: native concurrency/load testing, operator alerting and
+Additional release work: sustained concurrency/load testing, operator alerting and
 queue reconciliation UI, transport retention/deletion policy, bounded retry and
 queue admission budgets, media digest/duration validation, and device/language
 voice acceptance tests. Generic scheduling, pages, memory, and integrations reuse
@@ -158,7 +172,8 @@ from this implementation preview.
 ## Test commands
 
 From the root: `bun run test:saathi` for isolated transport/settings tests.
-From `openbot/`: run `bun test server/tests/saathi-store.integration.test.ts` with
+From `openbot/`: run
+`bun test server/tests/saathi-store.integration.test.ts server/tests/saathi-concurrency.integration.test.ts` with
 `TEST_DATABASE_URL` pointing to an explicitly separate, migrated test database.
 Never point tests at the application database. The upstream
 `bun run typecheck:tests` gate compares against inherited test type debt; do not
