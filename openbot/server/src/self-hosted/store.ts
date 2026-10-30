@@ -4,6 +4,7 @@ import { chmodSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { DemoAppointments, migrateAppointments } from "./appointments";
 import { LocalError } from "./errors";
+import { migrateMediaConsent } from "./media-consent";
 import { type MediaLimits, migrateMedia, OwnedMedia } from "./media-store";
 import { migratePlanReads, PlanReads } from "./plan-reads";
 import { migratePlans, TaskPlans } from "./plans";
@@ -110,7 +111,8 @@ export class SelfHostedStore {
         version?.value !== 5 &&
         version?.value !== 6 &&
         version?.value !== 7 &&
-        version?.value !== 8
+        version?.value !== 8 &&
+        version?.value !== 9
       )
         throw new LocalError("Unsupported local schema version.", 503);
       if (version && version.value <= 3)
@@ -148,6 +150,13 @@ export class SelfHostedStore {
           .transaction(() => {
             migrateMedia(this.db);
             this.db.exec("UPDATE version SET value=8 WHERE id=1");
+          })
+          .immediate();
+      if (version && version.value <= 8)
+        this.db
+          .transaction(() => {
+            migrateMediaConsent(this.db, (options.now ?? Date.now)());
+            this.db.exec("UPDATE version SET value=9 WHERE id=1");
           })
           .immediate();
       this.media = new OwnedMedia(this.db, options.now, options.mediaLimits);
