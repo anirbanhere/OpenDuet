@@ -1,5 +1,6 @@
 import { Database } from "bun:sqlite";
 import { afterEach, expect, test } from "bun:test";
+import { createHash } from "node:crypto";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
@@ -370,6 +371,64 @@ test("consent/history failures roll back flag changes and explicit cleanup atomi
   ).toBe(2);
   expect(w.store.media.consentHistory(w.a.owner, saved.id)).toHaveLength(1);
   expect(w.store.media.consentHistory(w.a.owner, blocked.id)).toHaveLength(1);
+});
+
+test("consented media snapshot binds exact revision/hash and returns detached bytes without an execution grant", () => {
+  const w = world(),
+    saved = w.store.media.admit(w.a.owner, input());
+  const hash = createHash("sha256").update(input().audio).digest("hex");
+  const snapshot = w.store.media.readConsentedSnapshot(
+    w.a.owner,
+    saved.id,
+    saved.consentRevision,
+    hash,
+  );
+  expect(snapshot.contentSha256).toBe(hash);
+  expect(snapshot.consentRevision).toBe(1);
+  expect(snapshot.audio).toEqual(input().audio);
+  snapshot.audio[0] = 0;
+  expect(
+    w.store.media.readConsentedSnapshot(w.a.owner, saved.id, 1, hash).audio[0],
+  ).toBe(82);
+  expect(() =>
+    w.store.media.readConsentedSnapshot(w.b.owner, saved.id, 1, hash),
+  ).toThrow("not found");
+  expect(() =>
+    w.store.media.readConsentedSnapshot(w.a.owner, saved.id, 1, "0".repeat(64)),
+  ).toThrow("changed");
+  expect(() =>
+    w.store.media.readConsentedSnapshot(w.a.owner, saved.id, 1, "invalid"),
+  ).toThrow("digest");
+  w.store.media.revokeProcessing(w.a.owner, saved.id);
+  expect(() =>
+    w.store.media.readConsentedSnapshot(w.a.owner, saved.id, 1, hash),
+  ).toThrow("changed");
+  expect(() =>
+    w.store.media.readConsentedSnapshot(w.a.owner, saved.id, 2, hash),
+  ).toThrow("consent");
+});
+
+test("consented snapshots reject corrupt/expired bytes and create no STT reservation or provider work", () => {
+  const w = world(),
+    saved = w.store.media.admit(w.a.owner, input()),
+    db = inspect(w.path);
+  const hash = createHash("sha256").update(input().audio).digest("hex");
+  db.query("UPDATE owned_media SET audio=? WHERE id=?").run(
+    new Uint8Array(8044),
+    saved.id,
+  );
+  expect(() =>
+    w.store.media.readConsentedSnapshot(w.a.owner, saved.id, 1, hash),
+  ).toThrow("unavailable");
+  w.clock(saved.expiresAt);
+  expect(() =>
+    w.store.media.readConsentedSnapshot(w.a.owner, saved.id, 1, hash),
+  ).toThrow("unavailable");
+  expect(
+    db
+      .query<{ n: number }, []>("SELECT count(*) n FROM stt_admission_usage")
+      .get()?.n,
+  ).toBe(0);
 });
 
 test("separate processes serialize competing quota admissions and exact duplicates without duplicate blobs", async () => {

@@ -1,5 +1,11 @@
 # Saathi on OpenDuet handoff
 
+## Atomic consent/content/audio snapshot — tested checkpoint
+
+30 October2026. Branch codex/consented-media-snapshot starts from PR24 handoff9d3ee9b. Added repeatable readConsentedSnapshot binding current owner/session/processing consent/exact revision and pinned content hash to validated detached audio in one SQLite read transaction. It composes existing checks rather than authorizing execution; no token, admission unit, provider or one-shot claim is created. Future claims must wrap it in their write transaction and enforce single return/cancellation/restart policy. Returned copies cannot be recalled by revocation.
+
+Evidence: two new tests were red first;150 focused tests/1297 assertions, server types and Biome pass. Tests cover detached copies, foreign owner, invalid/changed digest, stale/revoked consent, corrupt/expired bytes and no admission ledger side effects. Schema remains10; no live/paid call, profile launch, migration, deployment, route/upload or message. The remaining weekly allowance is low; save this small complete prerequisite and resume the larger lease migration after fresh limits. No reset credit redeemed; prior Meta approval remains consumed. Next: scoped Linux/packed gates/draft PR, then the full claim/settlement contract in tasks/stt-execution-claims.md. Full PRD/recurring continuation remain incomplete.
+
 ## Fixture transcript boundary — PR24 scoped Linux checks passed
 
 Exact source9edbfa9f313e342e0ea5dedb5f4c0f05cbacac16, draft [PR24](https://github.com/anirbanhere/saathi/pull/24), base PR23. Scoped self-hosted41090669589 and tenant41090669655 Linux CI passed, including148 focused tests/server/frozen types/audit/packed checks. Wider upstream CI41090669394 failed; no whole-platform-green claim. Local tests1285 assertions. Clean validation source9edbfa9/dirty=false retains bundle6b205c28 and runtimeIntegrity=null; not a deployable release. No live/paid call, reset credit, schema change or existing-profile/deployment access.

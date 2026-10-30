@@ -271,6 +271,34 @@ export class OwnedMedia {
       })
       .deferred();
   }
+  /** Consistent consent/content/audio read only. Caller still needs one-shot admission/execution authority. */
+  readConsentedSnapshot(
+    owner: string,
+    id: string,
+    expectedRevision: number,
+    expectedContentHash: string,
+  ) {
+    if (
+      typeof expectedContentHash !== "string" ||
+      !/^[a-f0-9]{64}$/.test(expectedContentHash)
+    )
+      throw new LocalError("Use a valid pinned media digest.");
+    return this.db
+      .transaction(() => {
+        const consent = this.checkProcessingConsent(
+          owner,
+          id,
+          expectedRevision,
+        );
+        if (consent.contentSha256 !== expectedContentHash)
+          throw new LocalError(
+            "Media content changed from the pinned digest.",
+            409,
+          );
+        return { ...consent, audio: this.read(owner, id) };
+      })
+      .deferred();
+  }
   private destroy(owner: string, id: string, state: "deleted" | "revoked") {
     return this.db
       .transaction(() => {
