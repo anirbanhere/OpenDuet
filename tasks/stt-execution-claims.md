@@ -1,6 +1,6 @@
 # Private fixture execution claims — contract and checkpoints
 
-Current status: schema11 claim/settlement/retention primitives are implemented and locally verified (165 focused tests/1417 assertions). No coordinator/adapter/network/route is wired; the remaining slice is controlled fixture execution orchestration after scoped Linux/packed gates. Earlier prerequisite checkpoints below record history, not work to repeat.
+Current status: schema11 claim/settlement/retention primitives passed PR27 scoped Linux/packed gates (165 focused tests/1417 local assertions). The separate keyless fixture coordinator and fresh-state CLI are now implemented in tasks/fixture-stt-coordinator.md; current aggregate174 tests/1519 assertions. No live provider or public route is wired. Earlier prerequisite checkpoints below record history, not work to repeat.
 
 Schema11 implementation contract (fresh synthetic DB only): rebuild the schema10 admission table atomically to add claimed/completed/failed/blocked/revoked/expired states, explicit pending flag and private claim-hash/deadline/settlement-digest/outcome fields. Preserve old admissions/unit ledger; pending unique index must use the pending flag. Claim returns detached audio and a random executor token once only after exact current fixture-role policy, consent revision/content hash and expiry rechecks inside the write transaction. Store only token hash; status never exposes token/hash. Duplicate claims return metadata only. Deadline clamps to role/media/current-session expiry.
 
