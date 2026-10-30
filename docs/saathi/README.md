@@ -1,5 +1,7 @@
 # Saathi customization guide
 
+[Internal owned media](owned-media.md) adds schema8 storage/consent/quotas/expiry and explicit BLOB clearing with tombstones. No public route or speech processing is enabled; existing public/private databases have not been migrated.
+
 [Speech response policies](speech-replies.md) compose text/voice internally with explicit consent/failure/fixture states and no delivery. They do not enable public voice; owned media, durable consent/spend and actual evaluation remain pending.
 
 [Vendor TTS transport foundation](vendor-tts.md) adds disabled/unregistered Sarvam/ElevenLabs factories with bounded WAV output and cancellation. Response policies, owned media, consent/spend integration and actual voice evaluation remain separate; mocked tones are not voice-quality proof.

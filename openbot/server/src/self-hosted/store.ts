@@ -4,6 +4,7 @@ import { chmodSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { DemoAppointments, migrateAppointments } from "./appointments";
 import { LocalError } from "./errors";
+import { type MediaLimits, migrateMedia, OwnedMedia } from "./media-store";
 import { migratePlanReads, PlanReads } from "./plan-reads";
 import { migratePlans, TaskPlans } from "./plans";
 import type { SearchEvidence } from "./search";
@@ -55,6 +56,7 @@ export class SelfHostedStore {
   readonly appointments: DemoAppointments;
   readonly plans: TaskPlans;
   readonly planReads: PlanReads;
+  readonly media: OwnedMedia;
   private db: Database;
   private release: () => void;
   private closed = false;
@@ -63,6 +65,7 @@ export class SelfHostedStore {
     private options: {
       limits?: { global: number; owner: number };
       now?: () => number;
+      mediaLimits?: Partial<MediaLimits>;
     } = {},
   ) {
     mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
@@ -106,7 +109,8 @@ export class SelfHostedStore {
         version?.value !== 4 &&
         version?.value !== 5 &&
         version?.value !== 6 &&
-        version?.value !== 7
+        version?.value !== 7 &&
+        version?.value !== 8
       )
         throw new LocalError("Unsupported local schema version.", 503);
       if (version && version.value <= 3)
@@ -139,6 +143,14 @@ export class SelfHostedStore {
             this.db.exec("UPDATE version SET value=7 WHERE id=1");
           })
           .immediate();
+      if (version && version.value <= 7)
+        this.db
+          .transaction(() => {
+            migrateMedia(this.db);
+            this.db.exec("UPDATE version SET value=8 WHERE id=1");
+          })
+          .immediate();
+      this.media = new OwnedMedia(this.db, options.now, options.mediaLimits);
       this.plans = new TaskPlans(this.db, {
         reserve: (owner, id) => this.reserveInference(owner, id),
         busy: (owner) => this.inferenceRunning(owner),

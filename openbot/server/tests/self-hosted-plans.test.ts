@@ -145,16 +145,19 @@ test("v5 upgrade preserves history, preferences, mock bookings and attempt usage
   expect(migrated.appointments.get(a.owner, booking.id).date).toBe(date);
   expect(migrated.plans.list(a.owner)).toEqual([]);
   const verify = new Database(path);
-  expect(
-    verify.query<{ value: number }, []>("SELECT value FROM version").get()
-      ?.value,
-  ).toBe(7);
-  expect(
-    verify
-      .query<{ n: number }, []>("SELECT count(*) n FROM inference_usage")
-      .get()?.n,
-  ).toBe(1);
-  verify.close();
+  try {
+    expect(
+      verify.query<{ value: number }, []>("SELECT value FROM version").get()
+        ?.value,
+    ).toBe(8);
+    expect(
+      verify
+        .query<{ n: number }, []>("SELECT count(*) n FROM inference_usage")
+        .get()?.n,
+    ).toBe(1);
+  } finally {
+    verify.close();
+  }
 });
 
 test("strict plans reject model-invented dates, capabilities, writes, extra fields and invalid dependencies", () => {
