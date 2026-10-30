@@ -1,5 +1,11 @@
 # Saathi on OpenDuet handoff
 
+## Fixture outcome — scoped CI type fix checkpoint
+
+PR26/sourcec8bc1e2 was created and attached. Clean validation build dirty=false/bundle683443db/runtimeIntegrity=null and packed synthetic smoke passed; tenant41114968543 passed. Self-hosted41114968638 attempt1 reported process exit1 despite152 tests/zero assertion failures and incomplete step metadata. Exactly one bounded retry was used to obtain a complete diagnostic; attempt2 passed tests/server types and failed the frozen test-type gate on TS2769 at self-hosted-stt-outcome.test.ts:47. The failure-code loop widened to string in a typed matcher. Added as-const literal typing; focused2 tests/14 assertions pass, Windows frozen gate running, baseline untouched. No runtime change or weakened assertion is needed. Push the fix and verify new exact-source scoped CI before claiming this prerequisite complete.
+
+Full leases remain pending. No live/paid provider, deployment, existing-data migration or reset credit. Weekly allowance remains low; preserve this concrete fix checkpoint if exhausted, rather than repeatedly retrying CI or beginning the lease migration.
+
 ## Bounded fixture settlement outcome — tested checkpoint
 
 31 October2026 (India). Branch codex/fixture-settlement-contract starts from PR25 handoffc9e063c. Added validateFixtureOutcome: normalized completed fixture evidence or failed with provider_failed/timeout/aborted only, with canonical digest for future duplicate/conflict handling. Extra fields/executor credentials and free-form failed payloads are rejected. This is not token verification, actual settlement, persistence or ASR-quality proof; private executor authentication and consent/retention gates must precede future acceptance. No schema change (still10), provider, public route or claim was added.

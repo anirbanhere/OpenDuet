@@ -41,7 +41,7 @@ test("fixture settlement outcomes normalize evidence and derive a stable digest 
   expect(JSON.stringify(first)).not.toContain("executor");
 });
 test("failure outcomes accept fixed codes only and cannot persist raw errors, tokens or invented live success", () => {
-  for (const code of ["provider_failed", "timeout", "aborted"])
+  for (const code of ["provider_failed", "timeout", "aborted"] as const)
     expect(
       validateFixtureOutcome({ status: "failed", code }, role).outcome,
     ).toEqual({ status: "failed", code });
