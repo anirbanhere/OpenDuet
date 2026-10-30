@@ -9,6 +9,11 @@ import { type MediaLimits, migrateMedia, OwnedMedia } from "./media-store";
 import { migratePlanReads, PlanReads } from "./plan-reads";
 import { migratePlans, TaskPlans } from "./plans";
 import type { SearchEvidence } from "./search";
+import {
+  migrateSttAdmissions,
+  type SttAdmissionLimits,
+  SttAdmissions,
+} from "./stt-admission";
 
 export { LocalError } from "./errors";
 export type StoredMessage = {
@@ -58,6 +63,7 @@ export class SelfHostedStore {
   readonly plans: TaskPlans;
   readonly planReads: PlanReads;
   readonly media: OwnedMedia;
+  readonly sttAdmissions: SttAdmissions;
   private db: Database;
   private release: () => void;
   private closed = false;
@@ -67,6 +73,7 @@ export class SelfHostedStore {
       limits?: { global: number; owner: number };
       now?: () => number;
       mediaLimits?: Partial<MediaLimits>;
+      sttLimits?: Partial<SttAdmissionLimits>;
     } = {},
   ) {
     mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
@@ -112,7 +119,8 @@ export class SelfHostedStore {
         version?.value !== 6 &&
         version?.value !== 7 &&
         version?.value !== 8 &&
-        version?.value !== 9
+        version?.value !== 9 &&
+        version?.value !== 10
       )
         throw new LocalError("Unsupported local schema version.", 503);
       if (version && version.value <= 3)
@@ -160,6 +168,20 @@ export class SelfHostedStore {
           })
           .immediate();
       this.media = new OwnedMedia(this.db, options.now, options.mediaLimits);
+      if (version && version.value <= 9)
+        this.db
+          .transaction(() => {
+            migrateSttAdmissions(this.db);
+            this.db.exec("UPDATE version SET value=10 WHERE id=1");
+          })
+          .immediate();
+      this.sttAdmissions = new SttAdmissions(
+        this.db,
+        this.media,
+        options.now,
+        options.sttLimits,
+      );
+      this.sttAdmissions.recoverOnExclusiveStartup();
       this.plans = new TaskPlans(this.db, {
         reserve: (owner, id) => this.reserveInference(owner, id),
         busy: (owner) => this.inferenceRunning(owner),
