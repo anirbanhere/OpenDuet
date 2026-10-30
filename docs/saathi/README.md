@@ -1,5 +1,7 @@
 # Saathi customization guide
 
+[Private fixture claims and settlement](stt-claims.md) implement schema11 single audio/token handoff, authenticated settlement and retained-output privacy gates. No adapter, coordinator, public speech route or live provider is enabled by these primitives.
+
 [Fixture STT admission](stt-admission.md) adds schema10 reservations and durable admission/audio-unit limits. No execution lease, provider call or public speech is enabled; one-shot claims and live-provider policy remain separate.
 
 [Media consent revisions](media-consent.md) add internal schema9 history and exact current-consent checks. Processing leases/admission/spend and public speech remain pending; old consent history is not invented during migration.

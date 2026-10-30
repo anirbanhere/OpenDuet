@@ -1,9 +1,15 @@
 import type { Database } from "bun:sqlite";
-import { createHash, randomBytes, randomUUID } from "node:crypto";
+import {
+  createHash,
+  randomBytes,
+  randomUUID,
+  timingSafeEqual,
+} from "node:crypto";
 import { z } from "zod";
 import { LocalError } from "./errors";
 import type { OwnedMedia } from "./media-store";
 import { fixtureLanguages, type ProviderRoles } from "./roles";
+import { validateFixtureOutcome } from "./stt-outcome";
 
 const inputSchema = z
   .object({
@@ -123,12 +129,39 @@ export class SttAdmissions {
     if (!row) throw new LocalError("STT admission not found.", 404);
     return row;
   }
-  private view(row: Row) {
-    let role: z.infer<typeof roleSchema>;
+  private savedRole(row: Row) {
     try {
-      role = roleSchema.parse(JSON.parse(row.role));
+      return roleSchema.parse(JSON.parse(row.role));
     } catch {
       throw new LocalError("Stored STT admission is unavailable.", 503);
+    }
+  }
+  private view(row: Row) {
+    const role = this.savedRole(row);
+    let outcome: ReturnType<typeof validateFixtureOutcome>["outcome"] | null =
+      null;
+    if (row.outcome) {
+      let visible = false;
+      try {
+        visible =
+          this.media.checkProcessingConsent(
+            row.owner,
+            row.media,
+            row.consent_revision,
+          ).contentSha256 === row.content_hash;
+      } catch {
+        /* Revoked/expired output is not returned. */
+      }
+      if (visible) {
+        try {
+          outcome = validateFixtureOutcome(
+            JSON.parse(row.outcome),
+            role,
+          ).outcome;
+        } catch {
+          throw new LocalError("Stored fixture outcome is unavailable.", 503);
+        }
+      }
     }
     return {
       id: row.id,
@@ -150,6 +183,7 @@ export class SttAdmissions {
       claimedAt: row.claimed_at,
       claimDeadline: row.claim_deadline,
       failureCode: row.failure_code,
+      outcome,
     };
   }
   begin(owner: string, input: unknown, currentRole: ProviderRoles["stt"]) {
@@ -311,12 +345,102 @@ export class SttAdmissions {
             "UPDATE stt_admissions SET state='claimed',claim_hash=?,claimed_at=?,claim_deadline=?,updated=? WHERE id=?",
           )
           .run(digest, now, deadline, now, id);
-        return {
+        const claim = {
           fresh: true as const,
           admission: this.view(this.row(owner, id)),
           audio: snapshot.audio,
           executorToken: token,
         };
+        // Only a trusted in-process worker reads these fields; ordinary JSON/status projection omits them.
+        Object.defineProperty(claim, "audio", { enumerable: false });
+        Object.defineProperty(claim, "executorToken", { enumerable: false });
+        return Object.freeze(claim);
+      })
+      .immediate();
+  }
+  /** Private worker capability, not a user/channel grant. Can acknowledge after session expiry. */
+  settle(owner: string, id: string, executorToken: string, input: unknown) {
+    return this.db
+      .transaction(() => {
+        const row = this.row(owner, id);
+        if (
+          typeof executorToken !== "string" ||
+          !/^[A-Za-z0-9_-]{43}$/.test(executorToken) ||
+          !row.claim_hash ||
+          !/^[a-f0-9]{64}$/.test(row.claim_hash) ||
+          !timingSafeEqual(
+            createHash("sha256").update(executorToken).digest(),
+            Buffer.from(row.claim_hash, "hex"),
+          )
+        )
+          throw new LocalError("Private executor authentication failed.", 403);
+        const validated = validateFixtureOutcome(input, this.savedRole(row)),
+          encoded = JSON.stringify(validated.outcome);
+        if (encoded.length > 20000)
+          throw new LocalError(
+            "Fixture outcome exceeds its retention budget.",
+            502,
+          );
+        if (row.settlement_digest) {
+          if (row.settlement_digest !== validated.digest)
+            throw new LocalError(
+              "STT settlement conflicts with its original outcome.",
+              409,
+            );
+          return this.view(row);
+        }
+        if (!row.pending || row.claimed_at === null)
+          throw new LocalError("STT request cannot accept settlement.", 409);
+        const now = this.now();
+        let state = row.state,
+          finalOutcome:
+            | ReturnType<typeof validateFixtureOutcome>["outcome"]
+            | null = null,
+          failureCode: string | null = row.failure_code ?? "output_suppressed";
+        if (state === "claimed") {
+          let current = false;
+          try {
+            current =
+              this.media.checkProcessingConsent(
+                owner,
+                row.media,
+                row.consent_revision,
+              ).contentSha256 === row.content_hash;
+          } catch {
+            /* Release the worker slot without retaining late private output. */
+          }
+          if (!current) {
+            state =
+              now >= (row.claim_deadline ?? row.expires)
+                ? "expired"
+                : "revoked";
+            failureCode = "consent_unavailable";
+          } else if (row.claim_deadline === null || now >= row.claim_deadline) {
+            state = "failed";
+            failureCode = "timeout";
+            finalOutcome = { status: "failed", code: "timeout" };
+          } else {
+            finalOutcome = validated.outcome;
+            state =
+              finalOutcome.status === "completed" ? "completed" : "failed";
+            failureCode =
+              finalOutcome.status === "failed" ? finalOutcome.code : null;
+          }
+        }
+        this.db
+          .query(
+            "UPDATE stt_admissions SET state=?,pending=0,outcome=?,settlement_digest=?,settled_at=?,updated=?,failure_code=? WHERE id=?",
+          )
+          .run(
+            state,
+            finalOutcome ? JSON.stringify(finalOutcome) : null,
+            validated.digest,
+            now,
+            now,
+            failureCode,
+            id,
+          );
+        return this.view(this.row(owner, id));
       })
       .immediate();
   }
