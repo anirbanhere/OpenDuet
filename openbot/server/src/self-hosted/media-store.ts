@@ -1,6 +1,7 @@
 import type { Database } from "bun:sqlite";
 import { createHash, randomUUID } from "node:crypto";
 import { LocalError } from "./errors";
+import { appendMediaConsent, mediaConsentHistory } from "./media-consent";
 import { prepareMedia } from "./media-contract";
 import type { SpeechLanguage } from "./roles";
 import { inspectPcmWav } from "./wav";
@@ -38,6 +39,8 @@ type Row = {
   created: number;
   expires: number;
   removed: number | null;
+  consent_revision: number;
+  consent_changed_at: number | null;
 };
 export function migrateMedia(db: Database) {
   db.exec(`CREATE TABLE IF NOT EXISTS owned_media(
@@ -109,6 +112,8 @@ export class OwnedMedia {
       createdAt: row.created,
       expiresAt: row.expires,
       removedAt: row.removed,
+      consentRevision: row.consent_revision,
+      consentChangedAt: row.consent_changed_at,
     };
   }
   admit(owner: string, input: unknown) {
@@ -159,8 +164,8 @@ export class OwnedMedia {
           throw new LocalError("Media storage budget is exhausted.", 429);
         const id = randomUUID();
         this.db
-          .query(`INSERT INTO owned_media(id,owner,request,digest,content_hash,audio,byte_length,duration_ms,sample_rate,channels,language,storage_consent,processing_consent,state,created,expires,removed)
-        VALUES(?,?,?,?,?,?,?,?,?,?,?,1,?,'active',?,?,NULL)`)
+          .query(`INSERT INTO owned_media(id,owner,request,digest,content_hash,audio,byte_length,duration_ms,sample_rate,channels,language,storage_consent,processing_consent,state,created,expires,removed,consent_revision,consent_changed_at)
+        VALUES(?,?,?,?,?,?,?,?,?,?,?,1,?,'active',?,?,NULL,1,?)`)
           .run(
             id,
             owner,
@@ -176,7 +181,9 @@ export class OwnedMedia {
             prepared.consentToProcess ? 1 : 0,
             now,
             prepared.expiresAt,
+            now,
           );
+        appendMediaConsent(this.db, id, "stored", now);
         return this.view(this.row(owner, id), now);
       })
       .immediate();
@@ -219,18 +226,70 @@ export class OwnedMedia {
       })
       .deferred();
   }
+  consentHistory(owner: string, id: string) {
+    return this.db
+      .transaction(() => {
+        this.row(owner, id);
+        this.sessionExpiry(owner, this.now());
+        return mediaConsentHistory(this.db, id);
+      })
+      .deferred();
+  }
+  /** Read-only consent snapshot. No audio, processing lease or execution grant is returned. */
+  checkProcessingConsent(owner: string, id: string, expectedRevision: number) {
+    if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 1)
+      throw new LocalError("Use a valid consent revision.");
+    return this.db
+      .transaction(() => {
+        const row = this.row(owner, id),
+          now = this.now();
+        this.sessionExpiry(owner, now);
+        if (
+          row.state !== "active" ||
+          !row.storage_consent ||
+          row.expires <= now ||
+          !row.audio
+        )
+          throw new LocalError("Stored media is unavailable.", 410);
+        if (row.consent_revision !== expectedRevision)
+          throw new LocalError(
+            "Media consent changed; review the current revision.",
+            409,
+          );
+        if (!row.processing_consent)
+          throw new LocalError(
+            "Current media processing consent is required.",
+            403,
+          );
+        return {
+          mediaId: row.id,
+          consentRevision: row.consent_revision,
+          contentSha256: row.content_hash,
+          checkedAt: now,
+          expiresAt: row.expires,
+        };
+      })
+      .deferred();
+  }
   private destroy(owner: string, id: string, state: "deleted" | "revoked") {
     return this.db
       .transaction(() => {
         const row = this.row(owner, id),
           now = this.now();
         this.sessionExpiry(owner, now);
-        if (row.state === "active")
+        if (row.state === "active") {
           this.db
             .query(
-              "UPDATE owned_media SET audio=NULL,state=?,storage_consent=0,processing_consent=0,removed=? WHERE owner=? AND id=?",
+              "UPDATE owned_media SET audio=NULL,state=?,storage_consent=0,processing_consent=0,removed=?,consent_revision=consent_revision+1,consent_changed_at=? WHERE owner=? AND id=?",
             )
-            .run(state, now, owner, id);
+            .run(state, now, now, owner, id);
+          appendMediaConsent(
+            this.db,
+            id,
+            state === "deleted" ? "deleted" : "storage_revoked",
+            now,
+          );
+        }
         return this.view(this.row(owner, id), now);
       })
       .immediate();
@@ -244,25 +303,40 @@ export class OwnedMedia {
   revokeProcessing(owner: string, id: string) {
     return this.db
       .transaction(() => {
-        this.row(owner, id);
+        const row = this.row(owner, id);
         const now = this.now();
         this.sessionExpiry(owner, now);
-        this.db
-          .query(
-            "UPDATE owned_media SET processing_consent=0 WHERE owner=? AND id=?",
-          )
-          .run(owner, id);
+        if (row.state === "active" && row.processing_consent) {
+          this.db
+            .query(
+              "UPDATE owned_media SET processing_consent=0,consent_revision=consent_revision+1,consent_changed_at=? WHERE owner=? AND id=?",
+            )
+            .run(now, owner, id);
+          appendMediaConsent(this.db, id, "processing_revoked", now);
+        }
         return this.view(this.row(owner, id), now);
       })
       .immediate();
   }
   /** Operator-only explicit cleanup; never exposed to anonymous channel dispatch. */
   purgeExpired() {
-    const now = this.now();
     return this.db
-      .query(
-        "UPDATE owned_media SET audio=NULL,state='expired',storage_consent=0,processing_consent=0,removed=? WHERE state='active' AND expires<=?",
-      )
-      .run(now, now).changes;
+      .transaction(() => {
+        const now = this.now(),
+          rows = this.db
+            .query<{ id: string }, [number]>(
+              "SELECT id FROM owned_media WHERE state='active' AND expires<=?",
+            )
+            .all(now);
+        this.db
+          .query(
+            "UPDATE owned_media SET audio=NULL,state='expired',storage_consent=0,processing_consent=0,removed=?,consent_revision=consent_revision+1,consent_changed_at=? WHERE state='active' AND expires<=?",
+          )
+          .run(now, now, now);
+        for (const row of rows)
+          appendMediaConsent(this.db, row.id, "expired", now);
+        return rows.length;
+      })
+      .immediate();
   }
 }

@@ -4,6 +4,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import type { MediaLimits } from "../src/self-hosted/media-store";
+import { migrateMedia } from "../src/self-hosted/media-store";
 import { syntheticSpeechFixture } from "../src/self-hosted/speech";
 import { SelfHostedStore } from "../src/self-hosted/store";
 
@@ -119,6 +120,9 @@ test("processing revocation is durable; deletion/storage revocation atomically c
   expect(w.store.media.read(w.a.owner, first.id)).toEqual(input().audio);
   const revoked = w.store.media.revoke(w.a.owner, first.id);
   expect(revoked.state).toBe("revoked");
+  expect(w.store.media.consentHistory(w.a.owner, first.id).at(-1)?.kind).toBe(
+    "storage_revoked",
+  );
   expect(revoked.consentToStore).toBe(false);
   expect(w.store.media.remove(w.a.owner, first.id)).toEqual(revoked);
   expect(w.store.media.admit(w.a.owner, input()).state).toBe("revoked");
@@ -182,7 +186,7 @@ test("session expiry clamps retention and corrupt media is never returned", () =
   );
 });
 
-test("v7-to-v8 migration preserves owned chat/preferences/usage and an approved MOCK receipt", () => {
+test("v7 upgrade preserves owned chat/preferences/usage and an approved MOCK receipt", () => {
   const w = world(),
     thread = w.store.createThread(w.a.owner, "saathi");
   const run = w.store.beginRun(
@@ -221,7 +225,7 @@ test("v7-to-v8 migration preserves owned chat/preferences/usage and an approved 
   expect(
     check.query<{ value: number }, []>("SELECT value FROM version").get()
       ?.value,
-  ).toBe(8);
+  ).toBe(9);
   expect(
     check.query<{ n: number }, []>("SELECT count(*) n FROM memories").get()?.n,
   ).toBe(1);
@@ -240,6 +244,132 @@ test("lifetime global row limits survive deletion and invalid budgets cannot ope
   expect(() => w.store.media.admit(w.b.owner, input())).toThrow("budget");
   expect(w.store.media.admit(w.a.owner, input()).state).toBe("deleted");
   expect(() => world({ globalBytes: 100_000_001 })).toThrow("budget");
+});
+
+test("consent revisions/history are owned, idempotent and stale checks cannot authorize processing", () => {
+  const w = world(),
+    saved = w.store.media.admit(w.a.owner, input());
+  expect(saved.consentRevision).toBe(1);
+  expect(saved.consentChangedAt).toBe(w.now());
+  const snapshot = w.store.media.checkProcessingConsent(w.a.owner, saved.id, 1);
+  expect(snapshot.consentRevision).toBe(1);
+  expect(JSON.stringify(snapshot)).not.toContain('"audio"');
+  expect(() => w.store.media.consentHistory(w.b.owner, saved.id)).toThrow(
+    "not found",
+  );
+  expect(() =>
+    w.store.media.checkProcessingConsent(w.b.owner, saved.id, 1),
+  ).toThrow("not found");
+  const revoked = w.store.media.revokeProcessing(w.a.owner, saved.id);
+  expect(revoked.consentRevision).toBe(2);
+  expect(w.store.media.revokeProcessing(w.a.owner, saved.id)).toEqual(revoked);
+  expect(() =>
+    w.store.media.checkProcessingConsent(w.a.owner, saved.id, 1),
+  ).toThrow("changed");
+  expect(() =>
+    w.store.media.checkProcessingConsent(w.a.owner, saved.id, 2),
+  ).toThrow("consent");
+  expect(w.store.media.admit(w.a.owner, input()).consentRevision).toBe(2);
+  const removed = w.store.media.remove(w.a.owner, saved.id);
+  expect(removed.consentRevision).toBe(3);
+  expect(w.store.media.revoke(w.a.owner, saved.id)).toEqual(removed);
+  expect(
+    w.store.media
+      .consentHistory(w.a.owner, saved.id)
+      .map((event) => event.kind),
+  ).toEqual(["stored", "processing_revoked", "deleted"]);
+  w.store.close();
+  expect(w.open().media.consentHistory(w.a.owner, saved.id)).toHaveLength(3);
+});
+
+test("current consent checks reject expiry and missing consent; cleanup records one terminal revision", () => {
+  const w = world(),
+    saved = w.store.media.admit(w.a.owner, input());
+  const without = w.store.media.admit(w.a.owner, {
+    ...input("without"),
+    consentToProcess: false,
+  });
+  expect(() =>
+    w.store.media.checkProcessingConsent(w.a.owner, without.id, 1),
+  ).toThrow("consent");
+  expect(() =>
+    w.store.media.checkProcessingConsent(w.a.owner, saved.id, 0),
+  ).toThrow("revision");
+  w.clock(saved.expiresAt);
+  expect(() =>
+    w.store.media.checkProcessingConsent(w.a.owner, saved.id, 1),
+  ).toThrow("unavailable");
+  expect(w.store.media.purgeExpired()).toBe(2);
+  expect(w.store.media.purgeExpired()).toBe(0);
+  expect(w.store.media.metadata(w.a.owner, saved.id).consentRevision).toBe(2);
+  expect(
+    w.store.media
+      .consentHistory(w.a.owner, saved.id)
+      .map((event) => event.kind),
+  ).toEqual(["stored", "expired"]);
+});
+
+test("v8 migration snapshots current consent honestly without inventing older grant/change history", () => {
+  const w = world(),
+    active = w.store.media.admit(w.a.owner, input());
+  const removed = w.store.media.admit(w.a.owner, input("removed"));
+  w.store.media.revoke(w.a.owner, removed.id);
+  w.store.close();
+  const fixture = inspect(w.path);
+  const columns =
+    "id,owner,request,digest,content_hash,audio,byte_length,duration_ms,sample_rate,channels,language,storage_consent,processing_consent,state,created,expires,removed";
+  fixture.exec(
+    `CREATE TEMP TABLE media_copy AS SELECT ${columns} FROM owned_media; DROP TABLE media_consent_events; DROP TABLE owned_media`,
+  );
+  migrateMedia(fixture);
+  fixture.exec(
+    `INSERT INTO owned_media SELECT ${columns} FROM media_copy; DROP TABLE media_copy; UPDATE version SET value=8`,
+  );
+  w.clock(w.now() + 1000);
+  const migrated = w.open();
+  const current = migrated.media.metadata(w.a.owner, active.id);
+  expect(current.consentRevision).toBe(1);
+  expect(current.consentChangedAt).toBeNull();
+  expect(current.expiresAt).toBe(active.expiresAt);
+  expect(migrated.media.read(w.a.owner, active.id)).toEqual(input().audio);
+  const history = migrated.media.consentHistory(w.a.owner, active.id);
+  expect(history).toHaveLength(1);
+  expect(history[0]?.kind).toBe("migrated_snapshot");
+  expect(history[0]?.at).toBe(w.now());
+  expect(migrated.media.metadata(w.a.owner, removed.id).state).toBe("revoked");
+  expect(
+    migrated.media.revokeProcessing(w.a.owner, active.id).consentRevision,
+  ).toBe(2);
+});
+
+test("consent/history failures roll back flag changes and explicit cleanup atomically", () => {
+  const w = world(),
+    saved = w.store.media.admit(w.a.owner, input()),
+    blocked = w.store.media.admit(w.a.owner, input("blocked"));
+  const check = inspect(w.path);
+  check.exec(
+    "CREATE TRIGGER synthetic_consent_failure BEFORE INSERT ON media_consent_events WHEN NEW.media=(SELECT id FROM owned_media WHERE request='blocked') BEGIN SELECT RAISE(ABORT,'Synthetic event failure'); END",
+  );
+  expect(() => w.store.media.revokeProcessing(w.a.owner, blocked.id)).toThrow();
+  expect(w.store.media.metadata(w.a.owner, blocked.id).consentToProcess).toBe(
+    true,
+  );
+  expect(w.store.media.metadata(w.a.owner, blocked.id).consentRevision).toBe(1);
+  check.exec(
+    "CREATE TRIGGER synthetic_initial_failure BEFORE INSERT ON media_consent_events WHEN NEW.kind='stored' BEGIN SELECT RAISE(ABORT,'Synthetic initial event failure'); END",
+  );
+  expect(() => w.store.media.admit(w.a.owner, input("refuse"))).toThrow();
+  w.clock(saved.expiresAt);
+  expect(() => w.store.media.purgeExpired()).toThrow();
+  expect(
+    check
+      .query<{ n: number }, []>(
+        "SELECT count(*) n FROM owned_media WHERE audio IS NOT NULL",
+      )
+      .get()?.n,
+  ).toBe(2);
+  expect(w.store.media.consentHistory(w.a.owner, saved.id)).toHaveLength(1);
+  expect(w.store.media.consentHistory(w.a.owner, blocked.id)).toHaveLength(1);
 });
 
 test("separate processes serialize competing quota admissions and exact duplicates without duplicate blobs", async () => {

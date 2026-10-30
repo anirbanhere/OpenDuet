@@ -1,5 +1,7 @@
 # Saathi customization guide
 
+[Media consent revisions](media-consent.md) add internal schema9 history and exact current-consent checks. Processing leases/admission/spend and public speech remain pending; old consent history is not invented during migration.
+
 [Internal owned media](owned-media.md) adds schema8 storage/consent/quotas/expiry and explicit BLOB clearing with tombstones. No public route or speech processing is enabled; existing public/private databases have not been migrated.
 
 [Speech response policies](speech-replies.md) compose text/voice internally with explicit consent/failure/fixture states and no delivery. They do not enable public voice; owned media, durable consent/spend and actual evaluation remain pending.
