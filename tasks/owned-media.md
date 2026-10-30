@@ -1,5 +1,7 @@
 # Internal owned-media increments
 
+Current status30 October2026: admission PR20 and internal store PR21 are implemented with passing scoped Linux checks. Source9a08e64 passed self-hosted41012786611/tenant41012786494, including134 tests, server/frozen types, audited bundle and packed smoke. The planning history below is not outstanding implementation work. Next is consent revisions/processing leases and durable speech admission/spend, still without live providers or public routes.
+
 Start from verified PR19. Keep uploads, routes, vendor registration and public/private migrations disabled. The immediate increment is a pure admission contract, not a media store: accept bounded PCM16 WAV bytes only, separate literal storage consent from optional processing consent, reject URLs/paths/client ownership/expiry fields, copy bytes and derive metadata/digests. Server context supplies the authenticated anonymous owner/session expiry and time; this helper cannot authenticate that context. Retention is at most15 minutes and never exceeds the session. No claim that a valid WAV contains genuine speech.
 
 Next increment after fresh usage: schema-v8 internal SQLite store, fresh synthetic DB only. Proposed bounds: at most10 clips/20MB per owner and100MB global active stored bytes; count expired rows until explicit cleanup actually deletes their blobs. Atomically enforce quotas and UNIQUE(owner,request), return original metadata for exact duplicates, conflict on changed bytes/language/consent, preserve existing v7 state/usage. Never silently extend retention on duplicate.
