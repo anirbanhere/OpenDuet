@@ -1,5 +1,19 @@
 # Saathi on OpenDuet handoff
 
+## Fixture transcript boundary — PR24 scoped Linux checks passed
+
+Exact source9edbfa9f313e342e0ea5dedb5f4c0f05cbacac16, draft [PR24](https://github.com/anirbanhere/saathi/pull/24), base PR23. Scoped self-hosted41090669589 and tenant41090669655 Linux CI passed, including148 focused tests/server/frozen types/audit/packed checks. Wider upstream CI41090669394 failed; no whole-platform-green claim. Local tests1285 assertions. Clean validation source9edbfa9/dirty=false retains bundle6b205c28 and runtimeIntegrity=null; not a deployable release. No live/paid call, reset credit, schema change or existing-profile/deployment access.
+
+The prior five-hour window reached100%; work was already committed/pushed and PR24 attached before waiting. Fresh scheduled check permits ordinary work after natural reset (18% five-hour,94% weekly used); no reset credit was redeemed. Full execution claims/settlement remain unimplemented. Next can take the small atomic consent/content/audio snapshot prerequisite in fresh synthetic tests before the larger lease migration, while preserving the documented no-grant/no-provider boundary. Keep all live/public speech off, preserve PR18 contributor work and do not mark the full PRD/recurring continuation complete.
+
+## Shared fixture transcript boundary — tested checkpoint
+
+30 October2026. At93% five-hour usage, took a small prerequisite instead of starting the full execution migration. Branch codex/fixture-transcript-boundary starts from PR23 handofffffb7ce. Exported/reused validateFixtureTranscript in current createSpeech, rejecting whitespace-only text and forged fixture identity/mode/confidence/language/extra fields while preserving Indic text and trimming outer whitespace. Invalid output language yields provider-boundary502. Schema remains10. This validates evidence labels only, not real ASR; no claim/token, execution, settlement, stored transcript or provider was introduced.
+
+Evidence: missing helper export regression was red first;148 focused tests/1285 assertions, server types and changed-file Biome pass. The regression exercises both the exported boundary and actual createSpeech injection path. New tasks/stt-execution-claims.md records one-shot token/hash, consent/policy rechecks, in-flight cancellation/restart and transcript-retention abuse cases before the larger migration. Final scoped Linux/packed checks and draft PR are next. No live/paid call, key setup, schema migration, existing profile access, deployment or message; no reset credit used.
+
+Next after fresh usage: finish scoped gates for this small boundary, then implement the reviewed execution-claim contract with fresh synthetic state. Do not mistake this helper or an admission reservation for a processing lease/completed transcription. Keep live/public speech off and preserve PR18 contributor work. Full PRD/recurring continuation remain incomplete; prior Meta approval stays consumed.
+
 ## Fixture STT admission — PR23 scoped Linux checks passed
 
 Exact executable source `82d4d0a4d1cfcb6eab5580af8521e919f659ff45`, draft [PR23](https://github.com/anirbanhere/saathi/pull/23), base PR22. [Self-hosted CI41083162312](https://github.com/anirbanhere/saathi/actions/runs/41083162312) and [tenant CI41083162443](https://github.com/anirbanhere/saathi/actions/runs/41083162443) passed, including147 focused tests, server types, unchanged frozen Linux baseline, audited bundle and packed synthetic HTTP checks. Local tests have1276 assertions; Windows retains only the eight known gallery path-text mismatches. Wider upstream CI41083162252 was queued; no whole-platform-green claim.

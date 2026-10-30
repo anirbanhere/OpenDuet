@@ -22,7 +22,7 @@ const source = z
   .strict();
 const transcriptSchema = z
   .object({
-    text: z.string().min(1).max(2000),
+    text: z.string().trim().min(1).max(2000),
     language,
     confidence: z.number().min(0).max(1).nullable(),
     alternatives: z.array(z.string().max(2000)).max(3),
@@ -279,6 +279,35 @@ function selected(
     );
   return profile.provider;
 }
+/** Shared current/future fixture boundary; this validates evidence labels, not real ASR quality. */
+export function validateFixtureTranscript(
+  input: unknown,
+  role: ProviderRoles["stt"],
+): Transcript {
+  const provider = selected(role),
+    result = transcriptSchema.safeParse(input);
+  if (!result.success)
+    throw new LocalError(
+      "The STT adapter returned an invalid transcript.",
+      502,
+    );
+  if (
+    !role.languages.includes(result.data.language) ||
+    !(fixtureLanguages as readonly string[]).includes(result.data.language)
+  )
+    throw new LocalError("STT fixture returned an unsupported language.", 502);
+  if (
+    result.data.source.provider !== provider ||
+    result.data.source.model !== role.model ||
+    result.data.source.mode !== "fixture" ||
+    result.data.confidence !== null
+  )
+    throw new LocalError(
+      "STT fixture identity or evidence mode is invalid.",
+      502,
+    );
+  return result.data;
+}
 export function createSpeech(roles: ProviderRoles, adapters: Adapters = {}) {
   return {
     async transcribe(input: unknown): Promise<Transcript> {
@@ -288,30 +317,13 @@ export function createSpeech(roles: ProviderRoles, adapters: Adapters = {}) {
       if (!adapter)
         throw new LocalError("Selected STT adapter unavailable.", 503);
       const raw = await withSpeechDeadline(roles.stt.timeoutMs, (signal) =>
-          adapter.transcribe({
-            ...parsed,
-            audio: parsed.audio.slice(),
-            signal,
-          }),
-        ),
-        result = transcriptSchema.safeParse(raw);
-      if (!result.success)
-        throw new LocalError(
-          "The STT adapter returned an invalid transcript.",
-          502,
-        );
-      selected(roles.stt, result.data.language);
-      if (
-        result.data.source.provider !== provider ||
-        result.data.source.model !== roles.stt.model ||
-        result.data.source.mode !== "fixture" ||
-        result.data.confidence !== null
-      )
-        throw new LocalError(
-          "STT fixture identity or evidence mode is invalid.",
-          502,
-        );
-      return result.data;
+        adapter.transcribe({
+          ...parsed,
+          audio: parsed.audio.slice(),
+          signal,
+        }),
+      );
+      return validateFixtureTranscript(raw, roles.stt);
     },
     async synthesize(input: unknown): Promise<SpeechAudio> {
       const parsed = parseTtsInput(input);
