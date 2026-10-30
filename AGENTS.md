@@ -1,5 +1,7 @@
 # Saathi on OpenDuet — coding agent instructions
 
+Fixture outcome contract: validateFixtureOutcome in stt-outcome.ts normalizes reviewed fixture completion evidence or fixed failure codes and derives a digest. It does not authenticate executors, persist/settle results or prove real ASR. Never treat the digest as authority; future settlement must first verify its private token and current consent/retention policy. See tasks/stt-execution-claims.md. Live providers and routes remain off.
+
 Consented media snapshot prerequisite: readConsentedSnapshot binds current owner/session/consent revision, pinned content hash and validated copied audio in one read transaction. It is repeatable and returns no execution token or budget grant; future one-shot claims must wrap it in authoritative admission/lease policy. No provider/route is enabled. See tasks/stt-execution-claims.md; raw bytes already returned cannot be recalled by later revocation.
 
 Fixture transcript boundary: validateFixtureTranscript in speech.ts is shared by current fixture transcription and planned settlement. It trims outer whitespace, rejects blank text and forged identity/mode/confidence/language/extra fields; unknown output language is a provider-boundary502. It does not validate real ASR quality or enable claims/providers. Read tasks/stt-execution-claims.md before the next lease migration; no executor token, settlement or public route exists yet.
