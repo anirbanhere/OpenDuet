@@ -21,7 +21,7 @@ The separate Python repository has tested mock task/approval/audio fixtures. The
 | FR-004 context/preferences | Owned history and explicitly reviewed text preferences | Structured locale/timezone/address consent pending; demo task stores chosen locale |
 | FR-005 WhatsApp window/templates | Absent | Eligibility, test number, templates and delivery access needed |
 | FR-006 help/status/cancel/stop/forget/disconnect | Thread/memory deletion and saved inference state | Demo task status/cancel/reject; multilingual intents, reminder stop and provider disconnect pending |
-| FR-007 secured voice media/transcoding | Internal WAV/consent/quota store, schema11 private claims/settlement and keyless fixture coordinator with deadline/cancellation/actual acknowledgement | Fresh synthetic CLI/tests only, no existing-data migration/route; public media/transcoding, operator lifecycle, live-provider admission/spend and actual ASR evaluation pending |
+| FR-007 secured voice media/transcoding | Internal WAV/consent/quota store, schema11 private claims/settlement, keyless fixture coordinator and explicitly opted-in local metadata/revoke/delete HTTP controls | Fresh synthetic evidence only; public mode refuses media controls. Upload/playback/consent UI, transcoding, operator lifecycle, live-provider spend and actual ASR evaluation pending; existing data unmodified |
 | FR-008 two STT adapters | Internal Sarvam/ElevenLabs wire adapters, owned media/consent, fixture durable budgets and keyless synthetic execution | Vendor factories disabled/unregistered; fixture execution is not live authority. Live-provider admission/spend, public routes/setup and consented evaluation remain pending |
 | FR-009 two TTS adapters/policies | Internal Sarvam/ElevenLabs transports plus text_only/voice_only/text_and_voice composition | Disabled/unregistered factories and policies have mocked PCM/WAV/HTTP/cancellation checks; owned media, durable consent/admission/budgets and genuine provider/quality evaluation remain pending |
 | FR-010 Indic/code-switching | Prompt language targets; no measured evaluation | en/hi/ta demo receipt text; actual speech/fluency evaluation and ml/kn work pending |
@@ -48,7 +48,7 @@ The separate Python repository has tested mock task/approval/audio fixtures. The
 | FR-031 recurring reminders/quiet hours | Absent | Durable scheduler, opt-in destination, retries/stop and notifications pending |
 | FR-032 sourced travel/status | General Meta lookup only; no typed travel adapter | Authorized fare/train services and partner checkout/handoff pending |
 | FR-033 family grants/revocation | Visitor isolation only | Household identity and resource-scoped sharing pending |
-| FR-034 export/deletion | Owned thread/memory deletion; no full export/account erasure | Full supported-data export/delete/retention and backup lifecycle pending |
+| FR-034 export/deletion | Owned thread/memory deletion; local opt-in media revocation/deletion clears BLOB/linked retained text atomically | No full export/account erasure; ledger/metadata, WAL/backups, provider and whole-account lifecycle remain pending |
 
 This table distinguishes partial coverage from completion. The appointment implementation is not a measured voice MVP, generic autonomous planning engine, real clinic connection or complete Phase1 port.
 
