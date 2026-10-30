@@ -1,5 +1,19 @@
 # Saathi on OpenDuet handoff
 
+## Media admission — PR20 scoped Linux checks passed
+
+Exact executable source efb54a2b9dc3e7c39b69f2b012bffba6744d678a, draft [PR20](https://github.com/anirbanhere/saathi/pull/20), base PR19. Scoped self-hosted40942329523 and tenant40942329258 Linux CI passed, including126 focused tests, server types, frozen test baseline, audited bundle and packed smoke. Wider upstream CI40942329377 failed; no whole-platform-green claim. Clean validation build sourceefb54a2/dirty=false retains website955c8f2, runtimeIntegrity=null, zero observed shipped dependency advisory matches/28 wider upstream packages. No deployment/live provider call. Public/private state unchanged.
+
+Fresh scheduled check after the natural account-window reset permits ordinary work (1% five-hour used); no reset credit was redeemed. Next is the proposed durable internal media store in tasks/owned-media.md, using fresh synthetic DB and preserving v7 state. PR18's separate upstream/WhatsApp work stays untouched. Native goal tracker is not overridden, full PRD remains incomplete.
+
+## Media admission boundary — tested checkpoint before durable storage
+
+30 October2026 (India). Branch codex/media-admission starts from PR19 handoffa2dd5cc. At92% five-hour usage, advanced the smallest independent slice instead of starting the larger migration: internal pure prepareMedia contract, separate literal storage consent/default-false processing consent, strict WAV-only/no URL/path/client owner-or-expiry fields, detached bytes and measured metadata, content/request digests and a15-minute/session-expiry clamp. Caller-supplied server context must already be authenticated; the helper does not verify identity, persist consent/audio, enforce quotas or send data.
+
+Evidence: missing-module test was red first; now3 admission tests/23 assertions and the full126 focused tests/1112 assertions pass. Server types and changed-file Biome pass. No new schema, filesystem storage, endpoint, vendor registration, live/paid call, key request, deployment or private/public data migration. Public27de098/v7 and private8790/profile remain unchanged. Reset credits were not redeemed. Prior paid Meta approval remains consumed.
+
+Next after fresh usage: run final frozen Linux/packed gates and draft the small admission PR; then implement the durable internal store described in tasks/owned-media.md. Its v8 schema/quota/deletion/revocation/expiry/restart semantics are PROPOSED, not completed. Preserve this tested boundary; do not restart it or claim an uploaded/retained/processed clip exists. No public media integration before durable consent/admission/spend and actual consented evaluation. Keep the separate contributor PR18 upstream/WhatsApp work intact. Full PRD/recurring continuation remain incomplete; do not mark complete or redeem a reset.
+
 ## Speech response composition — PR19 scoped Linux checks passed
 
 Exact executable source `56286485daecf0894fb647cdae9aef1d56dafa67`, draft [PR19](https://github.com/anirbanhere/saathi/pull/19), base PR17. [Self-hosted CI40933409134](https://github.com/anirbanhere/saathi/actions/runs/40933409134) and [tenant CI40933409028](https://github.com/anirbanhere/saathi/actions/runs/40933409028) passed, including123 focused tests, server types, unchanged frozen Linux test baseline, audited bundle and packed HTTP smoke. Local tests have1089 assertions. Windows has only the known eight gallery path-text mismatches, baseline unchanged. Wider CI40933409073 was queued at the preceding observation; do not infer whole-platform green.
