@@ -83,6 +83,7 @@ import {
 import { startRetentionSweeps } from "./audit-retention";
 import { createAuth } from "./auth";
 import { DEV_ACTOR, initializeDevActorUser } from "./auth/dev-actor";
+import { createDemoGatewayAuth } from "./auth/demo-gateway";
 import type { AuthService } from "./auth/guards";
 import { createRoleRepository } from "./auth/guards";
 import { createIdentityProviderStore } from "./auth/identity-provider-store";
@@ -153,6 +154,7 @@ import {
   channelMemberships,
   channels,
   intelligenceChannelMappings,
+  users,
 } from "./db/schema";
 import { createDeliveryRouter, DELIVERY_WORK_KINDS } from "./delivery/router";
 import {
@@ -561,19 +563,33 @@ const identityProviderStore = createIdentityProviderStore(database);
  * store that receives those rows has to exist before anything can sign in.
  */
 const signInAuditStore = createAuditStore(database);
-const auth: AuthService | undefined = config.organizationAuthUrl
-  ? createOrganizationAuth({
-      authorityUrl: config.organizationAuthUrl,
-      materializeUser: organizationUserStore(database),
-    })
-  : config.auth
-    ? createAuth(
-        config,
-        database,
-        (email) => peopleStore.isRevoked(email),
-        signInAuditStore,
+const auth: AuthService | undefined = config.demoGateway
+  ? createDemoGatewayAuth(config.demoGateway, async (id) => {
+      const [user] = await database
+        .select({ id: users.id, email: users.email })
+        .from(users)
+        .where(eq(users.id, id));
+      if (
+        !user ||
+        !(await roleRepository.rolesForUser(id)).includes("user") ||
+        (await peopleStore.isRevoked(user.email))
       )
-    : undefined;
+        return null;
+      return user;
+    })
+  : config.organizationAuthUrl
+    ? createOrganizationAuth({
+        authorityUrl: config.organizationAuthUrl,
+        materializeUser: organizationUserStore(database),
+      })
+    : config.auth
+      ? createAuth(
+          config,
+          database,
+          (email) => peopleStore.isRevoked(email),
+          signInAuditStore,
+        )
+      : undefined;
 // Each computer is pushed its network policy on the way to the action that woke it, because a
 // computer refuses every connection until one arrives (see `withPolicyPushOnWake`).
 const computerProvider = config.computer

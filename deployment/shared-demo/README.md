@@ -1,0 +1,15 @@
+# Shared web demo
+
+The public companion runs as a separate deployment. Never tunnel the private localhost single-user administrator instance.
+
+The demo instance requires `SAATHI_ENABLED=true`, `SAATHI_PUBLIC_DEMO=true`, `SAATHI_DEMO_USER_ID=saathi-demo-<16 random hex digits>` and `SAATHI_DEMO_GATEWAY_TOKEN` (43–128 base64url characters). This enables gateway authentication and disables the developer administrator fallback. Create that user in the separate database with only the `user` role. Use a fresh encryption key, deployment ID, browser namespace and supervisor token. The selected model credential is encrypted separately; private conversations and connected accounts are not copied.
+
+`bridge.ts` accepts authenticated WebSocket upgrades only. Each connection carries either one bounded HTTP exchange or one allowed companion WebSocket. `policy.ts` restricts exposed routes to chat, task/page demos and computer observation. Credential, approval-decision, shell and administration endpoints stay inaccessible. The backend separately enforces ownership and regular-user authorization. The Sites Worker forwards only content type and accept headers; visitor cookies, authorization and identity headers never reach the backend. A visible notice identifies the shared workspace.
+
+Quick Tunnels do not support SSE, so HTTP streams travel as binary WebSocket frames and are reconstructed by the Worker. Response bodies stream in chunks; request bodies are capped at 256 KiB. The bridge limits model-run requests to sixty per hour, two simultaneous HTTP exchanges, and a five-minute exchange timeout. The application separately manages background runs; the proxy's exchange limit is not a hard model-token budget. Stop the demo containers to stop offering new public requests.
+
+Required bridge environment: `SAATHI_DEMO_GATEWAY_TOKEN`, `OPENBOT_PUBLIC_URL` (the published HTTPS Site), and `DEMO_BACKEND_URL=http://public-web:3001`. Keep environment values in ignored local files and native Sites runtime secrets. Give the bridge only its own token and public URL. Give the supervisor only its computer and supervisor tokens. Neither service needs the model encryption key or Intelligence key. Keep the database network separate from agent browsers.
+
+The Sites Worker source and identity live in a separate checkout under `sites/saathi-share-demo`. Sites requires `DEMO_TUNNEL_ORIGIN` and `DEMO_GATEWAY_TOKEN` as server-side runtime secrets. The LLM credential stays on the host. The PC, Docker and connector must remain running. Quick Tunnel hostnames can change when the connector restarts; update the Site's origin secret and redeploy its saved version. Its public Site URL stays the same.
+
+Run the policy tests with Bun, the server gateway/config tests in `openbot/server/tests`, and `tsc --project deployment/shared-demo/tsconfig.json`. Before publishing, verify anonymous backend access returns 401, valid gateway access is a regular user, administration returns 403, history contains only demo messages, streaming works, and the published browser can send and receive a reply. Never put a model API key in test logs or Site source.
