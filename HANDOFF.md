@@ -1,5 +1,11 @@
 # Saathi on OpenDuet handoff
 
+## Fixture claims and settlement — PR27 scoped Linux gates passed
+
+Exact source149f97790aa738de7e14d7e8a46f9d2b630a6058, draft [PR27](https://github.com/anirbanhere/saathi/pull/27), stacked on PR26. [Self-hosted41126586187](https://github.com/anirbanhere/saathi/actions/runs/41126586187) and [tenant41126586186](https://github.com/anirbanhere/saathi/actions/runs/41126586186) passed. This covers165 focused tests, server/frozen Linux types, audited bundle and packed synthetic checks. Local tests1417 assertions. Wider CI41126586421 was queued; no whole-platform-green claim. Clean validation source149f977/dirty=false has bundlea9cf93064d0530b172f4f159253016cc769f90a4a7a897b8dca7d3d02f00bb76/runtimeIntegrity=null, not a release runtime.
+
+Schema11 private primitives are checked, not public speech or real ASR. No adapter/coordinator invocation, provider/key setup, existing-profile launch/migration, deployment or message. Last verified public27de098/v7 remains unchanged; private schema uninspected. One-Meta approval consumed; no reset redeemed. Full PRD and recurring continuation remain incomplete. Next: bounded keyless in-process fixture coordinator, private claims, deadline/cooperative cancellation, no retry/replay, and pending retention until an abort-ignoring adapter actually acknowledges. Preserve contributor PR18.
+
 ## Private fixture claim/settlement — second tested increment
 
 31 October2026. Branch codex/fixture-stt-claims now includes authenticated settlement and result retention after the first claim commit e885ed4. Private capability hash comparison precedes outcome parsing; per-admission token scope, duplicate/conflict digest handling and a20,000-unit encoded result cap preserve boundaries. Timely validated fixture results can be retained; cancelled/revoked/expired late text is suppressed, deadlines produce a fixed timeout, and a private worker may acknowledge after session expiry to release its slot without exposing text. Fresh claim audio/token fields are nonenumerable/frozen against accidental JSON projection. Metadata/status never includes private tokens/hashes.
