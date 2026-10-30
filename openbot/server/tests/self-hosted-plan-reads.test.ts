@@ -12,12 +12,13 @@ import { SelfHostedStore } from "../src/self-hosted/store";
 const folders: string[] = [],
   stores: SelfHostedStore[] = [];
 const roles = selfHostedConfig({}).roles;
+const fixtureNow = () => Date.parse("2026-10-29T01:00:00Z");
 function world() {
   const folder = mkdtempSync(join(tmpdir(), "saathi-reads-"));
   folders.push(folder);
   const path = join(folder, "state.sqlite");
   const store = new SelfHostedStore(path, {
-    now: () => Date.parse("2026-10-29T01:00:00Z"),
+    now: fixtureNow,
   });
   stores.push(store);
   const a = store.createSession(),
@@ -80,7 +81,7 @@ test("explicit native reads persist mock observations, replay the same result an
   expect(store.planReads.run(a.owner, task.id)).toEqual(read);
   expect(store.appointments.list(a.owner)).toEqual([]);
   store.close();
-  const reopened = new SelfHostedStore(path);
+  const reopened = new SelfHostedStore(path, { now: fixtureNow });
   stores.push(reopened);
   expect(reopened.planReads.run(a.owner, task.id)).toEqual(read);
   expect(reopened.plans.get(a.owner, task.id).read_result).toEqual(read);
@@ -165,7 +166,7 @@ test("schema v6 migration preserves pinned plans and adds empty read records", (
   } finally {
     db.close();
   }
-  const reopened = new SelfHostedStore(path);
+  const reopened = new SelfHostedStore(path, { now: fixtureNow });
   stores.push(reopened);
   expect(reopened.plans.get(a.owner, task.id).roles).toEqual(roles);
   expect(reopened.plans.get(a.owner, task.id).plan).toEqual(plan);
