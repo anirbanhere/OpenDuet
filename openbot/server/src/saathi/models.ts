@@ -2,7 +2,7 @@ import { z } from "zod";
 import { decryptSecret, encryptSecret } from "../credentials";
 import type { RuntimeModel } from "../copilot";
 
-export const modelProvider = z.enum(["openai", "anthropic"]);
+export const modelProvider = z.enum(["openai", "anthropic", "meta"]);
 export type ModelProvider = z.infer<typeof modelProvider>;
 export const modelName = z
   .string()
@@ -42,7 +42,11 @@ export type ModelKeyStore = {
   list(owner: string): Promise<ModelStatus[]>;
   revoke(owner: string, provider: ModelProvider): Promise<void>;
 };
-export type OwnerModel = { model: RuntimeModel; apiKey: string };
+export type OwnerModel = {
+  credentialProvider: ModelProvider;
+  model: RuntimeModel;
+  apiKey: string;
+};
 export class SaathiConfigurationError extends Error {}
 
 export function createSaathiModels(
@@ -77,12 +81,16 @@ export function createSaathiModels(
           "Add your own API key and select a model in Settings > Saathi.",
         );
       return {
-        model: { provider: value.provider, defaultModel: value.model },
+        credentialProvider: value.provider,
+        model: {
+          provider: value.provider === "meta" ? "openai" : value.provider,
+          defaultModel: value.model,
+        },
         apiKey: await decryptSecret(encryptionKey, value.encryptedKey),
       };
     },
     async isActive(owner: string, selection: OwnerModel) {
-      const value = await store.read(owner, selection.model.provider);
+      const value = await store.read(owner, selection.credentialProvider);
       return Boolean(
         value &&
           (await decryptSecret(encryptionKey, value.encryptedKey)) ===

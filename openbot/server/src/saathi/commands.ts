@@ -29,7 +29,7 @@ export async function whatsappCommand(input: {
       : "Add a model API key in the companion at Settings > Saathi.";
   }
   const select = command.match(
-    /^\/model\s+(openai|anthropic)\s+([a-zA-Z0-9._-]+)$/,
+    /^\/model\s+(openai|anthropic|meta)\s+([a-zA-Z0-9._-]+)$/,
   );
   if (select) {
     await models.select(

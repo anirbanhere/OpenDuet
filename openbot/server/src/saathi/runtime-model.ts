@@ -4,6 +4,7 @@ import type { ComputerConfig } from "../config";
 import { isCustomModelBase } from "../model-availability-check";
 import { createModelCompleter } from "../routing/model";
 import { SaathiConfigurationError, type SaathiModels } from "./models";
+import { createMetaModel, META_BASE_URL } from "./meta";
 
 export function assertSaathiComputerIsolation(
   computer: ComputerConfig | undefined,
@@ -34,10 +35,13 @@ export function assertSaathiProviderOrigins(
 
 export async function ownerRuntimeModel(models: SaathiModels, owner: string) {
   const selection = await models.resolve(owner);
-  const inner = resolveModel(
-    `${selection.model.provider}/${selection.model.defaultModel}`,
-    selection.apiKey,
-  ) as PlanLanguageModel;
+  const inner =
+    selection.credentialProvider === "meta"
+      ? createMetaModel(selection.model.defaultModel, selection.apiKey)
+      : (resolveModel(
+          `${selection.model.provider}/${selection.model.defaultModel}`,
+          selection.apiKey,
+        ) as PlanLanguageModel);
   const assertActive = async () => {
     if (!(await models.isActive(owner, selection)))
       throw new SaathiConfigurationError(
@@ -77,5 +81,9 @@ export async function completeForOwner(
   return createModelCompleter({
     model: selection.model,
     resolveApiKey: async () => selection.apiKey,
+    environment:
+      selection.credentialProvider === "meta"
+        ? { OPENAI_BASE_URL: META_BASE_URL }
+        : {},
   })(prompt, signal);
 }

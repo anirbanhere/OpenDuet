@@ -30,7 +30,7 @@ export const saathiModelKeys = pgTable(
     primaryKey({ columns: [table.ownerUserId, table.provider] }),
     check(
       "saathi_model_provider",
-      sql`${table.provider} in ('openai', 'anthropic')`,
+      sql`${table.provider} in ('openai', 'anthropic', 'meta')`,
     ),
   ],
 );
@@ -46,7 +46,7 @@ export const saathiPreferences = pgTable(
   (table) => [
     check(
       "saathi_preference_provider",
-      sql`${table.provider} in ('openai', 'anthropic')`,
+      sql`${table.provider} in ('openai', 'anthropic', 'meta')`,
     ),
   ],
 );

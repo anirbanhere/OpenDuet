@@ -8,6 +8,7 @@ import {
   saathiMessages,
   workItems,
   saathiOutbox,
+  saathiModelKeys,
 } from "../src/db/schema";
 import { createModelKeyStore } from "../src/saathi/model-store";
 import { createSaathiModels } from "../src/saathi/models";
@@ -52,6 +53,28 @@ test("PostgreSQL model keys are encrypted and ownership survives settings change
   await service.revoke(owner, "openai");
   await expect(service.resolve(owner)).rejects.toThrow("Add your own");
   expect((await service.status(other))[0]?.selected).toBe(true);
+});
+
+test("native PostgreSQL accepts Meta keys and keeps them encrypted and owner-scoped", async () => {
+  const service = createSaathiModels(
+    createModelKeyStore(db),
+    "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+  );
+  await service.save(owner, {
+    provider: "meta",
+    model: "muse-spark-1.3",
+    apiKey: "synthetic-meta-secret",
+  });
+  const [stored] = await db
+    .select()
+    .from(saathiModelKeys)
+    .where(eq(saathiModelKeys.ownerUserId, owner));
+  expect(stored?.provider).toBe("meta");
+  expect(stored?.encryptedKey).not.toContain("synthetic-meta-secret");
+  expect((await service.resolve(owner)).credentialProvider).toBe("meta");
+  expect((await service.resolve(other)).apiKey).toBe("other-key");
+  await service.revoke(owner, "meta");
+  await expect(service.resolve(owner)).rejects.toThrow("Add your own");
 });
 
 test("pairing binds the creator, atomically advances the cursor, and deduplicates work", async () => {

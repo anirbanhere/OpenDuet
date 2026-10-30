@@ -42,6 +42,10 @@ published implementation on native PostgreSQL. See
 
 ## CI and security follow-up
 
+- [x] Add Meta (Muse) as a distinct encrypted owner provider, with fixed-origin Responses transport and request-scoped helper calls
+- [x] Test Meta streaming, function calls, revoked-client refusal, owner/provider isolation, and native PostgreSQL migration/persistence
+- [x] Deploy the Meta option to the local detached web demo and verify it renders in Chrome
+
 - [x] Fix Saathi lint warnings without disabling lint rules
 - [x] Replace an expired fixed date in the first-day fixture
 - [x] Await self-host banner mutations before tearing down its test browser

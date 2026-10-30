@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { PageSection } from "@/components/layout/page-shell";
 import { client } from "@/lib/client";
 
-type Provider = "openai" | "anthropic";
+type Provider = "openai" | "anthropic" | "meta";
 type Status = {
   models: { provider: Provider; model: string; selected: boolean }[];
   speechConfigured: boolean;
@@ -189,13 +189,15 @@ export function SaathiSettings() {
                 id="saathi-provider"
                 className="h-10 w-full rounded-md border bg-background px-3 text-sm"
                 value={provider}
-                onChange={(event) =>
-                  setProvider(event.target.value as Provider)
-                }
+                onChange={(event) => {
+                  setProvider(event.target.value as Provider);
+                  setApiKey("");
+                }}
                 disabled={busy}
               >
                 <option value="openai">OpenAI</option>
                 <option value="anthropic">Anthropic</option>
+                <option value="meta">Meta (Muse)</option>
               </select>
             </div>
             <div className="space-y-2">
@@ -204,7 +206,11 @@ export function SaathiSettings() {
                 id="saathi-model"
                 value={model}
                 onChange={(event) => setModel(event.target.value)}
-                placeholder="Your provider's model ID"
+                placeholder={
+                  provider === "meta"
+                    ? "muse-spark-1.3"
+                    : "Your provider's model ID"
+                }
                 required
                 maxLength={120}
                 disabled={busy}
@@ -238,6 +244,9 @@ export function SaathiSettings() {
           <p className="text-xs text-muted-foreground">
             Verification checks access at the provider's model endpoint. Task
             tools depend on the model and connections available to you.
+            {provider === "meta"
+              ? " Use your Meta Model API key and a text model ID enabled for your team. Requests go directly to api.meta.ai."
+              : ""}
           </p>
         </form>
       </PageSection>

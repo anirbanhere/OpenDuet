@@ -10,7 +10,7 @@ CopilotKit/OpenDuet commit `677e0fcd148d80b99dd788c6d6f9c1c9f40a72db`.
 - One private built-in Saathi Bot and conversation per connected application
   user. The existing OpenDuet headless runner, tool grants, approval gateway,
   conversation persistence, and computer supervisor remain the execution path.
-- Owner-scoped encrypted OpenAI and Anthropic keys, model selection, revocation,
+- Owner-scoped encrypted OpenAI, Anthropic, and Meta (Muse) keys, model selection, revocation,
   and pinned main-agent model selection for each run. Owner-scoped selection and
   approval helpers resolve the owner's current settings when called. Personal keys never enter global
   environment variables; the runtime has no deployment-key fallback in Saathi mode.
@@ -72,6 +72,17 @@ Use Bun **1.4.3**, Git, Docker with a working Linux-container engine, and Bash
 7. Sign in to external services through the companion's existing secure handover
    and configure tools/grants as required. An LLM key alone does not connect email,
    shopping, booking, calendar, or payment accounts.
+
+For a Meta Model API key, choose **Meta (Muse)** in Saathi settings and enter a text
+model ID enabled for your Meta team, such as `muse-spark-1.3`. This is a separate
+credential from OpenAI, Anthropic, and Intelligence. Verification uses Meta's model
+lookup; agent turns use the Responses API at the fixed `https://api.meta.ai/v1`
+origin with `store: false` and encrypted reasoning replay. Provider changes clear
+the unsaved key field. No global `OPENAI_BASE_URL` override is needed or accepted.
+Routing/approval helper calls use Meta Chat Completions through a request-scoped
+destination. Migration `0069_saathi_meta.sql` expands the two provider constraints
+without changing existing keys. [Meta quickstart](https://dev.meta.ai/docs/quickstart),
+[Responses API](https://dev.meta.ai/docs/protocols/responses).
 
 For application-only development against already running infrastructure, use
 `bun run dev:saathi` from the repository root. Stop the full stack with
