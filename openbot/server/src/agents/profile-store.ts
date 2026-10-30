@@ -130,6 +130,7 @@ export class ManagedAgentUnavailableError extends Error {
 
 const joinedProjection = {
   id: agents.id,
+  type: agents.type,
   name: agents.name,
   title: agentProfiles.title,
   roleDescription: agentProfiles.roleDescription,
@@ -180,6 +181,12 @@ function mapProfile(
     ReturnType<ReturnType<typeof joinedProfiles>["execute"]>
   >[number],
 ): AgentProfile {
+  const personalOwner =
+    row.configuration &&
+    typeof row.configuration === "object" &&
+    "saathiOwnerId" in row.configuration
+      ? row.configuration.saathiOwnerId
+      : null;
   return {
     id: row.id,
     name: row.name,
@@ -193,6 +200,12 @@ function mapProfile(
     hidden: row.hiddenAt !== null,
     pinned: row.pinnedAt !== null,
     assignedToMe: Boolean(row.assignedToMe),
+    ...(row.type === "built_in" &&
+    row.visibility === "private" &&
+    row.ownerUserId !== null &&
+    personalOwner === row.ownerUserId
+      ? { personalAssistant: true }
+      : {}),
     deletedAt: row.deletedAt,
     endpoint: endpointOf(row.configuration),
     // Whether a key is set, never which. The form needs to show "a key is set" so a person does not

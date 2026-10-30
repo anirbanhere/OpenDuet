@@ -119,6 +119,14 @@ export function SaathiSettings() {
           {notice}
         </p>
       ) : null}
+      <p className="text-sm text-muted-foreground">
+        WhatsApp is optional for the web companion. After saving your model,
+        open your private assistant from the{" "}
+        <a href="/" className="underline underline-offset-4">
+          Chat tab
+        </a>{" "}
+        or Bots. The shared welcome Bot only helps with setup.
+      </p>
       <PageSection title="Your model">
         <p className="mt-2 text-sm text-muted-foreground">
           Choose the model Saathi uses for your tasks. Keys are encrypted and

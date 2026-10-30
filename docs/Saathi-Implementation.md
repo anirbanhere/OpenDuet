@@ -17,6 +17,9 @@ CopilotKit/OpenDuet commit `677e0fcd148d80b99dd788c6d6f9c1c9f40a72db`.
 - Authenticated companion settings at `/settings/saathi`. Secrets are write-only
   and are cleared from inputs on submission. Model verification checks provider
   model access, not successful task execution or tool compatibility.
+- The Chat, Tasks, and Activity tabs prefer the signed-in person's explicitly
+  owner-bound private assistant when one exists. The shared welcome Bot remains
+  setup-only. A prepared private web assistant works without a WhatsApp connection.
 - Text requests; optional incoming voice transcription through the existing
   operator-configured speech service. Replies currently contain text.
 - `/help`, `/models`, `/status`, `/model <provider> <model>`, `/stop`,
@@ -192,7 +195,8 @@ update its baseline to hide new errors.
 The Windows run reported eight inherited JSX diagnostics whose absolute paths do
 not match the baseline's relative paths. The baseline parser now normalizes its
 Windows checkout prefix to match TypeScript's forward slashes. The test-type gate
-passes against its unchanged baseline of 239 known upstream diagnostics.
+passes with 237 known upstream diagnostics after two incomplete profile fixtures
+were repaired; no new errors were added to the baseline.
 
 ## Source map
 
