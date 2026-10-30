@@ -1,5 +1,11 @@
 # Saathi on OpenDuet handoff
 
+## Fixture transcript boundary — PR24 scoped Linux checks passed
+
+Exact source9edbfa9f313e342e0ea5dedb5f4c0f05cbacac16, draft [PR24](https://github.com/anirbanhere/saathi/pull/24), base PR23. Scoped self-hosted41090669589 and tenant41090669655 Linux CI passed, including148 focused tests/server/frozen types/audit/packed checks. Wider upstream CI41090669394 failed; no whole-platform-green claim. Local tests1285 assertions. Clean validation source9edbfa9/dirty=false retains bundle6b205c28 and runtimeIntegrity=null; not a deployable release. No live/paid call, reset credit, schema change or existing-profile/deployment access.
+
+The prior five-hour window reached100%; work was already committed/pushed and PR24 attached before waiting. Fresh scheduled check permits ordinary work after natural reset (18% five-hour,94% weekly used); no reset credit was redeemed. Full execution claims/settlement remain unimplemented. Next can take the small atomic consent/content/audio snapshot prerequisite in fresh synthetic tests before the larger lease migration, while preserving the documented no-grant/no-provider boundary. Keep all live/public speech off, preserve PR18 contributor work and do not mark the full PRD/recurring continuation complete.
+
 ## Shared fixture transcript boundary — tested checkpoint
 
 30 October2026. At93% five-hour usage, took a small prerequisite instead of starting the full execution migration. Branch codex/fixture-transcript-boundary starts from PR23 handofffffb7ce. Exported/reused validateFixtureTranscript in current createSpeech, rejecting whitespace-only text and forged fixture identity/mode/confidence/language/extra fields while preserving Indic text and trimming outer whitespace. Invalid output language yields provider-boundary502. Schema remains10. This validates evidence labels only, not real ASR; no claim/token, execution, settlement, stored transcript or provider was introduced.
