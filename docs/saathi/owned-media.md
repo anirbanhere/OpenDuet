@@ -9,6 +9,7 @@ The caller authenticates the owner through the existing server session boundary.
 | admit(owner,input) | Atomic quota/identity check and bounded WAV BLOB insert; returns metadata only |
 | metadata(owner,id) | Owned metadata and effective expiry state; no audio bytes |
 | read(owner,id) | Active session/owner/storage consent/state/expiry checks, WAV/duration/hash validation and a fresh byte copy |
+| readConsentedSnapshot(owner,id,revision,hash) | Current processing consent and pinned digest plus validated bytes in one read snapshot; repeatable, not an execution lease/token/budget grant |
 | revokeProcessing(owner,id) | Clears processing consent without revoking owner playback; duplicates cannot regrant it |
 | remove / revoke(owner,id) | Clears the active BLOB and both consent flags; retains the first terminal tombstone |
 | purgeExpired() | Explicit operator-only cleanup clears expired active BLOBs; no route or scheduler invokes it |
