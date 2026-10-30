@@ -1,11 +1,51 @@
 import { expect, test } from "bun:test";
 import { resolve } from "node:path";
 import { selfHostedConfig } from "../src/self-hosted/config";
-import type { SpeechToTextProvider } from "../src/self-hosted/speech";
+import type { SpeechToTextProvider, Transcript } from "../src/self-hosted/speech";
 import {
   createSpeech,
   syntheticSpeechFixture,
+  validateFixtureTranscript,
 } from "../src/self-hosted/speech";
+
+test("the shared fixture transcript boundary rejects blank/forged evidence and preserves Indic text", async () => {
+  const roles = selfHostedConfig({ SAATHI_STT_PROVIDER: "fixture-a" }).roles;
+  const valid: Transcript = {
+    text: " தமிழ் synthetic ",
+    language: "ta-IN",
+    confidence: null,
+    alternatives: [],
+    warnings: [],
+    source: {
+      mode: "fixture",
+      provider: "fixture-a",
+      model: "synthetic-stt-v1",
+    },
+  };
+  expect(validateFixtureTranscript(valid, roles.stt).text).toBe(
+    "தமிழ் synthetic",
+  );
+  for (const candidate of [
+    { ...valid, text: " \n\t " },
+    { ...valid, confidence: 0.9 },
+    { ...valid, source: { ...valid.source, mode: "live" } },
+    { ...valid, source: { ...valid.source, provider: "fixture-b" } },
+    { ...valid, source: { ...valid.source, model: "unreviewed" } },
+    { ...valid, language: "ml-IN" },
+    { ...valid, grant: "execute" },
+  ])
+    expect(() => validateFixtureTranscript(candidate, roles.stt)).toThrow();
+  const fake: SpeechToTextProvider = {
+    transcribe: async () => ({ ...valid, text: "   " }),
+  };
+  await expect(
+    createSpeech(roles, { stt: new Map([["fixture-a", fake]]) }).transcribe({
+      audio: syntheticSpeechFixture("ta-IN").audio,
+      mimeType: "audio/wav",
+      consentToProcess: true,
+    }),
+  ).rejects.toMatchObject({ status: 502 });
+});
 
 test("fixture STT/TTS swap independently and label tones as synthetic rather than real speech", async () => {
   const first = selfHostedConfig({
