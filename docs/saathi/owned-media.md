@@ -1,6 +1,6 @@
 # Internal owned-media store
 
-The separate [local control boundary](local-media-controls.md) now exposes metadata, processing revocation and deletion only under explicit loopback opt-in. The store methods below remain internal, no upload/playback/execution route is enabled, and public/private data have not been migrated by this work.
+The separate [local control boundary](local-media-controls.md) now exposes bounded metadata listing, individual metadata, processing revocation and deletion plus a conditional local status UI, only under explicit loopback opt-in. The store methods below remain internal, no upload/playback/execution route is enabled, and public/private data have not been migrated by this work.
 
 The schema8 foundation adds `owned_media`; schema9 records [consent history](media-consent.md) and current schema11 adds [private fixture claims/settlement](stt-claims.md). `SelfHostedStore.media` is internal: no HTTP upload/playback endpoint, channel, provider registration or background cleanup is added. Tests use fresh synthetic state/generated tones only. Last verified public deployment is schema7; do not start this branch against a private profile or deploy without a separate backed-up upgrade. Older binaries refuse11; never fake the version row or restore an old snapshot over later data.
 
@@ -9,6 +9,7 @@ The caller authenticates the owner through the existing server session boundary.
 | Internal method | Behavior |
 | --- | --- |
 | admit(owner,input) | Atomic quota/identity check and bounded WAV BLOB insert; returns metadata only |
+| list(owner) | Active owner/session, at most100/tightened record cap, deterministic metadata-only projection in one read snapshot; no BLOB/digest selection |
 | metadata(owner,id) | Owned metadata and effective expiry state; no audio bytes |
 | read(owner,id) | Active session/owner/storage consent/state/expiry checks, WAV/duration/hash validation and a fresh byte copy |
 | readConsentedSnapshot(owner,id,revision,hash) | Current processing consent and pinned digest plus validated bytes in one read snapshot; repeatable, not an execution lease/token/budget grant |

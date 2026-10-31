@@ -118,6 +118,14 @@ try {
   assert.equal(health.public_demo, true);
   assert.equal(health.local_media_controls, false);
   assert.equal(health.speech, false);
+  assert.equal(
+    (
+      await request("/api/media", {
+        headers: { Cookie: `saathi_self_hosted=${seedSession.token}` },
+      })
+    ).status,
+    404,
+  );
   const readAuth = {
     Cookie: `saathi_self_hosted=${seedSession.token}`,
     "X-Saathi-CSRF": seedSession.csrf,
@@ -166,6 +174,7 @@ try {
   assert.equal((await request("/assets/app.js")).status, 200);
   assert.equal((await request("/assets/appointments.js")).status, 200);
   assert.equal((await request("/assets/plans.js")).status, 200);
+  assert.equal((await request("/assets/media.js")).status, 200);
   const session = await request("/api/session", {
     method: "POST",
     body: JSON.stringify({ consent: true }),

@@ -42,6 +42,7 @@ type Row = {
   consent_revision: number;
   consent_changed_at: number | null;
 };
+type MetadataRow = Omit<Row, "owner" | "digest" | "content_hash" | "audio">;
 export function migrateMedia(db: Database) {
   db.exec(`CREATE TABLE IF NOT EXISTS owned_media(
     id TEXT PRIMARY KEY, owner TEXT NOT NULL REFERENCES owners(id) ON DELETE CASCADE,
@@ -93,7 +94,7 @@ export class OwnedMedia {
     if (!row) throw new LocalError("Media not found.", 404);
     return row;
   }
-  private view(row: Row, now: number) {
+  private view(row: MetadataRow, now: number) {
     return {
       id: row.id,
       request_id: row.request,
@@ -187,6 +188,24 @@ export class OwnedMedia {
         return this.view(this.row(owner, id), now);
       })
       .immediate();
+  }
+  list(owner: string) {
+    return this.db
+      .transaction(() => {
+        const now = this.now();
+        this.sessionExpiry(owner, now);
+        // Explicit metadata projection: listing never materializes stored BLOBs/digests.
+        return this.db
+          .query<MetadataRow, [string, number]>(
+            `SELECT id,request,byte_length,duration_ms,sample_rate,channels,language,
+        storage_consent,processing_consent,state,created,expires,removed,
+        consent_revision,consent_changed_at FROM owned_media WHERE owner=?
+        ORDER BY created DESC,id DESC LIMIT ?`,
+          )
+          .all(owner, this.limits.ownerRecords)
+          .map((row) => this.view(row, now));
+      })
+      .deferred();
   }
   metadata(owner: string, id: string) {
     const row = this.row(owner, id),

@@ -1,6 +1,6 @@
 # Saathi customization guide
 
-[Local owned-media controls](local-media-controls.md) add an off-by-default, public-disabled metadata/revoke/delete HTTP boundary. They reuse owner/CSRF/strict-body protections; no uploads, playback, transcript or live speech route is enabled.
+[Local owned-media controls](local-media-controls.md) add an off-by-default, public-disabled bounded metadata list/revoke/delete boundary and conditional Saved audio privacy console. They reuse owner/CSRF/strict-body protections; no uploads, playback, transcript or live speech route is enabled.
 
 [Keyless fixture STT execution](stt-coordinator.md) connects owned claims to synthetic adapters with bounded waits, cooperative cancellation and actual-acknowledgement slot retention. `bun run saathi:stt:fixture` demonstrates both providers/en-hi-ta on fresh temporary state. No existing profile, public audio route, real ASR or vendor registration.
 

@@ -61,6 +61,41 @@ afterEach(() => {
   }
 });
 
+test("media listing is owned metadata only, deterministic and retains effective expiry/tombstones", () => {
+  const w = world();
+  expect(w.store.media.list(w.a.owner)).toEqual([]);
+  const a = w.store.media.admit(w.a.owner, input("first")),
+    b = w.store.media.admit(w.a.owner, input("second"));
+  expect(w.store.media.list(w.b.owner)).toEqual([]);
+  const rows = w.store.media.list(w.a.owner);
+  expect(rows.map((row) => row.id)).toEqual([a.id, b.id].sort().reverse());
+  expect(rows.find((row) => row.id === a.id)).toEqual(a);
+  expect(JSON.stringify(rows)).not.toMatch(
+    /"audio"|"owner"|content_hash|"digest"/,
+  );
+  w.store.media.remove(w.a.owner, a.id);
+  w.clock(b.expiresAt);
+  const later = w.store.media.list(w.a.owner);
+  expect(later.find((row) => row.id === a.id)?.state).toBe("deleted");
+  expect(later.find((row) => row.id === b.id)?.state).toBe("expired");
+  w.clock(w.now() + 86400001);
+  expect(() => w.store.media.list(w.a.owner)).toThrow("active owner session");
+});
+
+test("media listing stays bounded even if retained legacy/operator rows exceed the configured record cap", () => {
+  const w = world({ ownerRecords: 1 }),
+    saved = w.store.media.admit(w.a.owner, input());
+  const db = inspect(w.path);
+  // Simulate an extra historical row rather than relaxing admission quotas.
+  db.query(
+    `INSERT INTO owned_media SELECT '00000000-0000-4000-8000-000000000000',owner,'old-extra',digest,content_hash,audio,byte_length,duration_ms,sample_rate,channels,language,storage_consent,processing_consent,state,created-1,expires,removed,consent_revision,consent_changed_at FROM owned_media WHERE id=?`,
+  ).run(saved.id);
+  expect(w.store.media.list(w.a.owner)).toEqual([saved]);
+  expect(() => w.store.media.admit(w.a.owner, input("third"))).toThrow(
+    "budget",
+  );
+});
+
 test("owned media survives reopen; exact duplicates preserve identity/expiry and changed input conflicts", () => {
   const w = world(),
     request = input();

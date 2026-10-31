@@ -19,6 +19,14 @@
       <button id="delete-thread" class="text-button" hidden>Delete this conversation</button>
     </section>
     <aside class="panel memory" aria-labelledby="memory-heading"><p class="eyebrow">PREFERENCES YOU REVIEW</p><h2 id="memory-heading">What Saathi remembers</h2><p class="muted">Saved explicitly by you. These preferences are included in this workspace's model context. No automatic extraction or cross-workspace memory. Deleting a memory removes its record; earlier messages may still mention it.</p><form id="memory-form"><label for="memory-text">A preference to remember</label><textarea id="memory-text" rows="3" maxlength="2000" required placeholder="For example: reply in Tamil."></textarea><label class="check"><input id="reviewed" type="checkbox" required> I reviewed this preference and want to save it.</label><button type="submit" class="secondary">Save reviewed memory</button></form><div id="memories"></div></aside>
+    <section id="saved-media" class="panel appointments" aria-labelledby="media-heading" hidden>
+      <p class="eyebrow">SAVED ON THIS SERVER</p><h2 id="media-heading">Saved audio privacy</h2>
+      <p class="notice">Review clip details and withdraw consent or delete active storage. Expiry blocks access before stored bytes are cleared. Revoking consent cannot recall copies already returned; clip details and backups may remain. Audio upload, playback and speech processing are not connected here.</p>
+      <fieldset id="media-controls"><legend class="visually-hidden">Saved audio controls</legend>
+        <p id="media-status" role="status" aria-live="polite"></p><button id="media-refresh" class="secondary" type="button">Refresh saved media</button>
+        <ul id="media-records" class="media-list" aria-label="Saved clip records"></ul>
+      </fieldset>
+    </section>
     <section id="task-planning" class="panel appointments" aria-labelledby="plans-heading">
       <p class="eyebrow">DRAFT AND REVIEW</p><h2 id="plans-heading">Plan an everyday task</h2>
       <p class="notice">Send a goal to the reasoning model to draft a saved proposal. You can then run its read-only demo-clinic checks or view manual guidance. This does not book, pay or send messages. Draft text is unverified model output. For a simulated booking, use the appointment panel below.</p>
