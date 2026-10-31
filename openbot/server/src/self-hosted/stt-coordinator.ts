@@ -19,6 +19,7 @@ type Job = { controller: AbortController; done: Promise<void> };
 export class FixtureSttCoordinator {
   private active = new Map<string, Job>();
   private acknowledgementFailed = false;
+  private stopping = false;
   private now: () => number;
   private fixtureProvider: typeof createFixtureSttProvider;
   constructor(
@@ -32,20 +33,43 @@ export class FixtureSttCoordinator {
   private key(owner: string, id: string) {
     return JSON.stringify([owner, id]);
   }
+  /** Terminal per-instance stop. Signalling is not proof that a worker has ended. */
+  stop() {
+    if (!this.stopping) {
+      this.stopping = true;
+      for (const job of this.active.values()) job.controller.abort();
+    }
+    return {
+      stopping: true as const,
+      pendingWorkers: this.active.size,
+      acknowledgementFailed: this.acknowledgementFailed,
+    };
+  }
   cancel(owner: string, id: string) {
     // Durable ownership/cancellation succeeds before another worker can be signalled.
     const admission = this.admissions.cancel(owner, id);
     this.active.get(this.key(owner, id))?.controller.abort();
     return admission;
   }
-  async run(owner: string, id: string, parent?: AbortSignal) {
+  private ensureAccepting() {
     if (this.acknowledgementFailed)
       throw new LocalError(
         "Fixture acknowledgement failed; exclusive recovery is required.",
         503,
       );
+    if (this.stopping)
+      throw new LocalError(
+        "Fixture execution is stopping; no new work was claimed.",
+        503,
+      );
+  }
+  async run(owner: string, id: string, parent?: AbortSignal) {
+    this.ensureAccepting();
     if (parent?.aborted) return this.cancel(owner, id);
-    const claim = this.admissions.claim(owner, id, this.currentRoles().stt);
+    const role = this.currentRoles().stt;
+    // A dynamic server-role getter may itself initiate shutdown.
+    this.ensureAccepting();
+    const claim = this.admissions.claim(owner, id, role);
     if (!claim.fresh) return claim.admission;
     const key = this.key(owner, id),
       controller = new AbortController();
@@ -129,6 +153,10 @@ export class FixtureSttCoordinator {
     }
     const acknowledge = () => {
       try {
+        // A stop can arrive after the bounded race fulfilled but before validation
+        // or settlement. It still cannot turn late success into retained text.
+        if (this.stopping && outcome.status === "completed")
+          outcome = { status: "failed", code: "aborted" };
         return this.admissions.settle(owner, id, claim.executorToken, outcome);
       } catch {
         this.acknowledgementFailed = true;
