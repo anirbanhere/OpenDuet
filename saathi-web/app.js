@@ -1,4 +1,5 @@
 import { createAppointmentConsole } from "./appointments.js";
+import { createMediaConsole } from "./media.js";
 import { createPlanConsole } from "./plans.js";
 
 const $ = (selector) => document.querySelector(selector);
@@ -14,6 +15,7 @@ let csrf = "",
   lastModel = null;
 const demoAppointments = createAppointmentConsole({ api, run, el, button });
 const taskPlans = createPlanConsole({ api, run, el, button });
+const savedMedia = createMediaConsole({ api, run, el, button });
 async function api(path, body, method = "POST") {
   const response = await fetch(
     path,
@@ -44,6 +46,7 @@ async function run(action, focusAfter = null) {
   busy = true;
   demoAppointments.setBusy(true);
   taskPlans.setBusy(true);
+  savedMedia.setBusy(true);
   $("#model-select").disabled = true;
   $("#message").readOnly = true;
   document.querySelectorAll("button").forEach((button) => {
@@ -70,14 +73,15 @@ async function run(action, focusAfter = null) {
     $("#send").disabled = !pending && !$("#model-select").value;
     demoAppointments.setBusy(false);
     taskPlans.setBusy(false);
+    savedMedia.setBusy(false);
     if (succeeded) focusAfter?.focus();
   }
 }
-function button(text, action, className = "secondary") {
+function button(text, action, className = "secondary", focusAfter = null) {
   const element = el("button", text);
   element.type = "button";
   element.className = className;
-  element.addEventListener("click", () => run(action));
+  element.addEventListener("click", () => run(action, focusAfter));
   return element;
 }
 async function threads() {
@@ -244,6 +248,7 @@ async function enter(session) {
       ` Shared demo allowance: ${session.daily_limits.owner} model attempts per workspace and ${session.daily_limits.global} total per day; resets at midnight UTC.`;
   await threads();
   await memories();
+  await savedMedia.initialize();
   const records = await api("/api/threads");
   if (records.length) {
     await show(records[0].id);
@@ -277,6 +282,7 @@ $("#refresh").addEventListener("click", () =>
     await memories();
     await demoAppointments.refresh();
     await taskPlans.refresh();
+    await savedMedia.refresh();
   }),
 );
 $("#chat").addEventListener("submit", (event) => {

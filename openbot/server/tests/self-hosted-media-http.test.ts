@@ -177,6 +177,24 @@ test("local metadata is owner-only, byte/token/hash-free and distinct from speec
   expect(health.actions).toBe(false);
   expect(w.calls()).toBe(0);
 });
+
+test("local media listing is owner/session-bound, strict and unavailable without local opt-in", async () => {
+  const w = await world();
+  expect((await w.app.request(`${w.base}/api/media`)).status).toBe(401);
+  expect(await (await w.a.request("/api/media")).json()).toEqual([w.media]);
+  expect(await (await w.b.request("/api/media")).json()).toEqual([]);
+  expect((await w.a.request(`/api/media?owner=${w.b.owner}`)).status).toBe(422);
+  for (const [enabled, publicOrigin] of [
+    [false, undefined],
+    [true, "https://saathi.example.test"],
+  ] as const) {
+    const denied = await world(enabled, publicOrigin);
+    expect((await denied.a.request("/api/media")).status).toBe(404);
+  }
+  w.db.query("UPDATE sessions SET expires=0 WHERE owner=?").run(w.a.owner);
+  expect((await w.a.request("/api/media")).status).toBe(401);
+  expect(w.calls()).toBe(0);
+});
 test("same-origin CSRF and strict fields gate every media mutation without changing consent", async () => {
   const w = await world(),
     url = `/api/media/${w.media.id}`;

@@ -27,6 +27,11 @@ export function attachLocalMediaControls(
   // Independent of config parsing: a programmatic caller cannot enable public media.
   if (options.enabled !== true || options.publicOrigin) return false;
   const media = options.media;
+  app.get("/api/media", (c) => {
+    if (new URL(c.req.url).search)
+      throw new LocalError("Media listing accepts no query fields.");
+    return c.json(media.list(c.var.session.owner));
+  });
   app.get("/api/media/:id", (c) =>
     c.json(media.metadata(c.var.session.owner, mediaId(c))),
   );
