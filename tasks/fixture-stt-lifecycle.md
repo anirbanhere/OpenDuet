@@ -12,3 +12,5 @@ Explicit expiry cleanup remains a separate operator-only slice using OwnedMedia.
 
 
 Final local evidence:193 focused tests/1701 assertions, server types/changed-file Biome and six-case keyless CLI pass. CLI now stop/drains each coordinator in finally before store close. Windows frozen gate retains only eight known gallery path-text mismatches, baseline unchanged. Dirty audited bundle5b123977/runtimeIntegrity=null and packed public smoke pass; zero observed shipped advisory matches/29 wider upstream packages. Exact-source Linux/clean build next; no live/public/data migration.
+
+PR31 sourceb14968b2f5d887688f613f4791971e0cf903609a passed scoped Linux self-hosted41186810848/tenant41186810823, including193 tests/server/frozen baseline/audit/packed and tenant/app checks. Clean validation bundle5b123977/runtimeIntegrity=null is not a release runtime. Private lifecycle/fixture CLI slice complete; no public shutdown/live speech/data migration. Next explicit migration-refusing operator maintenance is tasks/operator-media-maintenance.md.
