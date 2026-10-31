@@ -119,6 +119,148 @@ function held(w: ReturnType<typeof world>, now?: () => number) {
   };
 }
 
+test("terminal coordinator stop refuses runs before role lookup or audio claim and does not refund reservations", async () => {
+  const w = world();
+  const runner = new FixtureSttCoordinator(w.store.sttAdmissions, () => {
+    throw new Error("Role lookup must not run after stop");
+  });
+  expect(runner.stop()).toEqual({
+    stopping: true,
+    pendingWorkers: 0,
+    acknowledgementFailed: false,
+  });
+  expect(runner.stop()).toEqual({
+    stopping: true,
+    pendingWorkers: 0,
+    acknowledgementFailed: false,
+  });
+  await expect(runner.run(w.a.owner, w.admission.id)).rejects.toMatchObject({
+    status: 503,
+  });
+  expect(w.status().state).toBe("reserved");
+  expect(w.status().claimedAt).toBeNull();
+  expect(w.status().pending).toBe(true);
+  const db = new Database(w.path);
+  checks.push(db);
+  expect(
+    db
+      .query<{ n: number }, []>("SELECT count(*) n FROM stt_admission_usage")
+      .get()?.n,
+  ).toBe(1);
+  await runner.drain();
+});
+
+test("shutdown initiated by a dynamic role lookup still denies the private claim", async () => {
+  const w = world();
+  let runner: FixtureSttCoordinator,
+    calls = 0;
+  runner = new FixtureSttCoordinator(
+    w.store.sttAdmissions,
+    () => {
+      runner.stop();
+      return w.roles();
+    },
+    {
+      fixtureProvider: () => {
+        calls++;
+        throw new Error("No handoff permitted");
+      },
+    },
+  );
+  await expect(runner.run(w.a.owner, w.admission.id)).rejects.toThrow(
+    "stopping",
+  );
+  expect(w.status().state).toBe("reserved");
+  expect(w.status().claimedAt).toBeNull();
+  expect(calls).toBe(0);
+});
+
+test("stop signals once but drain waits for an abort-ignoring worker's real success or rejection", async () => {
+  for (const failure of [false, true]) {
+    const w = world(),
+      h = held(w),
+      running = h.runner.run(w.a.owner, w.admission.id);
+    await h.ready;
+    let aborts = 0;
+    h.signal()?.addEventListener("abort", () => {
+      aborts++;
+    });
+    expect(h.runner.stop()).toEqual({
+      stopping: true,
+      pendingWorkers: 1,
+      acknowledgementFailed: false,
+    });
+    expect(h.runner.stop().pendingWorkers).toBe(1);
+    expect(aborts).toBe(1);
+    expect((await running).pending).toBe(true);
+    let drained = false;
+    const draining = h.runner.drain().then(() => {
+      drained = true;
+    });
+    await Promise.resolve();
+    expect(drained).toBe(false);
+    expect(w.status().outcome).toBeNull();
+    expect(w.status().pending).toBe(true);
+    if (failure) h.reject(new Error("private late error"));
+    else h.release(w.transcript);
+    await draining;
+    expect(w.status().pending).toBe(false);
+    expect(w.status().outcome).toEqual({ status: "failed", code: "aborted" });
+    expect(h.runner.stop().pendingWorkers).toBe(0);
+    await expect(h.runner.run(w.a.owner, w.admission.id)).rejects.toThrow(
+      "stopping",
+    );
+    expect(h.calls()).toBe(1);
+  }
+});
+
+test("stop between claim and queued adapter invocation releases only the unhanded worker after acknowledgement", async () => {
+  const w = world(),
+    h = held(w),
+    running = h.runner.run(w.a.owner, w.admission.id);
+  expect(h.runner.stop().pendingWorkers).toBe(1);
+  const result = await running;
+  await h.runner.drain();
+  expect(result.pending).toBe(false);
+  expect(result.outcome).toEqual({ status: "failed", code: "aborted" });
+  expect(h.calls()).toBe(0);
+  expect(h.runner.stop().pendingWorkers).toBe(0);
+});
+
+test("stopping after completed work preserves saved evidence while disabling further execution", async () => {
+  const w = world(),
+    runner = new FixtureSttCoordinator(w.store.sttAdmissions, w.roles);
+  const saved = await runner.run(w.a.owner, w.admission.id);
+  expect(saved.state).toBe("completed");
+  expect(runner.stop().pendingWorkers).toBe(0);
+  await runner.drain();
+  expect(w.status()).toEqual(saved);
+  await expect(runner.run(w.a.owner, w.admission.id)).rejects.toThrow(
+    "stopping",
+  );
+});
+
+test("stop during validation of an already fulfilled adapter result suppresses completion at settlement", async () => {
+  const w = world();
+  let runner: FixtureSttCoordinator;
+  runner = new FixtureSttCoordinator(w.store.sttAdmissions, w.roles, {
+    fixtureProvider: () => ({
+      transcribe: async () => ({
+        ...w.transcript,
+        get text() {
+          runner.stop();
+          return w.transcript.text;
+        },
+      }),
+    }),
+  });
+  const result = await runner.run(w.a.owner, w.admission.id);
+  expect(result.state).toBe("failed");
+  expect(result.outcome).toEqual({ status: "failed", code: "aborted" });
+  expect(result.pending).toBe(false);
+  await runner.drain();
+});
+
 test("owned fixture coordinator completes both providers and en/hi/ta without replaying duplicates", async () => {
   for (const locale of ["en-IN", "hi-IN", "ta-IN"] as const)
     for (const provider of ["fixture-a", "fixture-b"]) {
@@ -271,10 +413,105 @@ test("background acknowledgement errors are surfaced to trusted drain without un
   );
   expect(w.status().pending).toBe(true);
   expect(w.status().outcome).toBeNull();
+  expect(h.runner.stop()).toEqual({
+    stopping: true,
+    pendingWorkers: 0,
+    acknowledgementFailed: true,
+  });
   await expect(h.runner.run(w.a.owner, w.admission.id)).rejects.toThrow(
     "Fixture acknowledgement failed; exclusive recovery is required.",
   );
 });
+
+test("a stopped abort-ignoring process keeps the kernel/worker slot until process loss, then recovery never replays", async () => {
+  const folder = mkdtempSync(join(tmpdir(), "saathi-coordinator-"));
+  folders.push(folder);
+  const path = join(folder, "state.sqlite");
+  const child = Bun.spawn(
+    [
+      process.execPath,
+      resolve(import.meta.dir, "fixtures/self-hosted-stt-stopped-worker.ts"),
+      path,
+    ],
+    { stdout: "pipe", stderr: "pipe" },
+  );
+  try {
+    const reader = child.stdout.getReader();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let output = "";
+    try {
+      await Promise.race([
+        (async () => {
+          const decoder = new TextDecoder();
+          while (!output.includes("\n")) {
+            const part = await reader.read();
+            if (part.done)
+              throw new Error("Synthetic worker did not report ready");
+            output += decoder.decode(part.value, { stream: true });
+            if (output.length > 4096)
+              throw new Error("Synthetic worker output too large");
+          }
+        })(),
+        new Promise<never>((_resolve, reject) => {
+          timer = setTimeout(
+            () => reject(new Error("Synthetic worker startup timed out")),
+            5000,
+          );
+        }),
+      ]);
+    } finally {
+      if (timer) clearTimeout(timer);
+      reader.releaseLock();
+    }
+    const observed = JSON.parse(output) as {
+      owner: string;
+      id: string;
+      pending: boolean;
+      state: string;
+      aborts: number;
+      workers: number;
+    };
+    expect(observed.state).toBe("claimed");
+    expect(observed.pending).toBe(true);
+    expect(observed.aborts).toBe(1);
+    expect(observed.workers).toBe(1);
+    expect(output).not.toMatch(/executorToken|claim_hash|"audio"/);
+    expect(() => new SelfHostedStore(path)).toThrow("cannot be locked");
+    child.kill();
+    await child.exited;
+    const recovered = new SelfHostedStore(path);
+    stores.push(recovered);
+    const status = recovered.sttAdmissions.get(observed.owner, observed.id);
+    expect(status.state).toBe("interrupted");
+    expect(status.pending).toBe(false);
+    expect(status.outcome).toBeNull();
+    let calls = 0;
+    const runner = new FixtureSttCoordinator(
+      recovered.sttAdmissions,
+      () => selfHostedConfig({ SAATHI_STT_PROVIDER: "fixture-a" }).roles,
+      {
+        fixtureProvider: () => {
+          calls++;
+          throw new Error("No replay permitted");
+        },
+      },
+    );
+    expect((await runner.run(observed.owner, observed.id)).state).toBe(
+      "interrupted",
+    );
+    expect(calls).toBe(0);
+    const db = new Database(path);
+    checks.push(db);
+    expect(
+      db
+        .query<{ n: number }, []>("SELECT count(*) n FROM stt_admission_usage")
+        .get()?.n,
+    ).toBe(1);
+  } finally {
+    child.kill();
+    await child.exited;
+  }
+}, 15000);
 
 test("immediate durable cancellation before the queued invocation sends no audio to the adapter", async () => {
   const w = world(),

@@ -1,5 +1,15 @@
 # Saathi on OpenDuet handoff
 
+## Private fixture stop/drain — tested implementation
+
+31 October2026. Branch codex/fixture-stt-lifecycle stacks on PR30 handoff7de8ec0. Added terminal per-instance stop: deny run before role lookup/private claim, signal registered jobs once, retain actual-acknowledgement pending semantics and return only stopping/count/failure. Recheck after a dynamic role lookup that may initiate shutdown; late completion stopped during validation/settlement becomes aborted. Already-settled evidence and admission units stay unchanged. Acknowledgement failure remains visible even when local worker count is zero. No new timeout/force-exit, global admission stop or public shutdown wiring. The keyless fresh-state fixture CLI now stops/drains each coordinator in finally before closing its store.
+
+Six stop/late-result regressions were red first.16 coordinator tests/162 assertions, aggregate193 focused tests/1701 assertions, server types and changed-file Biome pass. A real stopped abort-ignoring child retains the kernel/worker slot until killed; only then does exclusive restart interrupt it without replay/refund. CLI all six synthetic workflows/duplicates pass with zero fetch attempts. Windows frozen types retain only eight known gallery path-text mismatches, baseline untouched. Audited dirty validation bundle5b123977/runtimeIntegrity=null and packed public smoke pass; four shipped packages/zero observed advisory matches,29 wider upstream packages. Manual review added dynamic-role and validation-boundary stop checks, preserved failure priority and explicitly distinguished local counts from durable release.
+
+No schema change (still11), browser/UI change, existing-profile access/migration, live/paid call, recording, new key, deployment, third-party message or reset redemption. Public last verified27de098/v7 and contributor PR18 untouched; private schema uninspected, one-Meta approval consumed. Full PRD/recurring continuation incomplete.
+
+Next: commit, clean validation artifact and stacked draft PR/scoped Linux gates. Then explicit operator expiry maintenance with a required database, kernel ownership and refusal to migrate/downgrade existing schemas or default to private profiles. Never clear pending/recover while a prior worker can still act. Read tasks/fixture-stt-lifecycle.md and docs/saathi/stt-coordinator.md; the private stop helper does not repair an unwired public executor.
+
 ## Saved-media privacy console — PR30 scoped Linux gates passed
 
 Exact source8feb7a0e123299551a3ddfaa5baf4bd6be34769a, draft [PR30](https://github.com/anirbanhere/saathi/pull/30), stacked on PR29; attached to this chat. [Self-hosted41182185524](https://github.com/anirbanhere/saathi/actions/runs/41182185524) and [tenant41182185527](https://github.com/anirbanhere/saathi/actions/runs/41182185527) passed, including186 focused tests/server/frozen Linux baseline/audit/packed and tenant/app checks. Local1641 assertions. Wider CI41182185538 was in progress; no whole-platform-green claim.
